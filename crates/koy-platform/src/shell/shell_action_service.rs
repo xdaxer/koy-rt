@@ -13,9 +13,14 @@ fn key(vk: VIRTUAL_KEY, flags: KEYBD_EVENT_FLAGS) -> INPUT {
 
 /// Windows 11 (derleme 22000+) mi: `OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000)`.
 pub fn is_windows_11() -> bool {
+    os_build() >= 22000
+}
+
+/// Windows yapı numarası (C# `OperatingSystem.IsWindowsVersionAtLeast(10, 0, build)` karşılaştırmaları için); okunamazsa 0.
+pub(crate) fn os_build() -> u32 {
     crate::registry::get_string(crate::registry::Hive::LocalMachine, r"SOFTWARE\Microsoft\Windows NT\CurrentVersion", Some("CurrentBuildNumber"), false)
         .and_then(|b| b.trim().parse::<u32>().ok())
-        .is_some_and(|b| b >= 22000)
+        .unwrap_or(0)
 }
 
 /// Win + tuş kombinasyonu gönderir (C# `ShellActionService.SendWinCombo`).

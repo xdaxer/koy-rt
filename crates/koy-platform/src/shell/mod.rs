@@ -1,6 +1,8 @@
 //! Karşılığı: `koy/src/Platform/Shell/`.
 
 mod app_user_model_id_reader;
+mod dwm;
+mod hotkey_service;
 mod icon_helper;
 mod png_encoder;
 mod small;
@@ -12,6 +14,8 @@ pub mod taskbar_service;
 pub mod watchdog_launcher;
 
 pub use app_user_model_id_reader::*;
+pub use dwm::*;
+pub use hotkey_service::*;
 pub use icon_helper::*;
 pub use small::*;
 pub use window_styles::WindowStyles;
