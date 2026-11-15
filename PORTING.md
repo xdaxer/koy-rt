@@ -121,3 +121,20 @@ birbirini çağırır. Herkes aynı adı tahmin edebilsin diye kurallar kesindir
 ## İlerleme
 `PROGRESS.md` modül modül durumu tutar. Paralel çalışmada onu, `Cargo.toml`'u ve `lib.rs`'i yalnız koordinatör günceller;
 alt ajanlar gereken değişikliği raporunda yazar.
+
+## Platform katmanı (`crates/koy-platform`) kuralları
+- Karşılık: `koy/src/Platform/<Klasör>/X.cs` → `crates/koy-platform/src/<modül>/x.rs`. Core'daki trait'i (`koy_core::<modül>::IFoo`)
+  uygular; Core'a Windows tipi sızmaz (pencere `isize`, görsel `Vec<u8>`).
+- Win32 ve WinRT yalnız `windows` crate'iyle (CsWin32 karşılığı). Elle `extern "system"` yazılmaz. Gereken özellik
+  (`Win32_…`) `Cargo.toml`'da yoksa ekle: dosyayı eklemeden hemen önce yeniden oku, tek satır ekle (başka ajanlar da düzenliyor).
+- `unsafe` serbest ama her blokta `// SAFETY:` yorumu. Tutamaçlar (`HANDLE`, `HWND`, COM) `Drop` ile kapatılır.
+- WinRT eşzamansız çağrıları Core trait'leri engelleyen olduğu için `.get()` ile beklenir (`IAsyncOperation::get`). Olay
+  aboneliği (`TypedEventHandler`) tokenı saklanır ve `Drop`/`dispose`'da çözülür.
+- Kendi iş parçacığında mesaj penceresi gereken servisler (pano dinleyicisi, tepsi penceresi, kancalar): C#'taki gibi ayrı
+  iş parçacığı + `GetMessageW` döngüsü; durdurmada `PostThreadMessageW(WM_QUIT)` ve `join`.
+- HTTP: yeni crate yok; `koy_platform::net::http` (WinHTTP) kullanılır.
+- COM: iş parçacığı başına `CoInitializeEx` (C#'taki STA/MTA seçimiyle aynı).
+- Testler: saf yardımcılar (ayrıştırıcı, eşleme, biçim) için `#[test]`. Gerçek donanım/sistem isteyen davranış test
+  edilmez; raporda "elle sınanmalı" listesine yazılır. Sistem durumunu değiştiren hiçbir şey (görev çubuğu, ses, parlaklık,
+  Bluetooth, Wi-Fi) testte çağrılmaz.
+- Doğrulama: `cargo build -p koy-platform` ve `cargo test -p koy-platform` uyarısız.
