@@ -82,6 +82,32 @@ koy-rt/
     (base64, zip…) önce küçük bir yardımcıyı kendin yaz; olmuyorsa ekleme, raporunda iste.
 17. **unsafe yok** (Core'da gerekmez).
 
+## Modüller arası API kuralları (merkez grubu için zorunlu)
+Merkez modülleri (settings, dock, display, notch, clipboard, search, rules, shortcuts, tasks, weather) paralel taşınır ve
+birbirini çağırır. Herkes aynı adı tahmin edebilsin diye kurallar kesindir:
+- **Yol:** `koy/src/Core/Dock/Items/DockItemLayout.cs` içindeki `DockItemLayout` → `crate::dock::DockItemLayout`.
+  Her `mod.rs` alt dosyalarını `pub use dosya::*;` ile dışa açar; alt klasör (Items/, Profiles/, Effects/, Store/) alt modül
+  olur (`dock::items`) ve üst `mod.rs` onu da `pub use items::*;` ile açar. Yani her tip `crate::<modül>::<Tip>` ile erişilir.
+- **static class** → birimsiz `pub struct Ad;` + ilişkili fonksiyonlar/sabitler: `DockLayoutMath.Compute(x)` →
+  `DockLayoutMath::compute(x)`, `NotchLayout.CanvasWidth` → `NotchLayout::CANVAS_WIDTH`. `static readonly` liste/nesne →
+  ilişkili fonksiyon: `NotchPanels.Order` → `NotchPanels::order()` (dönüş `&'static [T]` ya da `Vec<T>`).
+- **record / veri sınıfı özellikleri** → `pub` alanlar, snake_case: `settings.Dock.Edge` → `settings.dock.edge`.
+  Hesaplanan (gövdeli) özellik → metot: `IsVertical => ...` → `is_vertical()`.
+- **Durumlu sınıf** (controller, store) özellikleri → getter metotları (`controller.state()`), set'ler → `set_x(v)`.
+- **Aşırı yükleme** → ek parametre sayısını/tipi anlatan sonek: `Resolve(a)` / `Resolve(a, b)` → `resolve`, `resolve_with_b`.
+  İsteğe bağlı parametre (`int x = 5`) → zorunlu parametre (çağıran varsayılanı geçer) ve dokümanda C# varsayılanı yazılır.
+- **enum** → `#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default, Serialize, Deserialize)]`, C#'taki ilk değer
+  (ya da `= 0` olan) `#[default]`. Sayısal değer gerekiyorsa `#[repr(i32)]` ve açık ayırt edici.
+- **Arayüz** `IFoo` → `pub trait IFoo: Send + Sync` (I öneki korunur). Olaylar `fn changed(&self) -> &Event<T>`.
+- `Koy.Core.Settings.AppSettings` kök kayıttır; `ValueList<T>` / `ValueDictionary<T>` (settings::value_collections) değer
+  eşitlikli koleksiyonlardır — diğer modüller bunları `crate::settings::{ValueList, ValueDictionary}` olarak kullanır.
+- Önceden taşınmış modüllerin uyum noktaları: `appearance::MotionToggles` (MotionSettings uygular), `appearance::IconOverrideMap`
+  (ValueDictionary<String> uygular, büyük/küçük harf duyarsız), `tray::TrayIconVisibilityPolicy::resolve` şimdilik `HashMap`
+  alıyor (Settings ValueDictionary'ye uyarlanabilir), `quick_launch::QuickLaunchService::set_error_log` (CrashLog'a bağlanır).
+- Başka bir merkez modülünden çağırdığın öğe henüz yoksa **adını bu kurallarla tahmin et ve yaz**; kendi modülünün derleme
+  hatalarını düzelt, başka modüllerin dosyalarındaki ya da onlara ait çözümlenemeyen ad hatalarını yok say. Bütünleştirmeyi
+  koordinatör yapar. Kullandığın dış öğeleri raporunda listele.
+
 ## Testler
 - `koy/tests/Core.Tests` altındaki ilgili test dosyası `src/<modül>/tests/<dosya>.rs` olur ve modülün `mod.rs`'inde
   `#[cfg(test)] mod tests;` ile bağlanır (`tests/mod.rs` dosyaları listeler).
