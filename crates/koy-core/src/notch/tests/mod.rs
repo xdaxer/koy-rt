@@ -1,0 +1,19 @@
+mod support;
+
+mod clock_tick_tests;
+mod control_center_tiles_tests;
+mod greeting_tests;
+mod idle_display_format_tests;
+mod idle_display_tests;
+mod live_background_policy_tests;
+mod notch_behavior_settings_tests;
+mod notch_card_tests;
+mod notch_controller_tests;
+mod notch_edge_line_tests;
+mod notch_home_page_tests;
+mod notch_layout_options_tests;
+mod notch_layout_tests;
+mod notch_options_tests;
+mod notch_panels_tests;
+mod notch_state_tests;
+mod notch_style_tests;
