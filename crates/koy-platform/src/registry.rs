@@ -3,7 +3,7 @@
 use windows::Win32::Foundation::ERROR_SUCCESS;
 use windows::Win32::System::Registry::{
     HKEY, HKEY_CLASSES_ROOT, HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, REG_VALUE_TYPE, RRF_RT_REG_DWORD, RRF_RT_REG_EXPAND_SZ,
-    RRF_RT_REG_SZ, RRF_NOEXPAND, RegGetValueW,
+    RRF_RT_REG_SZ, RRF_NOEXPAND, RegGetValueW, RRF_RT_REG_BINARY, RRF_RT_ANY, REG_SZ, RegSetKeyValueW, RegDeleteKeyValueW,
 };
 use windows::core::{HSTRING, PCWSTR};
 
@@ -63,6 +63,50 @@ pub fn get_dword(hive: Hive, subkey: &str, name: &str) -> Option<u32> {
         RegGetValueW(hive.key(), &subkey, &name, RRF_RT_REG_DWORD, None, Some(&mut value as *mut u32 as *mut _), Some(&mut size))
     };
     (status == ERROR_SUCCESS).then_some(value)
+}
+
+/// İkili değer (REG_BINARY).
+pub fn get_binary(hive: Hive, subkey: &str, name: &str) -> Option<Vec<u8>> {
+    let subkey = HSTRING::from(subkey);
+    let name = HSTRING::from(name);
+    let mut size: u32 = 0;
+    // SAFETY: önce boyut sorgusu, sonra o boyutta arabellek.
+    unsafe {
+        if RegGetValueW(hive.key(), &subkey, &name, RRF_RT_REG_BINARY, None, None, Some(&mut size)) != ERROR_SUCCESS {
+            return None;
+        }
+        let mut buf = vec![0u8; size as usize];
+        if RegGetValueW(hive.key(), &subkey, &name, RRF_RT_REG_BINARY, None, Some(buf.as_mut_ptr() as *mut _), Some(&mut size)) != ERROR_SUCCESS {
+            return None;
+        }
+        buf.truncate(size as usize);
+        Some(buf)
+    }
+}
+
+/// Değer var mı (türü ne olursa olsun; C# `GetValue(name) is not null`).
+pub fn value_exists(hive: Hive, subkey: &str, name: &str) -> bool {
+    let subkey = HSTRING::from(subkey);
+    let name = HSTRING::from(name);
+    let mut size: u32 = 0;
+    // SAFETY: yalnız boyut sorgusu.
+    unsafe { RegGetValueW(hive.key(), &subkey, &name, RRF_RT_ANY, None, None, Some(&mut size)) == ERROR_SUCCESS }
+}
+
+/// REG_SZ yazar (anahtar yoksa oluşturur). Başarılıysa true.
+pub fn set_string(hive: Hive, subkey: &str, name: &str, value: &str) -> bool {
+    let data: Vec<u16> = value.encode_utf16().chain(std::iter::once(0)).collect();
+    // SAFETY: veri arabelleği boyutuyla verilir.
+    unsafe {
+        RegSetKeyValueW(hive.key(), &HSTRING::from(subkey), &HSTRING::from(name), REG_SZ.0, Some(data.as_ptr() as *const _), (data.len() * 2) as u32)
+            == ERROR_SUCCESS
+    }
+}
+
+/// Değeri siler; yoksa sessizce geçer.
+pub fn delete_value(hive: Hive, subkey: &str, name: &str) {
+    // SAFETY: yalnız silme çağrısı.
+    let _ = unsafe { RegDeleteKeyValueW(hive.key(), &HSTRING::from(subkey), &HSTRING::from(name)) };
 }
 
 #[cfg(test)]
