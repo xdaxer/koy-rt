@@ -185,7 +185,7 @@ fn settings_with_location_survive_a_save_and_load() {
             &LocationResult::new(LocationStatus::Success, 41.25, 29.75),
             now(),
         );
-        store.save(&saved);
+        store.save(&saved).unwrap();
 
         let loaded = store.load();
 

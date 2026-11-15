@@ -74,7 +74,7 @@ fn default_open_behavior_setting_is_hover() {
 fn saved_click_choice_is_kept() {
     let path = std::env::temp_dir().join(format!("koy-open-{}.json", std::process::id()));
     let store = SettingsStore::new(path.clone());
-    store.save(&AppSettings { notch: NotchSettings { open_behavior: NotchOpenBehavior::Click, ..NotchSettings::default() }, ..AppSettings::default() });
+    store.save(&AppSettings { notch: NotchSettings { open_behavior: NotchOpenBehavior::Click, ..NotchSettings::default() }, ..AppSettings::default() }).unwrap();
     assert_eq!(NotchOpenBehavior::Click, store.load().notch.open_behavior);
     let _ = std::fs::remove_file(&path);
 }
@@ -119,7 +119,7 @@ fn behavior_settings_round_trip_through_the_store() {
         ..AppSettings::default()
     };
 
-    store.save(&settings);
+    store.save(&settings).unwrap();
     let loaded = store.load();
 
     assert!(!loaded.notch.hide_in_fullscreen);

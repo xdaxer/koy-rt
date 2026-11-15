@@ -162,7 +162,7 @@ fn shortcuts_survive_settings_save_and_load() {
         let mut settings = ShortcutBindings::with_text(&AppSettings::default(), ShortcutAction::PlayPause, "Ctrl+Shift+F9");
         settings = ShortcutBindings::with_text(&settings, ShortcutAction::OpenMenu, "");
 
-        store.save(&settings);
+        store.save(&settings).unwrap();
         let loaded = store.load();
 
         assert_eq!("Ctrl+Shift+F9", loaded.shortcuts.play_pause);

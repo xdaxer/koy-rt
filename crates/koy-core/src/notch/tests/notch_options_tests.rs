@@ -157,7 +157,7 @@ fn new_notch_options_survive_save_and_load() {
     };
 
     let store = SettingsStore::new(path.clone());
-    store.save(&original);
+    store.save(&original).unwrap();
     let loaded = store.load();
 
     assert_eq!(original.notch, loaded.notch);

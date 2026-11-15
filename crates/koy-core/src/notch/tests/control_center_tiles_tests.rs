@@ -90,7 +90,7 @@ fn order_survives_a_settings_save_and_load() {
     let store = SettingsStore::new(dir.join("settings.json"));
     let layout = ValueList::from(ControlCenterTiles::r#move(&ControlCenterTiles::default_order(), "donotdisturb", 0));
     let settings = AppSettings { notch: NotchSettings { control_center_layout: layout, ..NotchSettings::default() }, ..AppSettings::default() };
-    store.save(&settings);
+    store.save(&settings).unwrap();
 
     assert_eq!(s(&["donotdisturb", "wifi", "bluetooth"]), ControlCenterTiles::resolve(Some(&store.load().notch.control_center_layout.iter().cloned().collect::<Vec<String>>())));
     let _ = std::fs::remove_dir_all(&dir);
