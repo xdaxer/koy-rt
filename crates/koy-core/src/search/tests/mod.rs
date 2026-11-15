@@ -1,0 +1,10 @@
+mod default_browser_search_tests;
+mod expression_calculator_tests;
+mod file_stamp_cache_tests;
+mod new_search_sources_tests;
+mod search_command_safety_tests;
+mod search_matching_tests;
+mod search_panel_tests;
+mod search_source_tests;
+mod support;
+mod unit_and_color_converter_tests;
