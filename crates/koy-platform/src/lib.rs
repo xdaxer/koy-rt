@@ -6,6 +6,7 @@
 pub mod audio;
 pub mod bluetooth;
 pub mod calendar;
+pub mod com;
 pub mod clipboard;
 pub mod diagnostics;
 pub mod display;
