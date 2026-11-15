@@ -14,7 +14,7 @@ pub mod jump_list_layout;
 pub mod jump_list_limits;
 pub mod jump_list_models;
 pub mod shortcut_app_id_matcher;
-pub mod win_path;
+pub use crate::win_path;
 
 pub use custom_destinations::{
     CustomDestinationsCategory, CustomDestinationsCategoryKind, CustomDestinationsFile, CustomDestinationsReader,

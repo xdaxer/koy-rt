@@ -5,6 +5,7 @@ pub mod cancel;
 pub mod event;
 pub mod text;
 pub mod time;
+pub mod win_path;
 
 #[cfg(feature = "animation")]
 pub mod animation;

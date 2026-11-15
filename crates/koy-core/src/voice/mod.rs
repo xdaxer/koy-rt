@@ -5,7 +5,7 @@
 
 pub mod harness_executable_resolver;
 pub mod i_harness_runner_service;
-pub(crate) mod path_util;
+pub(crate) use crate::win_path as path_util;
 pub mod voice_command_parser;
 pub mod voice_models;
 pub mod voice_session_controller;

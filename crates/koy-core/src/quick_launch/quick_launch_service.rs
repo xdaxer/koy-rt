@@ -81,11 +81,11 @@ impl QuickLaunchService {
     /// Listede gösterilecek ad: dosyada uzantısız ad, klasörde klasör adı.
     pub fn display_name(path: &str) -> String {
         let trimmed = path.trim_end_matches(['\\', '/']);
-        let name = path_get_file_name(trimmed);
+        let name = crate::win_path::get_file_name(trimmed).to_owned();
         if name.is_empty() {
             return trimmed.to_owned();
         }
-        let without_ext = path_get_file_name_without_extension(&name);
+        let without_ext = crate::win_path::get_file_name_without_extension(&name).to_owned();
         if !without_ext.is_empty() { without_ext } else { name }
     }
 
@@ -176,77 +176,3 @@ impl IQuickLaunchService for QuickLaunchService {
 
 // --- .NET `System.IO.Path` (Windows) karşılıkları: yalnız `DisplayName` için gerekenler ---
 
-fn is_directory_separator(c: char) -> bool {
-    c == '\\' || c == '/'
-}
-
-/// `PathInternal.GetRootLength` (Windows), UTF-16 birimi yerine `char` cinsinden.
-fn path_root_length(path: &[char]) -> usize {
-    let len = path.len();
-    let is_extended = len >= 4 && path[0] == '\\' && (path[1] == '\\' || path[1] == '?') && path[2] == '?' && path[3] == '\\';
-    let device_syntax = is_extended
-        || (len >= 4 && is_directory_separator(path[0]) && is_directory_separator(path[1]) && (path[2] == '.' || path[2] == '?') && is_directory_separator(path[3]));
-    let device_unc = device_syntax && len >= 8 && is_directory_separator(path[7]) && path[4] == 'U' && path[5] == 'N' && path[6] == 'C';
-
-    let mut i = 0;
-    if (!device_syntax || device_unc) && len > 0 && is_directory_separator(path[0]) {
-        if device_unc || (len > 1 && is_directory_separator(path[1])) {
-            // UNC (\\?\UNC\ ya da \\): sunucu\paylaşımın ötesine geç.
-            i = if device_unc { 8 } else { 2 };
-            let mut n = 2;
-            while i < len {
-                if is_directory_separator(path[i]) {
-                    n -= 1;
-                    if n <= 0 {
-                        break;
-                    }
-                }
-                i += 1;
-            }
-        } else {
-            // Geçerli sürücüye göre kök (\foo)
-            i = 1;
-        }
-    } else if device_syntax {
-        // Aygıt yolu (\\?\C:\ gibi): önekten sonra ayraç gelene dek atla.
-        i = 4;
-        while i < len && !is_directory_separator(path[i]) {
-            i += 1;
-        }
-        if i < len && i > 4 && is_directory_separator(path[i]) {
-            i += 1;
-        }
-    } else if len >= 2 && path[1] == ':' && (path[0].is_ascii_alphabetic()) {
-        // Sürücü harfli yol ("C:", "C:\")
-        i = 2;
-        if len > 2 && is_directory_separator(path[2]) {
-            i += 1;
-        }
-    }
-    i
-}
-
-/// `Path.GetFileName` (Windows, .NET Core): kök kısmı dosya adına dahil edilmez (`\\server\share` → "").
-fn path_get_file_name(path: &str) -> String {
-    let chars: Vec<char> = path.chars().collect();
-    if chars.is_empty() {
-        return String::new();
-    }
-    let root = path_root_length(&chars);
-    // `DirectorySeparatorChar != AltDirectorySeparatorChar` → LastIndexOfAny('\\', '/')
-    let last = chars.iter().rposition(|&c| is_directory_separator(c));
-    let start = match last {
-        Some(i) if i >= root => i + 1,
-        _ => root,
-    };
-    chars[start..].iter().collect()
-}
-
-/// `Path.GetFileNameWithoutExtension`.
-fn path_get_file_name_without_extension(path: &str) -> String {
-    let file_name = path_get_file_name(path);
-    match file_name.rfind('.') {
-        Some(i) => file_name[..i].to_owned(),
-        None => file_name,
-    }
-}

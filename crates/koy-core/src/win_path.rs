@@ -1,9 +1,10 @@
 //! .NET `System.IO.Path` işlevlerinin Windows davranışı (dize tabanlı, dosya sistemine dokunmaz).
 //!
-//! C# Core `Path.GetFileName / GetExtension / GetDirectoryName / GetFullPath` çağırır ve bu çağrıların sonuçları
+//! Ortak: JumpList, Voice, QuickLaunch kullanır. C# Core `Path.GetFileName / GetExtension / GetDirectoryName / GetFullPath` çağırır ve bu çağrıların sonuçları
 //! Windows yol kurallarına bağlıdır (`\` ve `/` ayırıcıdır, kök uzunluğu, ayırıcı normalleştirme). Rust'ın
 //! `std::path::Path`'i platforma göre davrandığı ve .NET ile ayrıntıda ayrıştığı için burada elle yazıldı.
-//! Aygıt sözdizimi (`\\?\`, `\\.\`) desteklenmez; sade sürücü, UNC ve köke göreli yollar desteklenir.
+//! Kök uzunluğu aygıt sözdizimini (`\\?\`, `\\.\`) tanır; `get_full_path` yalnız sade sürücü, UNC ve köke göreli
+//! yolları çözer.
 
 fn is_sep(c: char) -> bool {
     c == '\\' || c == '/'
@@ -13,12 +14,57 @@ fn is_valid_drive_char(c: char) -> bool {
     c.is_ascii_alphabetic()
 }
 
-/// `Path.GetFileName`: son ayırıcıdan (ya da `:`'dan) sonrası.
+/// `Path.GetFileName`: kökten sonra son ayırıcının ardı (.NET: `GetPathRoot` uzunluğunun altına inilmez,
+/// böylece `C:dosya` → `dosya`, `\\sunucu\paylaşım` → boş).
 pub fn get_file_name(path: &str) -> &str {
-    match path.rfind(|c: char| is_sep(c) || c == ':') {
-        Some(i) => &path[i + 1..],
-        None => path,
+    let chars: Vec<(usize, char)> = path.char_indices().collect();
+    let plain: Vec<char> = chars.iter().map(|p| p.1).collect();
+    let root = get_root_length(&plain);
+    let mut i = chars.len();
+    while i > 0 {
+        i -= 1;
+        if i < root || is_sep(chars[i].1) {
+            return match chars.get(i + 1) {
+                Some(&(b, _)) => &path[b..],
+                None => "",
+            };
+        }
     }
+    path
+}
+
+/// `Path.GetFileNameWithoutExtension`.
+pub fn get_file_name_without_extension(path: &str) -> &str {
+    let name = get_file_name(path);
+    match name.rfind('.') {
+        Some(i) => &name[..i],
+        None => name,
+    }
+}
+
+/// `Path.IsPathRooted`.
+pub fn is_path_rooted(path: &str) -> bool {
+    let mut it = path.chars();
+    match (it.next(), it.next()) {
+        (Some(c), _) if is_sep(c) => true,
+        (Some(c), Some(':')) => is_valid_drive_char(c),
+        _ => false,
+    }
+}
+
+/// `Path.Combine(first, second)` (iki parça).
+pub fn combine(first: &str, second: &str) -> String {
+    if first.is_empty() {
+        return second.to_string();
+    }
+    if second.is_empty() {
+        return first.to_string();
+    }
+    if is_path_rooted(second) {
+        return second.to_string();
+    }
+    let has_separator = first.chars().next_back().is_some_and(is_sep) || second.chars().next().is_some_and(is_sep);
+    if has_separator { format!("{first}{second}") } else { format!("{first}\\{second}") }
 }
 
 /// `Path.GetExtension`: son noktadan sonrası (nokta dahil); nokta son karakterse ya da yoksa boş.
@@ -38,17 +84,22 @@ pub fn get_extension(path: &str) -> &str {
     ""
 }
 
-/// `PathInternal.GetRootLength` (Windows, aygıt sözdizimi hariç), karakter sayısı olarak.
-fn get_root_length(chars: &[char]) -> usize {
-    let len = chars.len();
+/// `PathInternal.GetRootLength` (Windows), UTF-16 birimi yerine `char` cinsinden.
+fn get_root_length(path: &[char]) -> usize {
+    let len = path.len();
+    let is_extended = len >= 4 && path[0] == '\\' && (path[1] == '\\' || path[1] == '?') && path[2] == '?' && path[3] == '\\';
+    let device_syntax = is_extended
+        || (len >= 4 && is_sep(path[0]) && is_sep(path[1]) && (path[2] == '.' || path[2] == '?') && is_sep(path[3]));
+    let device_unc = device_syntax && len >= 8 && is_sep(path[7]) && path[4] == 'U' && path[5] == 'N' && path[6] == 'C';
+
     let mut i = 0;
-    if len > 0 && is_sep(chars[0]) {
-        if len > 1 && is_sep(chars[1]) {
-            // UNC: sunucu\paylaşım'ı geç.
-            i = 2;
+    if (!device_syntax || device_unc) && len > 0 && is_sep(path[0]) {
+        if device_unc || (len > 1 && is_sep(path[1])) {
+            // UNC (\\?\UNC\ ya da \\): sunucu\paylaşımın ötesine geç.
+            i = if device_unc { 8 } else { 2 };
             let mut n = 2;
             while i < len {
-                if is_sep(chars[i]) {
+                if is_sep(path[i]) {
                     n -= 1;
                     if n <= 0 {
                         break;
@@ -57,11 +108,22 @@ fn get_root_length(chars: &[char]) -> usize {
                 i += 1;
             }
         } else {
-            i = 1; // yalın köke göreli
+            // Geçerli sürücüye göre kök (\foo)
+            i = 1;
         }
-    } else if len >= 2 && chars[1] == ':' && is_valid_drive_char(chars[0]) {
+    } else if device_syntax {
+        // Aygıt yolu (\\?\C:\ gibi): önekten sonra ayraç gelene dek atla.
+        i = 4;
+        while i < len && !is_sep(path[i]) {
+            i += 1;
+        }
+        if i < len && i > 4 && is_sep(path[i]) {
+            i += 1;
+        }
+    } else if len >= 2 && path[1] == ':' && (path[0].is_ascii_alphabetic()) {
+        // Sürücü harfli yol ("C:", "C:\")
         i = 2;
-        if len > 2 && is_sep(chars[2]) {
+        if len > 2 && is_sep(path[2]) {
             i += 1;
         }
     }
