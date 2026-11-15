@@ -59,25 +59,6 @@ pub(crate) fn expand_environment_variables(text: &str) -> String {
     }
 }
 
-/// `Guid.NewGuid().ToString("N")`: 32 küçük harfli onaltılık hane.
-pub(crate) fn new_guid_n() -> String {
-    let guid = GUID::new().unwrap_or_default();
-    let tail: String = guid.data4.iter().map(|b| format!("{b:02x}")).collect();
-    format!("{:08x}{:04x}{:04x}{}", guid.data1, guid.data2, guid.data3, tail)
-}
 
-/// `Environment.GetFolderPath(ApplicationData)`: `%APPDATA%` (PORTING.md kural 15).
-pub(crate) fn app_data() -> String {
-    std::env::var("APPDATA").unwrap_or_default()
-}
 
-/// `Environment.GetFolderPath(LocalApplicationData)`: `%LOCALAPPDATA%`.
-pub(crate) fn local_app_data() -> String {
-    std::env::var("LOCALAPPDATA").unwrap_or_default()
-}
 
-/// `CrashLog.Write(source, ex)`: Rust'ta tür adı/yığın izi olmadığından tür adı çağıranca verilir.
-pub(crate) fn crash_log(source: &str, type_name: &str, message: &str) {
-    use koy_core::diagnostics::{CrashError, CrashLog};
-    CrashLog::write(source, &CrashError::exception(type_name, message, ""));
-}

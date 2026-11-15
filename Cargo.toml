@@ -14,5 +14,6 @@ chrono = { version = "0.4", default-features = false, features = ["std", "clock"
 regex = "1"
 sha2 = "0.10"
 windows = "0.62"
+windows-collections = "0.3"
 koy-core = { path = "crates/koy-core", default-features = false }
 koy-platform = { path = "crates/koy-platform", default-features = false }
