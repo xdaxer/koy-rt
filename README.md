@@ -24,7 +24,7 @@ C# sürümünün kuralları burada da geçerlidir:
 
 | Katman | C# karşılığı | Durum |
 |---|---|---|
-| `koy-core` | `src/Core` (saf mantık, ~30 bin satır) | Taşındı, testleriyle; 2200'ü aşkın test |
+| `koy-core` | `src/Core` (saf mantık, ~30 bin satır) | Tamamı taşındı, testleriyle: 2516 test |
 | `koy-platform` | `src/Platform` (Win32/WinRT servisleri) | Başladı: görev çubuğu güvenliği, gözcü başlatıcı, kriptografik rastgelelik |
 | `koy-watchdog` | `src/Watchdog` | Taşındı |
 | arayüz | `src/App` (WPF) | Başlamadı; arayüz çatısı seçiliyor (aday: [Slint](https://slint.dev), yazılımla çizim) |

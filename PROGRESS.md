@@ -9,13 +9,15 @@
 | core | jump_list, lyrics, diagnostics, uninstall, privacy | ✅ | 158 test. LyricsSession yüklemeyi iş parçacığında yapar (`LoadTask::wait` = await). Bekleyen: Uninstall takvim testi (Calendar) |
 | core | calendar, clock, timers, units, shelf | ✅ | 135 test. clock'ta `Culture` (Invariant/en-US/en-GB/tr-TR/de-DE), `DayOfWeek`, `TimeZoneInfo` (yerleşik ~33 Windows bölgesi; kayıt defteri okuması Platform'a), .NET tarih biçim motoru. Rastgelelik `crate::random` üzerinden; Platform: `koy_platform::security::install_secure_random()` (BCryptGenRandom) — uygulama açılışında çağrılmalı. EventAgenda başlık sırası kültürsüz (ordinal). Bekleyen: Settings/Weather'a bağlı 5 test |
 | core | **hub**: settings (+profiles), dock (+items), display, notch, search, clipboard, rules, shortcuts, tasks, weather, input | ✅ | Bütünleşik: `--features hub` 1943 test; çalışma alanı 2095 test yeşil. Settings JSON'u kendi `json_tree.rs` ile System.Text.Json'a bayt uyumlu yazar/okur (PascalCase, .NET kaçışları, CRLF). Açık: üç ayrı `Guid` (tray: .NET bayt düzeni, clipboard, tasks) birleştirilecek; `JsonListFile` tarih biçimi chrono RFC3339 (System.Text.Json'dan küçük fark); `EDGE_REVEAL_DEFAULT_DELAY_MS` settings'te elle eşlenmiş; `AppLanguage::set_system_culture` Platform açılışında çağrılmalı |
+| core | notifications, system_stats, bluetooth | ✅ | 120 test. NotificationPoller: engelleyen okuma + TimeProvider tek atımlık zamanlayıcı (2 sn / hata sonrası 10 sn) |
+| core | updates, start_menu | ✅ | 52 test. CHANGELOG'lar `include_str!` ile `../koy/` klasöründen gömülür |
+| core | extensions (+store) | ✅ | 249 test. Elle yazılmış inflate (RFC 1951) ve ZIP okuyucu; Unicode Cf/Cn tablosu gömülü. `IExtensionStoreClient` uygulaması Platform'da |
+| **core** | **TAMAM** | ✅ | **Çalışma alanı: 2516 test yeşil, uyarısız** |
 
 ## Sıradaki adımlar (oturum yarıda kalırsa buradan devam)
 1. ✅ Dalga 1 (yaprak modüller) ve ✅ merkez grubu (hub): bütünleşik, testler yeşil.
-2. **Dalga 3** (hub'a bağlı, henüz taşınmadı): notifications, system_stats, bluetooth (radio+system_stats), extensions
-   (Store alt klasörü), updates (CHANGELOG ayrıştırıcı), start_menu. Her biri kendi feature'ında; testler
-   `koy/tests/Core.Tests` altında.
-3. Ortak temizlik: `Guid` tekleştir, feature kapılarını kaldır (tek crate, kapısız), `cargo test` tamamı yeşil.
+2. ✅ Dalga 3: notifications, system_stats, bluetooth, extensions, updates, start_menu.
+3. Ortak temizlik: `Guid` tekleştir, `iso_time` (calendar + extensions) ve `to_string_fixed` (units + system_stats) kopyalarını birleştir, feature kapılarını kaldır (tek crate, kapısız), `cargo test` tamamı yeşil.
 4. **Platform** (`koy-platform`, `windows` crate, ~12k satır C#): Shell ✅ (taskbar + watchdog launcher), security ✅
    (BCryptGenRandom). Kalan: Shell'in geri kalanı (WindowTracker, TrayHostService, AppBar, IconHelper…), Search, JumpList,
    Bluetooth, Display, Audio, Extensions, Clipboard, Media, Calendar, Privacy, SystemStats, Wireless, Weather, Radio, Voice,
