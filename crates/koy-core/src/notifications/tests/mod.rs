@@ -1,0 +1,6 @@
+mod icon_blank_check_tests;
+mod notification_diff_tests;
+mod notification_poller_tests;
+mod notification_presentation_tests;
+mod notification_queue_tests;
+mod tray_balloon_notification_tests;
