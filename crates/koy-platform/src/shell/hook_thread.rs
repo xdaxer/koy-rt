@@ -14,7 +14,7 @@ use windows::Win32::Foundation::{HINSTANCE, LPARAM, LRESULT, WPARAM};
 use windows::Win32::System::LibraryLoader::GetModuleHandleW;
 use windows::Win32::System::Threading::GetCurrentThreadId;
 use windows::Win32::UI::WindowsAndMessaging::{
-    CallNextHookEx, DispatchMessageW, GetMessageW, HHOOK, HOOKPROC, MSG, PostThreadMessageW, SetWindowsHookExW,
+    CallNextHookEx, DispatchMessageW, GetMessageW, HHOOK, MSG, PostThreadMessageW, SetWindowsHookExW,
     TranslateMessage, UnhookWindowsHookEx, WINDOWS_HOOK_ID, WM_QUIT,
 };
 
@@ -112,9 +112,6 @@ impl HookThread {
         let _ = self.done.recv_timeout(timeout);
     }
 
-    pub fn thread_id(&self) -> u32 {
-        self.thread_id.load(Ordering::SeqCst)
-    }
 }
 
 fn unpin(hook: HHOOK) {
