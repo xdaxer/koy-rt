@@ -28,6 +28,11 @@ impl ProfileStore {
         ProfileStore { file: JsonListFile::new(path, None) }
     }
 
+    /// Hata geri çağrısıyla (varsayılan: crash.log). Testler günlüğe yazmamak için kullanır.
+    pub fn with_error_handler(path: impl Into<PathBuf>, on_error: Option<crate::settings::json_list_file::JsonErrorCallback>) -> Self {
+        ProfileStore { file: JsonListFile::new(path, on_error) }
+    }
+
     pub fn default_path() -> PathBuf {
         in_settings_folder("profiles.json")
     }

@@ -7,7 +7,7 @@
 //! - GetHashCode karşılaştırmaları: Rust ayar kayıtları `Hash` uygulamaz (f64 alanlar); eşitlik testleri korundu.
 //! - `Lookup_ignores_a_null_stored_value` (AppIconOverrideTests): sözlük değeri `String`, null olamaz.
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use crate::settings::{AppSettings, SettingsStore};
@@ -58,10 +58,6 @@ impl TempDir {
         let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or(0);
         let n = COUNTER.fetch_add(1, Ordering::Relaxed);
         TempDir(std::env::temp_dir().join(format!("{prefix}{}-{nanos}-{n}", std::process::id())))
-    }
-
-    pub(crate) fn path(&self) -> &Path {
-        &self.0
     }
 
     pub(crate) fn file(&self, name: &str) -> PathBuf {

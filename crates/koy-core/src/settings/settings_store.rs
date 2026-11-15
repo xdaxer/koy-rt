@@ -107,6 +107,7 @@ impl SettingsStore {
     }
 
     /// Önce geçici dosyaya yazar, sonra yerine taşır; yazma yarıda kesilirse eski dosya bozulmaz.
+    /// C# `Save` G/Ç hatasında istisna fırlatır: burada `Err` döner (çağıran isterse `unwrap` eder).
     pub fn save(&self, settings: &AppSettings) -> io::Result<()> {
         if let Some(dir) = self.path.parent() {
             if !dir.as_os_str().is_empty() {
