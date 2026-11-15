@@ -1,1 +1,3 @@
-//! Karşılığı: `koy/src/Platform/bluetooth/`.
+//! Karşılığı: `koy/src/Platform/Bluetooth/`.
+
+pub(crate) mod support;

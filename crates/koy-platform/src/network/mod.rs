@@ -1,1 +1,5 @@
-//! Karşılığı: `koy/src/Platform/network/`.
+//! Karşılığı: `koy/src/Platform/Network/`.
+
+mod network_service;
+
+pub use network_service::*;

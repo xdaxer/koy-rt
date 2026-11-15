@@ -8,6 +8,8 @@ version.workspace = true
 [dependencies]
 koy-core = { workspace = true, features = ["all"] }
 chrono.workspace = true
+serde.workspace = true
+serde_json.workspace = true
 
 [dependencies.windows]
 workspace = true
@@ -29,6 +31,7 @@ features = [
     "Security_Cryptography_DataProtection",
     "Storage",
     "Storage_Streams",
+    "System_Power",
     "UI_Notifications",
     "UI_Notifications_Management",
     "Win32_Devices_Bluetooth",
@@ -64,6 +67,7 @@ features = [
     "Win32_System_Registry",
     "Win32_System_RemoteDesktop",
     "Win32_System_Search",
+    "Win32_System_Shutdown",
     "Win32_System_SystemInformation",
     "Win32_System_SystemServices",
     "Win32_System_Threading",
