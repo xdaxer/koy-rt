@@ -1,0 +1,15 @@
+[package]
+name = "koy-watchdog"
+description = "Gözcü süreç: Koy ölürse Windows görev çubuğunu geri getirir (koy/src/Watchdog)."
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+koy-core = { workspace = true, features = ["shell"] }
+# Gözcü, görev çubuğu kodunu Koy ile paylaşır ama kendisini başlatan kısmı (launcher) içermez.
+koy-platform = { workspace = true }
+
+[dependencies.windows]
+workspace = true
+features = ["Win32_Foundation", "Win32_Security", "Win32_System_Threading"]

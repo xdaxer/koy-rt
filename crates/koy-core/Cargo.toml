@@ -1,0 +1,51 @@
+[package]
+name = "koy-core"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+regex.workspace = true
+sha2.workspace = true
+
+[features]
+# Taşıma süresince her C# klasörü kendi feature'ı arkasında: paralel çalışırken bir modülün kırığı
+# ötekinin derlenmesini durdurmasın. Taşıma bitince kapılar kaldırılacak.
+default = ["all"]
+all = ["animation", "appearance", "audio", "background", "bluetooth", "calendar", "clock", "diagnostics", "extensions", "input", "jump_list", "lyrics", "media", "network", "notifications", "power", "privacy", "quick_launch", "radio", "shelf", "shell", "start_menu", "system_stats", "timers", "tray", "uninstall", "units", "updates", "visibility", "voice", "wireless", "hub"]
+animation = []
+appearance = []
+audio = []
+background = []
+bluetooth = ["radio", "system_stats"]
+calendar = []
+clock = []
+diagnostics = []
+extensions = ["hub"]
+input = ["hub"]
+jump_list = []
+lyrics = ["diagnostics"]
+media = ["appearance"]
+network = []
+notifications = ["hub"]
+power = []
+privacy = []
+quick_launch = ["shell"]
+radio = []
+shelf = []
+shell = []
+start_menu = ["hub"]
+system_stats = ["hub"]
+timers = []
+tray = ["shell"]
+uninstall = []
+units = []
+updates = ["hub"]
+visibility = ["shell"]
+voice = []
+wireless = []
+# Settings, Dock, Display, Notch, Search… birbirine döngüsel bağlı: tek feature.
+hub = ["appearance", "units", "clock", "timers", "tray", "visibility", "voice", "media", "diagnostics", "shell", "network", "jump_list", "background", "animation"]

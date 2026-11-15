@@ -1,0 +1,26 @@
+[package]
+name = "koy-platform"
+description = "koy/src/Platform karşılığı: Core sözleşmelerinin Windows uygulamaları."
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[dependencies]
+koy-core = { workspace = true, features = ["shell"] }
+chrono.workspace = true
+
+[dependencies.windows]
+workspace = true
+features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_System_Threading",
+    "Win32_UI_Shell",
+    "Win32_UI_WindowsAndMessaging",
+]
+
+[features]
+default = ["watchdog-launcher"]
+# Görev çubuğu gizlenince gözcüyü başlatır, temiz geri yüklemede durdurur. Gözcünün kendisi bu feature'sız derler
+# (C#'taki boş kısmi yöntemlerin karşılığı).
+watchdog-launcher = []
