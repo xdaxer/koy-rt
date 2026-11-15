@@ -1,7 +1,6 @@
 use std::collections::HashMap;
-use std::collections::hash_map::RandomState;
 use std::fmt;
-use std::hash::{BuildHasher, Hasher};
+
 
 use sha2::{Digest, Sha256};
 
@@ -299,29 +298,9 @@ pub fn unescape_data_string(value: &str) -> String {
     out
 }
 
-/// `RandomNumberGenerator.GetBytes` karşılığı. Yeni crate eklenemediği için kaynak, işletim sistemi tohumlu
-/// `RandomState` (SipHash anahtarları işletim sistemi rastgeleliğinden gelir) ile zaman ve sayaç karışımıdır; SHA-256
-/// ile karıştırılıp genişletilir. Kriptografik rastgelelik gereken yerde (PKCE doğrulayıcısı) bir `getrandom`
-/// bağımlılığına geçilmesi önerilir (raporda yazıldı).
+/// `RandomNumberGenerator.GetBytes` (kaynak: `crate::random`, Platform `BCryptGenRandom` kurar).
 pub(crate) fn random_bytes(len: usize) -> Vec<u8> {
-    use std::sync::atomic::{AtomicU64, Ordering};
-    static COUNTER: AtomicU64 = AtomicU64::new(0);
-
-    let mut out = Vec::with_capacity(len + 32);
-    while out.len() < len {
-        let mut hasher = Sha256::new();
-        for _ in 0..4 {
-            let mut h = RandomState::new().build_hasher();
-            h.write_u64(COUNTER.fetch_add(1, Ordering::Relaxed));
-            hasher.update(h.finish().to_le_bytes());
-        }
-        let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_nanos()).unwrap_or_default();
-        hasher.update(nanos.to_le_bytes());
-        hasher.update(format!("{:?}", std::thread::current().id()).as_bytes());
-        out.extend_from_slice(&hasher.finalize());
-    }
-    out.truncate(len);
-    out
+    crate::random::get_bytes(len)
 }
 
 /// RFC 7636 PKCE (S256) üretimi, yetkilendirme URL'si oluşturma ve loopback callback doğrulama.

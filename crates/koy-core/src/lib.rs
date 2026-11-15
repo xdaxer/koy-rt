@@ -3,6 +3,7 @@
 
 pub mod cancel;
 pub mod event;
+pub mod random;
 pub mod text;
 pub mod time;
 pub mod win_path;
