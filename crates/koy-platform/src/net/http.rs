@@ -14,9 +14,10 @@ use koy_core::cancel::CancellationToken;
 use windows::Win32::Foundation::GetLastError;
 use windows::Win32::Networking::WinHttp::{
     URL_COMPONENTS, WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_ADDREQ_FLAG_ADD, WINHTTP_FLAG_SECURE,
-    WINHTTP_OPEN_REQUEST_FLAGS, WINHTTP_QUERY_FLAG_NUMBER, WINHTTP_QUERY_STATUS_CODE, WinHttpAddRequestHeaders,
+    WINHTTP_OPEN_REQUEST_FLAGS, WINHTTP_OPTION_URL, WINHTTP_QUERY_CONTENT_LENGTH, WINHTTP_QUERY_FLAG_NUMBER, WINHTTP_QUERY_STATUS_CODE,
+    WinHttpAddRequestHeaders,
     WinHttpCloseHandle, WinHttpConnect, WinHttpCrackUrl, WinHttpOpen, WinHttpOpenRequest, WinHttpQueryDataAvailable,
-    WinHttpQueryHeaders, WinHttpReadData, WinHttpReceiveResponse, WinHttpSendRequest, WinHttpSetTimeouts,
+    WinHttpQueryHeaders, WinHttpQueryOption, WinHttpReadData, WinHttpReceiveResponse, WinHttpSendRequest, WinHttpSetTimeouts,
 };
 use windows::core::{HSTRING, PCWSTR};
 
@@ -226,6 +227,43 @@ impl Response {
         (200..300).contains(&self.status)
     }
 
+    /// `Content-Length` başlığı (C# `Content.Headers.ContentLength`); yoksa `None`.
+    pub fn content_length(&self) -> Option<u64> {
+        let mut buf = [0u16; 32];
+        let mut size = (buf.len() * 2) as u32;
+        // SAFETY: arabellek `size` bayt yazılabilir; başlık metin olarak okunur.
+        unsafe {
+            WinHttpQueryHeaders(
+                self.request.0,
+                WINHTTP_QUERY_CONTENT_LENGTH,
+                PCWSTR::null(),
+                Some(buf.as_mut_ptr() as *mut _),
+                &mut size,
+                std::ptr::null_mut(),
+            )
+        }
+        .ok()?;
+        String::from_utf16_lossy(&buf[..size as usize / 2]).trim().parse().ok()
+    }
+
+    /// Yönlendirmeler izlendikten sonraki son adres (C# `response.RequestMessage.RequestUri`).
+    pub fn final_url(&self) -> Option<String> {
+        let mut size: u32 = 0;
+        // SAFETY: önce boyut sorgusu (arabelleksiz), sonra yeterli arabellekle okuma.
+        unsafe {
+            let _ = WinHttpQueryOption(self.request.0, WINHTTP_OPTION_URL, None, &mut size);
+        }
+        if size == 0 {
+            return None;
+        }
+        let mut buf = vec![0u16; size as usize / 2 + 1];
+        let mut len = (buf.len() * 2) as u32;
+        // SAFETY: arabellek `len` bayt yazılabilir.
+        unsafe { WinHttpQueryOption(self.request.0, WINHTTP_OPTION_URL, Some(buf.as_mut_ptr() as *mut _), &mut len) }.ok()?;
+        let text = String::from_utf16_lossy(&buf[..len as usize / 2]);
+        Some(text.trim_end_matches('\0').to_string())
+    }
+
     /// Gövdenin tamamı. `max_bytes` aşılırsa `TooLarge`; `deadline` geçerse `Timeout`; `progress` okunan bayt sayısını alır.
     pub fn read_to_end_limited(
         &mut self,
@@ -366,6 +404,8 @@ mod tests {
         let client = HttpClient::new(Duration::from_secs(5));
         let mut r = client.get(&format!("http://127.0.0.1:{port}/x"), &CancellationToken::none()).unwrap();
         assert!(r.is_success());
+        assert_eq!(r.content_length(), Some(5));
+        assert_eq!(r.final_url().as_deref(), Some(format!("http://127.0.0.1:{port}/x").as_str()));
         assert_eq!(r.text().unwrap(), "hello");
     }
 
