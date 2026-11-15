@@ -20,7 +20,7 @@ koy-rt/
 İleride: `crates/koy-platform` (koy/src/Platform, `windows` crate), `crates/koy-app` (arayüz), `crates/koy-watchdog`.
 
 ## Derleme ve test
-- Araç zinciri `stable-x86_64-pc-windows-gnu`; `cargo` için `export PATH="$HOME/.cargo/bin:$PATH"`.
+- Araç zinciri MSVC ya da GNU (GNU için `.cargo/config.example.toml`, bkz. README); `cargo` için `export PATH="$HOME/.cargo/bin:$PATH"`.
 - Taşıma süresince her modül kendi cargo feature'ının arkasındadır (`Cargo.toml` → `[features]`).
   Yalnız kendi modülünü derle: `cargo test -p koy-core --no-default-features --features <modül>`.
   Başka modülün yarım hali seni durdurmaz.

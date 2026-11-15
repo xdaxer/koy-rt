@@ -1,0 +1,4 @@
+# Örnek: `config.toml` olarak kopyalayıp yolu düzeltin. Geliştirme makinesine özel: GNU araç zinciri raw-dylib için dlltool ister (WinLibs ile geldi).
+# MSVC araç zinciriyle derlerken bu blok etkisizdir.
+[target.x86_64-pc-windows-gnu]
+rustflags = ["-Cdlltool=C:/path/to/mingw64/bin/dlltool.exe"]
