@@ -15,5 +15,6 @@ regex = "1"
 sha2 = "0.10"
 windows = "0.62"
 windows-collections = "0.3"
+windows-core = "0.62"
 koy-core = { path = "crates/koy-core", default-features = false }
 koy-platform = { path = "crates/koy-platform", default-features = false }

@@ -235,6 +235,7 @@ dependencies = [
  "sha2",
  "windows",
  "windows-collections",
+ "windows-core",
 ]
 
 [[package]]
