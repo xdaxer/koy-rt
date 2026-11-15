@@ -17,3 +17,4 @@
 5. Feature kapılarını kaldır, `cargo test` tamamı yeşil.
 6. **Platform** (`koy-platform`, `windows` crate): Shell ✅ (taskbar + watchdog launcher), sonra diğer servisler.
 7. **Arayüz**: karar bekliyor (öneri: Slint, yazılımla çizim). Sonra App katmanı.
+| core | shell, tray, visibility, quick_launch, network, power | ✅ | 189 test (ortak dahil). Bekleyen: QuickLaunch `set_error_log` → diagnostics CrashLog'a bağlanacak; `TrayIconVisibilityPolicy` HashMap alıyor → Settings `ValueDictionary` gelince uyarla; Dock/Notch/Notifications'a ait testler (EdgeRevealTracker, TrayGlyphs, TrayBalloonNotification) o modüllerle |

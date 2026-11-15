@@ -1,0 +1,2 @@
+mod battery_notification_policy_tests;
+mod battery_saver_policy_tests;
