@@ -9,7 +9,7 @@
 1. **Dalga 1 (yaprak modüller)**: appearance+media+animation+background, calendar+clock+timers+units+shelf,
    jump_list+lyrics+diagnostics+uninstall+privacy, shell+tray+visibility+quick_launch+network+power. Her grup bitince
    `cargo test -p koy-core --no-default-features --features <grup>` yeşil → commit.
-2. **(DEVAM EDİYOR) Merkez grubu 5 paralel ajanla doğrudan taşınıyordu** (settings | dock | display+notch | search+clipboard | rules+shortcuts+tasks+weather); oturum limiti dolunca dosyalar yarım kalmış olabilir, commit'lenmedi. Sonraki oturum: her merkez klasörünü C# ile karşılaştır, eksikleri tamamla, `cargo test --features hub` ile bütünleştir.
+2. **(DEVAM EDİYOR) Merkez grubu 5 paralel ajanla doğrudan taşınıyordu** (settings | dock | display+notch | search+clipboard | rules+shortcuts+tasks+weather | input — input de döngüye dahil, Settings CornerAction kullanır); oturum limiti dolunca dosyalar yarım kalmış olabilir, commit'lenmedi. Sonraki oturum: her merkez klasörünü C# ile karşılaştır, eksikleri tamamla, `cargo test --features hub` ile bütünleştir.
    Eski plan — **H1 (merkez iskeleti, tek ajan)**: `hub` feature'ı (settings, dock, display, notch, clipboard, search, rules,
    shortcuts, tasks, weather) birbirine döngüsel bağlı. Önce bütün tipler/imzalar `todo!()` gövdeyle, Settings tam.
    `cargo build --features hub` derlenmeli.

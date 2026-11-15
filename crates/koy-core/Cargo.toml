@@ -15,7 +15,7 @@ sha2.workspace = true
 # Taşıma süresince her C# klasörü kendi feature'ı arkasında: paralel çalışırken bir modülün kırığı
 # ötekinin derlenmesini durdurmasın. Taşıma bitince kapılar kaldırılacak.
 default = ["all"]
-all = ["animation", "appearance", "audio", "background", "bluetooth", "calendar", "clock", "diagnostics", "extensions", "input", "jump_list", "lyrics", "media", "network", "notifications", "power", "privacy", "quick_launch", "radio", "shelf", "shell", "start_menu", "system_stats", "timers", "tray", "uninstall", "units", "updates", "visibility", "voice", "wireless", "hub"]
+all = ["animation", "appearance", "audio", "background", "bluetooth", "calendar", "clock", "diagnostics", "extensions", "jump_list", "lyrics", "media", "network", "notifications", "power", "privacy", "quick_launch", "radio", "shelf", "shell", "start_menu", "system_stats", "timers", "tray", "uninstall", "units", "updates", "visibility", "voice", "wireless", "hub"]
 animation = []
 appearance = []
 audio = []
@@ -25,7 +25,6 @@ calendar = ["clock"]
 clock = []
 diagnostics = []
 extensions = ["hub"]
-input = ["hub"]
 jump_list = []
 lyrics = ["diagnostics"]
 media = ["appearance"]

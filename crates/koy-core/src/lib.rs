@@ -32,7 +32,7 @@ pub mod display;
 pub mod dock;
 #[cfg(feature = "extensions")]
 pub mod extensions;
-#[cfg(feature = "input")]
+#[cfg(feature = "hub")]
 pub mod input;
 #[cfg(feature = "jump_list")]
 pub mod jump_list;
