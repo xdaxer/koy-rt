@@ -3,4 +3,5 @@
 
 #![cfg(windows)]
 
+pub mod security;
 pub mod shell;
