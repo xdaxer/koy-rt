@@ -128,7 +128,7 @@ alt ajanlar gereken değişikliği raporunda yazar.
 - Win32 ve WinRT yalnız `windows` crate'iyle (CsWin32 karşılığı). Elle `extern "system"` yazılmaz. Gereken özellik
   (`Win32_…`) `Cargo.toml`'da yoksa ekle: dosyayı eklemeden hemen önce yeniden oku, tek satır ekle (başka ajanlar da düzenliyor).
 - `unsafe` serbest ama her blokta `// SAFETY:` yorumu. Tutamaçlar (`HANDLE`, `HWND`, COM) `Drop` ile kapatılır.
-- WinRT eşzamansız çağrıları Core trait'leri engelleyen olduğu için `.get()` ile beklenir (`IAsyncOperation::get`). Olay
+- WinRT eşzamansız çağrıları Core trait'leri engelleyen olduğu için `.join()` ile beklenir (windows 0.62: `IAsyncOperation::join`). Olay
   aboneliği (`TypedEventHandler`) tokenı saklanır ve `Drop`/`dispose`'da çözülür.
 - Kendi iş parçacığında mesaj penceresi gereken servisler (pano dinleyicisi, tepsi penceresi, kancalar): C#'taki gibi ayrı
   iş parçacığı + `GetMessageW` döngüsü; durdurmada `PostThreadMessageW(WM_QUIT)` ve `join`.
