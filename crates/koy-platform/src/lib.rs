@@ -31,3 +31,4 @@ pub mod system_stats;
 pub mod voice;
 pub mod weather;
 pub mod wireless;
+pub mod wmi;
