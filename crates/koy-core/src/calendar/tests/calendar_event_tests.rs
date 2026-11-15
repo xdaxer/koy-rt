@@ -22,7 +22,7 @@ fn time(h: u32, m: u32) -> NaiveTime {
 }
 
 fn ev(title: &str, start: NaiveDateTime, minutes: i32) -> CalendarEvent {
-    CalendarEvent::new(crate::calendar::tests_support_guid(), title, start, minutes)
+    CalendarEvent::new(crate::calendar::event_book::new_guid_n(), title, start, minutes)
 }
 
 fn titles(events: &[CalendarEvent]) -> Vec<&str> {
@@ -155,7 +155,7 @@ struct TempDir(PathBuf);
 
 impl TempDir {
     fn new() -> Self {
-        TempDir(std::env::temp_dir().join(format!("koy-events-{}", crate::calendar::tests_support_guid())))
+        TempDir(std::env::temp_dir().join(format!("koy-events-{}", crate::calendar::event_book::new_guid_n())))
     }
 }
 

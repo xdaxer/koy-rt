@@ -3,7 +3,6 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::pin::Pin;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, Ordering};
 
 use chrono::Duration;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
@@ -322,31 +321,7 @@ impl CalendarSyncResult {
     }
 }
 
-/// `System.Threading.CancellationToken` için asgari karşılık: kopyalar aynı bayrağı paylaşır.
-#[derive(Debug, Clone, Default)]
-pub struct CancellationToken {
-    cancelled: Arc<AtomicBool>,
-}
-
-impl CancellationToken {
-    /// `CancellationToken.None` / `default`: hiç iptal edilmez (iptal edilemeyen bir bayrak paylaşmaz).
-    pub fn none() -> Self {
-        Self::default()
-    }
-
-    /// `CancellationTokenSource` karşılığı: iptal edilebilen yeni belirteç.
-    pub fn new() -> Self {
-        Self::default()
-    }
-
-    pub fn cancel(&self) {
-        self.cancelled.store(true, Ordering::SeqCst);
-    }
-
-    pub fn is_cancellation_requested(&self) -> bool {
-        self.cancelled.load(Ordering::SeqCst)
-    }
-}
+pub use crate::cancel::CancellationToken;
 
 /// Eşzamansız yöntemlerin dönüş tipi (`Task<T>` karşılığı; yürütücü Platform katmanında seçilir).
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
