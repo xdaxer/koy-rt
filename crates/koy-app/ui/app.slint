@@ -5,6 +5,7 @@ import { NotchInput, NotchSwitch, NotchRowButton, NotchPillButton, NotchPlainBut
 import { SagAltMenuWindow, MenuText } from "menu.slint";
 import { WeatherGlyph } from "status.slint";
 import { SystemPanel, SystemStatsData, SystemText } from "system_panel.slint";
+import { ControlCenterPanel, ControlData, ControlText, RadioTileData, ConnectedDeviceData, WifiRowData, BluetoothRowData } from "control_center_panel.slint";
 import { HomePanel, HomeData, MusicCardData, UpcomingData, QuickItemData, HomeText } from "home_panel.slint";
 import { OsdView, NotchCardView, OsdData } from "osd.slint";
 import { NotchSurface, NotchTopRow, NotchData, NotchTabData, NotchText } from "notch.slint";
@@ -12,7 +13,7 @@ import { CalendarPanel, CalendarData, CalendarText, CalCellData, CalWeekRowData,
 import { ClipboardPanel, ClipFilterData, ClipCardData, ClipText } from "clipboard_panel.slint";
 import { ShelfPanel, ShelfItemData, ShelfText } from "shelf_panel.slint";
 import { FocusPanel, FocusData, TasksData, FocusText, FocusTabData, FocusPresetData, FocusLapData, TaskRowData } from "focus_panel.slint";
-export { Theme, Motion, SagAltMenuWindow, MenuText, SystemText, SystemStatsData, FocusText, FocusData, TasksData, FocusTabData, FocusPresetData, FocusLapData, TaskRowData, ShelfItemData, ShelfText, ClipFilterData, ClipCardData, ClipText, CalendarData, CalendarText, CalCellData, CalWeekRowData, CalEventData, NotchData, NotchTabData, NotchText, OsdData, HomeData, MusicCardData, UpcomingData, QuickItemData, HomeText }
+export { Theme, Motion, SagAltMenuWindow, MenuText, SystemText, SystemStatsData, FocusText, FocusData, TasksData, FocusTabData, FocusPresetData, FocusLapData, TaskRowData, ShelfItemData, ShelfText, ClipFilterData, ClipCardData, ClipText, CalendarData, CalendarText, CalCellData, CalWeekRowData, CalEventData, NotchData, NotchTabData, NotchText, OsdData, HomeData, MusicCardData, UpcomingData, QuickItemData, HomeText, ControlData, ControlText, RadioTileData, ConnectedDeviceData, WifiRowData, BluetoothRowData }
 
 // Bileşen denetimi: kontrol kitaplığının derlendiğini ve çizildiğini doğrulayan önizleme penceresi.
 export component Probe inherits Window {
@@ -52,6 +53,7 @@ export component NotchPanelPreview inherits Window {
     in property <[ClipCardData]> clip-items;
     in property <CalendarData> cal;
     in property <HomeData> home;
+    in property <ControlData> control;
     in property <MusicCardData> music;
     width: 640px;
     height: preview-height;
@@ -59,6 +61,7 @@ export component NotchPanelPreview inherits Window {
     VerticalLayout {
         padding: 16px;
         if panel == "system": SystemPanel { data: sys; }
+        if panel == "control": ControlCenterPanel { c: control; }
         if panel == "home": HomePanel { h: home; m: music; }
         if panel == "calendar": CalendarPanel { data: cal; }
         if panel == "clipboard": ClipboardPanel { filters: clip-filters; items: clip-items; }

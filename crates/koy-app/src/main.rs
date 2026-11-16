@@ -168,6 +168,46 @@ fn dev_snapshot(view: &str, path: String) -> Result<(), slint::PlatformError> {
             });
             v.run()
         }
+        "control" | "wifi" | "bt" => {
+            use slint::{ModelRc, VecModel};
+            let v = NotchPanelPreview::new()?;
+            ThemeManager::install(&v);
+            features::control_center::control_center_binding::install_text(&v);
+            v.set_preview_height(324.0);
+            let mut c = ControlData::default();
+            c.page = match view { "wifi" => 1, "bt" => 2, _ => 0 };
+            c.tile_order = ModelRc::new(VecModel::from(vec!["wifi".into(), "bluetooth".into(), "donotdisturb".into()]));
+            c.wifi = RadioTileData { on: true, unavailable: false, status: "Açık".into() };
+            c.bluetooth = RadioTileData { on: false, unavailable: false, status: "Kapalı".into() };
+            c.dnd_status = "Ayarlarda aç".into();
+            c.volume_percent = 46;
+            c.brightness = 70;
+            c.brightness_supported = true;
+            c.brightness_resolved = true;
+            c.show_connected_card = true;
+            c.connected = ModelRc::new(VecModel::from(vec![ConnectedDeviceData { name: "AirPods Pro".into(), battery: "%80".into() }]));
+            c.wifi_show_list = true;
+            c.wifi_rows = ModelRc::new(VecModel::from(vec![
+                WifiRowData { ssid: "Ev".into(), name: "Ev Wi-Fi".into(), bars: 4, secured: true, connected: true, has_status: true, status: "Bağlı".into(), clickable: false, ..Default::default() },
+                WifiRowData { ssid: "Kafe".into(), name: "Kafe".into(), bars: 2, secured: true, password_open: true, clickable: true, ..Default::default() },
+                WifiRowData { ssid: "Misafir".into(), name: "Misafir".into(), bars: 1, clickable: true, ..Default::default() },
+            ]));
+            c.bt_show_list = true;
+            c.bt_rows = ModelRc::new(VecModel::from(vec![
+                BluetoothRowData { id: "1".into(), name: "AirPods Pro".into(), kind: 1, connected: true, is_audio: true, battery: "%80".into(), status: "Bağlı".into(), action: "Bağlantıyı kes".into(), ..Default::default() },
+                BluetoothRowData { id: "2".into(), name: "MX Master".into(), kind: 3, status: "Eşleşmiş".into(), hint: "Windows ayarlarında aç".into(), ..Default::default() },
+            ]));
+            v.set_panel("control".into());
+            v.set_control(c);
+            let w = v.as_weak();
+            let _t = infra::dispatch::delay(std::time::Duration::from_millis(700), move || {
+                if let Some(v) = w.upgrade() {
+                    infra::snapshot::save(v.window(), &path);
+                }
+                let _ = slint::quit_event_loop();
+            });
+            v.run()
+        }
         "home" | "music" => {
             use slint::{ModelRc, VecModel};
             let v = NotchPanelPreview::new()?;

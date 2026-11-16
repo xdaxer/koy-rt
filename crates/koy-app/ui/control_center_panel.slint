@@ -1,0 +1,667 @@
+// Karşılığı: koy/src/App/Features/ControlCenter/ControlCenterPanel.xaml, WifiListPage.xaml, BluetoothListPage.xaml,
+// ThickSlider.cs ve SignalBarsIcon.cs. Ana görünüm: sürüklenerek sıralanan döşemeler (Wi-Fi, Bluetooth, Rahatsız Etme),
+// pil göstergesi gibi dolan kalın ses / parlaklık çubukları, sağda "Bağlı cihazlar". Liste sayfaları: Wi-Fi ve Bluetooth.
+
+import { Theme } from "theme.slint";
+import { Icons, KoyIcon } from "icons.slint";
+import { NotchSwitch, NotchRowButton, NotchPillButton, NotchPlainButton, NotchPassword } from "notch_controls.slint";
+
+export struct RadioTileData { on: bool, unavailable: bool, status: string }
+export struct ConnectedDeviceData { name: string, battery: string }
+export struct WifiRowData {
+    ssid: string,
+    name: string,
+    bars: int,
+    secured: bool,
+    connected: bool,
+    has-status: bool,
+    status: string,
+    error: bool,
+    busy: bool,
+    password-open: bool,
+    can-connect: bool,
+    clickable: bool,
+}
+export struct BluetoothRowData {
+    id: string,
+    name: string,
+    // 0 genel, 1 kulaklık, 2 hoparlör, 3 fare, 4 klavye, 5 telefon, 6 tablet.
+    kind: int,
+    connected: bool,
+    is-audio: bool,
+    battery: string,
+    status: string,
+    hint: string,
+    error: bool,
+    busy: bool,
+    action: string,
+}
+
+export struct ControlData {
+    // 0 ana, 1 Wi-Fi, 2 Bluetooth.
+    page: int,
+    // Döşeme sırası: "wifi", "bluetooth", "donotdisturb".
+    tile-order: [string],
+    wifi: RadioTileData,
+    bluetooth: RadioTileData,
+    dnd-status: string,
+    volume-percent: int,
+    is-muted: bool,
+    brightness: int,
+    brightness-supported: bool,
+    brightness-resolved: bool,
+    show-connected-card: bool,
+    connected: [ConnectedDeviceData],
+    show-connected-empty: bool,
+    connected-empty-text: string,
+    // Wi-Fi sayfası.
+    wifi-show-list: bool,
+    wifi-rows: [WifiRowData],
+    wifi-message: string,
+    wifi-show-location-link: bool,
+    // Bluetooth sayfası.
+    bt-show-list: bool,
+    bt-rows: [BluetoothRowData],
+    bt-message: string,
+}
+
+export global ControlText {
+    in property <string> wifi;
+    in property <string> bluetooth;
+    in property <string> dnd;
+    in property <string> volume;
+    in property <string> brightness;
+    in property <string> brightness-unavailable;
+    in property <string> connected-devices;
+    in property <string> wifi-disconnect;
+    in property <string> wifi-connect;
+    in property <string> wifi-password-hint;
+    in property <string> wifi-location-link;
+    in property <string> wifi-more-settings;
+    in property <string> bt-more-settings;
+    in property <string> percent-format;
+}
+
+// Pil göstergesi gibi dolan kalın kaydırıcı: dolu kısımdaki yazı koyu, boş kısımdaki açık. Basıp sürükleyerek ya da
+// tekerlekle değişir; simgeye tıklayıp sürüklemeden bırakmak `icon-clicked` verir (sessize alma).
+component ThickSlider inherits Rectangle {
+    in property <int> value;
+    in property <string> icon;
+    in property <string> label;
+    in property <color> icon-color: #f4f4f5;
+    in property <bool> enabled: true;
+    callback user-value-changed(int);
+    callback icon-clicked();
+    property <length> fill-width: self.width * clamp(value, 0, 100) / 100;
+    property <bool> pressed-on-icon;
+    property <bool> dragged;
+    property <string> percent-text: ControlText.percent-format == "tr" ? "%" + value : value + "%";
+    height: 54px;
+    border-radius: 14px;
+    background: #ffffff17;
+    clip: true;
+    opacity: enabled ? 1 : 0.4;
+    Rectangle { x: 0px; width: fill-width; background: #f4f4f5; border-top-left-radius: 14px; border-bottom-left-radius: 14px; border-top-right-radius: fill-width >= root.width - 1px ? 14px : 0px; border-bottom-right-radius: fill-width >= root.width - 1px ? 14px : 0px; }
+    // Açık katman (boş kısım).
+    HorizontalLayout {
+        padding-left: 16px;
+        padding-right: 16px;
+        spacing: 10px;
+        VerticalLayout {
+            alignment: center;
+            KoyIcon { data: icon; size: 17px; color: icon-color; }
+        }
+        Text { horizontal-stretch: 1; vertical-alignment: center; text: label; font-size: 13px; font-weight: 600; color: #f4f4f5; font-family: Theme.notch-font; }
+        Text { vertical-alignment: center; text: percent-text; font-size: 13px; font-weight: 600; color: #f4f4f5; font-family: Theme.notch-font; }
+    }
+    // Koyu katman: dolgu genişliğinde kırpılır.
+    Rectangle {
+        x: 0px;
+        width: fill-width;
+        clip: true;
+        HorizontalLayout {
+            x: 0px;
+            width: root.width;
+            height: root.height;
+            padding-left: 16px;
+            padding-right: 16px;
+            spacing: 10px;
+            VerticalLayout {
+                alignment: center;
+                KoyIcon { data: icon; size: 17px; color: #0a0a0b; }
+            }
+            Text { horizontal-stretch: 1; vertical-alignment: center; text: label; font-size: 13px; font-weight: 600; color: #0a0a0b; font-family: Theme.notch-font; }
+            Text { vertical-alignment: center; text: percent-text; font-size: 13px; font-weight: 600; color: #0a0a0b; font-family: Theme.notch-font; }
+        }
+    }
+    function set-from(x: length) {
+        let v = round(clamp(x / root.width * 100, 0, 100));
+        if v != root.value { root.user-value-changed(v); }
+    }
+    TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        pointer-event(e) => {
+            if e.kind == PointerEventKind.down && e.button == PointerEventButton.left {
+                root.pressed-on-icon = self.mouse-x < 46px;
+                root.dragged = false;
+                if !root.pressed-on-icon { root.set-from(self.mouse-x); }
+            }
+            if e.kind == PointerEventKind.up && e.button == PointerEventButton.left {
+                if root.pressed-on-icon && !root.dragged { root.icon-clicked(); }
+            }
+        }
+        moved => {
+            if self.pressed && (root.dragged || abs(self.mouse-x - self.pressed-x) >= 3px) {
+                root.dragged = true;
+                root.set-from(self.mouse-x);
+            }
+        }
+        scroll-event(e) => {
+            let v = clamp(root.value + (e.delta-y > 0 ? 5 : -5), 0, 100);
+            if v != root.value { root.user-value-changed(v); }
+            accept
+        }
+    }
+}
+
+// Wi-Fi sinyal çubukları (4 çubuk, 3 genişlik, 1,8 boşluk, 14 yükseklik; dolmayanlar soluk).
+component SignalBars inherits Rectangle {
+    in property <int> bars;
+    width: 4 * 3px + 3 * 1.8px;
+    height: 14px;
+    for i in [0, 1, 2, 3]: Rectangle {
+        x: i * 4.8px;
+        y: root.height - self.height;
+        width: 3px;
+        height: 14px * (i + 1) / 4;
+        border-radius: 1px;
+        background: Theme.notch-text;
+        opacity: i < root.bars ? 1 : 0.28;
+    }
+}
+
+// Wi-Fi / Bluetooth döşemesi: sol bölüm aç/kapa, sağdaki ok listeyi açar.
+component RadioTile inherits Rectangle {
+    in property <string> icon;
+    in property <float> stroke: 1.2;
+    in property <string> title;
+    in property <RadioTileData> tile;
+    callback activate();
+    callback open-page();
+    property <color> base: tile.on ? Theme.notch-accent-control : Theme.notch-control-tile;
+    height: 62px;
+    border-radius: 18px;
+    background: base;
+    main := Rectangle {
+        x: 0px;
+        width: parent.width - 22px;
+        opacity: main-touch.pressed ? 0.75 : main-touch.has-hover ? 0.88 : 1;
+        HorizontalLayout {
+            padding-left: 8px;
+            padding-right: 2px;
+            spacing: 6px;
+            VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    width: 26px;
+                    height: 26px;
+                    border-radius: 9px;
+                    background: tile.on ? #00000026 : #ffffff20;
+                    opacity: tile.unavailable ? 0.5 : 1;
+                    KoyIcon { data: icon; size: 13px; stroke-units: stroke; color: tile.on ? Theme.notch-surface : white; }
+                }
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                alignment: center;
+                Text { text: title; font-size: 12px; font-weight: 600; color: tile.on ? Theme.notch-surface : Theme.notch-text; overflow: elide; font-family: Theme.notch-font; }
+                Text {
+                    text: tile.status;
+                    font-size: 11px;
+                    color: tile.unavailable ? Theme.status-warn : tile.on ? Theme.notch-surface : Theme.notch-muted;
+                    overflow: elide;
+                    font-family: Theme.notch-font;
+                }
+            }
+        }
+        main-touch := TouchArea { mouse-cursor: pointer; clicked => { root.activate(); } }
+    }
+    Rectangle {
+        x: parent.width - 22px;
+        width: 22px;
+        Rectangle { x: 0px; width: 1px; height: 30px; background: tile.on ? #00000026 : #ffffff26; }
+        Rectangle {
+            border-radius: 0px;
+            background: chev-touch.pressed ? #ffffff47 : chev-touch.has-hover ? (tile.on ? #0000001f : #ffffff26) : transparent;
+        }
+        KoyIcon {
+            x: 4px;
+            data: Icons.chevron-right;
+            size: 14px;
+            stroke-units: 2.6;
+            color: chev-touch.has-hover ? (tile.on ? #0a0a0b : white) : (tile.on ? #0a0a0bb3 : #ffffff99);
+        }
+        chev-touch := TouchArea { mouse-cursor: pointer; clicked => { root.open-page(); } }
+    }
+}
+
+component DndTile inherits Rectangle {
+    in property <string> status;
+    callback clicked;
+    height: 62px;
+    border-radius: 18px;
+    background: Theme.notch-control-tile;
+    opacity: touch.pressed ? 0.75 : touch.has-hover ? 0.88 : 1;
+    HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 10px;
+        spacing: 5px;
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: 26px;
+                height: 26px;
+                border-radius: 9px;
+                background: #ffffff20;
+                Path { width: 12px; height: 12px; viewbox-x: 3; viewbox-y: 3; viewbox-width: 18; viewbox-height: 18; commands: "M 12 3 A 9 9 0 1 0 21 12 A 7 7 0 0 1 12 3 Z"; fill: Theme.notch-text; }
+            }
+        }
+        VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            Text { text: ControlText.dnd; font-size: 11.5px; font-weight: 600; color: Theme.notch-text; overflow: elide; font-family: Theme.notch-font; }
+            Text { text: status; font-size: 11px; color: Theme.notch-muted; overflow: elide; font-family: Theme.notch-font; }
+        }
+    }
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+component PageHeader inherits HorizontalLayout {
+    in property <string> title;
+    in property <bool> on;
+    in property <bool> unavailable;
+    callback back();
+    callback toggle();
+    height: 32px;
+    spacing: 4px;
+    NotchRowButton {
+        width: 32px;
+        height: 32px;
+        clicked => { root.back(); }
+        KoyIcon { data: Icons.chevron-left; size: 16px; stroke-units: 2.2; color: Theme.notch-text; }
+    }
+    Text { horizontal-stretch: 1; vertical-alignment: center; text: title; font-size: 15px; font-weight: 600; color: Theme.notch-text; font-family: Theme.notch-font; }
+    VerticalLayout {
+        alignment: center;
+        padding-right: 4px;
+        NotchSwitch { checked: on; enabled: !unavailable; toggled => { root.toggle(); } }
+    }
+}
+
+component LinkText inherits Rectangle {
+    in property <string> text;
+    in property <color> tint: Theme.notch-muted;
+    in property <length> size: 10.5px;
+    callback clicked;
+    width: label.preferred-width;
+    height: label.preferred-height;
+    label := Text { text: root.text; font-size: root.size; color: touch.has-hover ? Theme.notch-text : root.tint; font-family: Theme.notch-font; }
+    if touch.has-hover: Rectangle { y: label.height - 1px; height: 1px; background: Theme.notch-text; }
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+export component ControlCenterPanel inherits Rectangle {
+    in property <ControlData> c;
+    callback activate-radio(int);
+    callback open-page(int);
+    callback back();
+    callback open-dnd();
+    callback volume-changed(int);
+    callback toggle-mute();
+    callback brightness-changed(int);
+    callback move-tile(string, int);
+    callback wifi-activate(string);
+    callback wifi-disconnect(string);
+    callback wifi-password(string, string);
+    callback wifi-connect(string);
+    callback wifi-location-settings();
+    callback wifi-settings();
+    callback bt-activate(string);
+    callback bt-settings();
+
+    // ---- ANA ----
+    if c.page == 0: HorizontalLayout {
+        spacing: 8px;
+        VerticalLayout {
+            horizontal-stretch: 1;
+            spacing: 10px;
+            tiles := Rectangle {
+                height: 62px;
+                property <length> slot: (self.width - 2 * 8px) / 3;
+                property <int> drag-index: -1;
+                property <length> drag-x;
+                for id[i] in c.tile-order: Rectangle {
+                    property <bool> dragging: tiles.drag-index == i;
+                    x: dragging ? tiles.drag-x : i * (tiles.slot + 8px);
+                    animate x { duration: dragging ? 0ms : 220ms; easing: ease-out; }
+                    width: tiles.slot;
+                    height: 62px;
+                    if id == "wifi": RadioTile {
+                        width: 100%;
+                        icon: "M 12,18 A 1.5,1.5 0 1 1 12,15 A 1.5,1.5 0 0 1 12,18 M 7.05,12.05 A 7,7 0 0 1 16.95,12.05 M 3.5,8.5 A 12,12 0 0 1 20.5,8.5";
+                        title: ControlText.wifi;
+                        tile: c.wifi;
+                        activate => { root.activate-radio(0); }
+                        open-page => { root.open-page(0); }
+                    }
+                    if id == "bluetooth": RadioTile {
+                        width: 100%;
+                        icon: Icons.bluetooth;
+                        stroke: 1.5;
+                        title: ControlText.bluetooth;
+                        tile: c.bluetooth;
+                        activate => { root.activate-radio(1); }
+                        open-page => { root.open-page(1); }
+                    }
+                    if id == "donotdisturb": DndTile { width: 100%; status: c.dnd-status; clicked => { root.open-dnd(); } }
+                    // Uzun basıp sürükleyince sıra değişir (bırakılan yuva ayara yazılır).
+                    TouchArea {
+                        width: 100%;
+                        height: 8px;
+                        y: 0px;
+                        mouse-cursor: move;
+                        moved => {
+                            if self.pressed {
+                                tiles.drag-index = i;
+                                tiles.drag-x = clamp(i * (tiles.slot + 8px) + self.mouse-x - self.pressed-x, 0px, tiles.width - tiles.slot);
+                            }
+                        }
+                        pointer-event(e) => {
+                            if e.kind == PointerEventKind.up && tiles.drag-index == i {
+                                let to = clamp(round((tiles.drag-x) / (tiles.slot + 8px)), 0, c.tile-order.length - 1);
+                                tiles.drag-index = -1;
+                                root.move-tile(id, to);
+                            }
+                        }
+                    }
+                }
+            }
+            Rectangle {
+                vertical-stretch: 1;
+                border-radius: 18px;
+                background: Theme.notch-control-card;
+                VerticalLayout {
+                    padding: 14px;
+                    spacing: 10px;
+                    alignment: center;
+                    ThickSlider {
+                        value: c.volume-percent;
+                        icon: c.is-muted ? Icons.volume-muted : Icons.volume;
+                        icon-color: c.is-muted ? #f87171 : #f4f4f5;
+                        label: ControlText.volume;
+                        user-value-changed(v) => { root.volume-changed(v); }
+                        icon-clicked => { root.toggle-mute(); }
+                    }
+                    if c.brightness-resolved: ThickSlider {
+                        value: c.brightness;
+                        icon: Icons.sun;
+                        label: ControlText.brightness;
+                        enabled: c.brightness-supported;
+                        user-value-changed(v) => { root.brightness-changed(v); }
+                    }
+                    if c.brightness-resolved && !c.brightness-supported: Text {
+                        text: ControlText.brightness-unavailable;
+                        font-size: 11px;
+                        color: Theme.notch-muted;
+                        wrap: word-wrap;
+                        font-family: Theme.notch-font;
+                    }
+                }
+            }
+        }
+        if c.show-connected-card: Rectangle {
+            width: 156px;
+            border-radius: 18px;
+            background: Theme.notch-card;
+            VerticalLayout {
+                padding: 12px;
+                spacing: 8px;
+                alignment: start;
+                Text { text: ControlText.connected-devices; font-size: 11px; color: Theme.notch-muted; font-family: Theme.notch-font; }
+                for d in c.connected: HorizontalLayout {
+                    spacing: 8px;
+                    Text { horizontal-stretch: 1; text: d.name; font-size: 12px; color: Theme.notch-text; overflow: elide; font-family: Theme.notch-font; }
+                    if d.battery != "": Text { text: d.battery; font-size: 12px; color: Theme.notch-control-battery; font-family: Theme.notch-font; }
+                }
+                if c.show-connected-empty: Text { text: c.connected-empty-text; font-size: 11.5px; color: Theme.notch-dim; wrap: word-wrap; font-family: Theme.notch-font; }
+            }
+        }
+    }
+
+    // ---- WI-FI ----
+    if c.page == 1: VerticalLayout {
+        spacing: 8px;
+        PageHeader {
+            title: ControlText.wifi;
+            on: c.wifi.on;
+            unavailable: c.wifi.unavailable;
+            back => { root.back(); }
+            toggle => { root.activate-radio(0); }
+        }
+        Rectangle {
+            vertical-stretch: 1;
+            if c.wifi-show-list: Flickable {
+                content-height: wifi-list.preferred-height;
+                wifi-list := VerticalLayout {
+                    alignment: start;
+                    spacing: 4px;
+                    padding-right: 4px;
+                    for r in c.wifi-rows: Rectangle {
+                        border-radius: 12px;
+                        border-width: 1px;
+                        border-color: r.connected ? Theme.notch-accent-control : transparent;
+                        background: r.connected ? Theme.notch-control-card : Theme.notch-control-tile;
+                        VerticalLayout {
+                            HorizontalLayout {
+                                min-height: 40px;
+                                NotchRowButton {
+                                    horizontal-stretch: 1;
+                                    enabled: r.clickable;
+                                    clicked => { root.wifi-activate(r.ssid); }
+                                    HorizontalLayout {
+                                        padding-left: 10px;
+                                        padding-right: 10px;
+                                        spacing: 10px;
+                                        VerticalLayout {
+                                            alignment: center;
+                                            SignalBars { bars: r.bars; }
+                                        }
+                                        VerticalLayout {
+                                            horizontal-stretch: 1;
+                                            alignment: center;
+                                            HorizontalLayout {
+                                                spacing: 6px;
+                                                alignment: start;
+                                                Text { text: r.name; font-size: 12.5px; font-weight: 600; color: Theme.notch-text; overflow: elide; max-width: 260px; font-family: Theme.notch-font; }
+                                                if r.secured: VerticalLayout {
+                                                    alignment: center;
+                                                    KoyIcon { data: Icons.lock; size: 11px; stroke-units: 2.2; color: Theme.notch-muted; }
+                                                }
+                                            }
+                                            if r.has-status: Text {
+                                                text: r.status;
+                                                font-size: 10.5px;
+                                                color: r.error ? Theme.notch-row-error : r.connected ? Theme.notch-control-soft : Theme.notch-muted;
+                                                overflow: elide;
+                                                font-family: Theme.notch-font;
+                                            }
+                                        }
+                                    }
+                                }
+                                if r.connected: VerticalLayout {
+                                    alignment: center;
+                                    padding-right: 10px;
+                                    NotchPillButton { text: ControlText.wifi-disconnect; clicked => { root.wifi-disconnect(r.ssid); } }
+                                }
+                            }
+                            if r.password-open: HorizontalLayout {
+                                padding-left: 10px;
+                                padding-right: 10px;
+                                padding-bottom: 8px;
+                                spacing: 8px;
+                                NotchPassword {
+                                    horizontal-stretch: 1;
+                                    hint: ControlText.wifi-password-hint;
+                                    edited(t) => { root.wifi-password(r.ssid, t); }
+                                    accepted => { root.wifi-connect(r.ssid); }
+                                    init => { self.focus(); }
+                                }
+                                VerticalLayout {
+                                    alignment: center;
+                                    NotchPillButton { height: 28px; text: ControlText.wifi-connect; enabled: r.can-connect; clicked => { root.wifi-connect(r.ssid); } }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if !c.wifi-show-list: Rectangle {
+                y: 0px;
+                height: msg.preferred-height + 20px;
+                border-radius: 12px;
+                background: Theme.notch-control-tile;
+                msg := VerticalLayout {
+                    padding-left: 14px;
+                    padding-right: 14px;
+                    padding-top: 10px;
+                    padding-bottom: 10px;
+                    spacing: 8px;
+                    Text { text: c.wifi-message; wrap: word-wrap; font-size: 12px; color: Theme.notch-control-soft; font-family: Theme.notch-font; }
+                    if c.wifi-show-location-link: HorizontalLayout {
+                        alignment: start;
+                        LinkText {
+                            text: ControlText.wifi-location-link;
+                            size: 11.5px;
+                            tint: Theme.notch-control-battery;
+                            clicked => { root.wifi-location-settings(); }
+                        }
+                    }
+                }
+            }
+        }
+        HorizontalLayout {
+            height: 22px;
+            padding-left: 4px;
+            alignment: start;
+            VerticalLayout {
+                alignment: end;
+                LinkText { text: ControlText.wifi-more-settings; clicked => { root.wifi-settings(); } }
+            }
+        }
+    }
+
+    // ---- BLUETOOTH ----
+    if c.page == 2: VerticalLayout {
+        spacing: 8px;
+        PageHeader {
+            title: ControlText.bluetooth;
+            on: c.bluetooth.on;
+            unavailable: c.bluetooth.unavailable;
+            back => { root.back(); }
+            toggle => { root.activate-radio(1); }
+        }
+        Rectangle {
+            vertical-stretch: 1;
+            if c.bt-show-list: Flickable {
+                content-height: bt-list.preferred-height;
+                bt-list := VerticalLayout {
+                    alignment: start;
+                    spacing: 4px;
+                    padding-right: 4px;
+                    for r in c.bt-rows: Rectangle {
+                        border-radius: 12px;
+                        border-width: 1px;
+                        border-color: r.connected ? Theme.notch-accent-control : transparent;
+                        background: r.connected ? Theme.notch-control-card : Theme.notch-control-tile;
+                        HorizontalLayout {
+                            min-height: 44px;
+                            NotchRowButton {
+                                horizontal-stretch: 1;
+                                enabled: !r.is-audio;
+                                clicked => { root.bt-activate(r.id); }
+                                HorizontalLayout {
+                                    padding-left: 10px;
+                                    padding-right: 10px;
+                                    spacing: 10px;
+                                    VerticalLayout {
+                                        alignment: center;
+                                        Rectangle {
+                                            width: 28px;
+                                            height: 28px;
+                                            border-radius: 9px;
+                                            background: Theme.notch-control-icon-bg;
+                                            KoyIcon {
+                                                data: r.kind == 1 ? Icons.headphones : r.kind == 2 ? Icons.speaker : r.kind == 3 ? Icons.mouse : r.kind == 4 ? Icons.keyboard : r.kind == 5 ? Icons.smartphone : r.kind == 6 ? Icons.tablet : Icons.bluetooth;
+                                                size: 15px;
+                                                stroke-units: 1.8;
+                                                color: Theme.notch-control-battery;
+                                            }
+                                        }
+                                    }
+                                    VerticalLayout {
+                                        horizontal-stretch: 1;
+                                        alignment: center;
+                                        Text { text: r.name; font-size: 12.5px; font-weight: 600; color: Theme.notch-text; overflow: elide; max-width: 250px; font-family: Theme.notch-font; }
+                                        Text {
+                                            text: r.status;
+                                            font-size: 10.5px;
+                                            color: r.error ? Theme.notch-row-error : r.connected ? Theme.notch-control-soft : Theme.notch-muted;
+                                            overflow: elide;
+                                            font-family: Theme.notch-font;
+                                        }
+                                        if !r.is-audio && r.hint != "": Text { text: r.hint; font-size: 9.5px; color: Theme.notch-dim; overflow: elide; font-family: Theme.notch-font; }
+                                    }
+                                }
+                            }
+                            HorizontalLayout {
+                                padding-right: 10px;
+                                spacing: 8px;
+                                alignment: center;
+                                if r.battery != "": Text { vertical-alignment: center; text: r.battery; font-size: 11.5px; color: Theme.notch-control-battery; font-family: Theme.notch-font; }
+                                if r.is-audio: VerticalLayout {
+                                    alignment: center;
+                                    NotchPillButton { text: r.action; enabled: !r.busy; clicked => { root.bt-activate(r.id); } }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if !c.bt-show-list: Rectangle {
+                y: 0px;
+                height: bt-msg.preferred-height + 20px;
+                border-radius: 12px;
+                background: Theme.notch-control-tile;
+                bt-msg := Text {
+                    x: 14px;
+                    width: parent.width - 28px;
+                    text: c.bt-message;
+                    wrap: word-wrap;
+                    font-size: 12px;
+                    color: Theme.notch-control-soft;
+                    font-family: Theme.notch-font;
+                }
+            }
+        }
+        HorizontalLayout {
+            height: 22px;
+            padding-left: 4px;
+            alignment: start;
+            VerticalLayout {
+                alignment: end;
+                LinkText { text: ControlText.bt-more-settings; clicked => { root.bt-settings(); } }
+            }
+        }
+    }
+}
