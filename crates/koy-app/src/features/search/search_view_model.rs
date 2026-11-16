@@ -145,6 +145,10 @@ impl SearchViewModel {
         self.panel.is_open()
     }
 
+    pub fn suggestion(&self) -> String {
+        self.panel.suggestion()
+    }
+
     pub fn history_mode(&self) -> SearchHistoryMode {
         self.panel.history_mode()
     }

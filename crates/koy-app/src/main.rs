@@ -168,6 +168,46 @@ fn dev_snapshot(view: &str, path: String) -> Result<(), slint::PlatformError> {
             });
             v.run()
         }
+        "search" => {
+            use slint::{ModelRc, VecModel};
+            let v = NotchPanelPreview::new()?;
+            ThemeManager::install(&v);
+            features::search::search_binding::install_text(&v, features::search::search_factory::glyph_path(koy_core::search::SearchGlyph::Help).unwrap_or(""));
+            v.set_preview_height(324.0);
+            let g = |gl| features::search::search_factory::glyph_path(gl).unwrap_or("").into();
+            let row = |i: i32, header: &str, title: &str, sub: &str, glyph, selected: bool| SearchRowData {
+                index: i,
+                header: header.into(),
+                title: title.into(),
+                subtitle: sub.into(),
+                glyph,
+                has_icon: false,
+                icon: Default::default(),
+                selected,
+                actions: ModelRc::new(VecModel::from(if selected { vec![SearchActionData { label: "Aç".into(), active: true }, SearchActionData { label: "Klasörü aç".into(), active: false }] } else { vec![] })),
+            };
+            let d = SearchData {
+                query: "12*8".into(),
+                suggestion: "".into(),
+                rows: ModelRc::new(VecModel::from(vec![
+                    row(0, "Hesap makinesi", "= 96", "Kopyalamak için Enter", g(koy_core::search::SearchGlyph::Calculator), true),
+                    row(1, "Dosyalar", "rapor-12-8.pdf", r"C:\Belgeler\rapor-12-8.pdf", g(koy_core::search::SearchGlyph::File), false),
+                    row(2, "Web", "12*8 için ara", "DuckDuckGo", g(koy_core::search::SearchGlyph::Globe), false),
+                ])),
+                scroll_to: -1,
+                ..Default::default()
+            };
+            v.set_panel("search".into());
+            v.set_search(d);
+            let w = v.as_weak();
+            let _t = infra::dispatch::delay(std::time::Duration::from_millis(700), move || {
+                if let Some(v) = w.upgrade() {
+                    infra::snapshot::save(v.window(), &path);
+                }
+                let _ = slint::quit_event_loop();
+            });
+            v.run()
+        }
         "control" | "wifi" | "bt" => {
             use slint::{ModelRc, VecModel};
             let v = NotchPanelPreview::new()?;

@@ -1,0 +1,248 @@
+// Karşılığı: koy/src/App/Features/Search/SearchPanel.xaml(.cs). Arama çubuğu (yardım, kutu + gri öneri, geçmiş, ayarlar,
+// iğne) ve sonuç listesi (kategori başlıkları, simge, başlık / alt yazı, seçili satırda eylem düğmeleri). Tuşlar
+// Rust'a iletilir (`key`), sonuç satırları sürüklenebilir (`drag-row`).
+
+import { Theme } from "theme.slint";
+import { Icons, KoyIcon } from "icons.slint";
+
+export struct SearchActionData { label: string, active: bool }
+export struct SearchRowData {
+    index: int,
+    header: string,
+    title: string,
+    subtitle: string,
+    glyph: string,
+    has-icon: bool,
+    icon: image,
+    selected: bool,
+    actions: [SearchActionData],
+}
+
+export struct SearchData {
+    query: string,
+    suggestion: string,
+    show-placeholder: bool,
+    show-empty-hint: bool,
+    is-searching: bool,
+    has-history: bool,
+    is-pinned: bool,
+    rows: [SearchRowData],
+    // Seçili satır görünür yapılsın diye kaydırma isteği (satır dizini, -1 yok).
+    scroll-to: int,
+    // Kutunun imleci (Rust ister: geçmişten değiştirilen sorgu).
+    caret-request: int,
+    caret-serial: int,
+}
+
+export global SearchText {
+    in property <string> placeholder;
+    in property <string> empty-hint;
+    in property <string> searching;
+    in property <string> help-glyph;
+}
+
+component ToolButton inherits Rectangle {
+    in property <string> icon;
+    in property <color> tint: Theme.notch-text-secondary;
+    callback clicked;
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+    background: touch.has-hover ? Theme.notch-hover : transparent;
+    KoyIcon { data: icon; size: 16px; color: tint; }
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+export component SearchPanel inherits Rectangle {
+    in property <SearchData> d;
+    // Tuş: metin, ctrl, shift, imleç başta mı, sonda mı → işlendi mi.
+    callback key(string, bool, bool, bool, bool) -> bool;
+    callback query-edited(string);
+    // Hemen tamamlama kipinde yazılanın tamamlanmış hâli (yoksa boş).
+    callback completion(string) -> string;
+    callback toggle-help();
+    callback toggle-history();
+    callback open-settings();
+    callback toggle-pin();
+    callback activate-row(int);
+    callback run-action(int, int);
+    callback drag-row(int);
+    property <int> last-caret-serial;
+    property <bool> allow-completion;
+
+    public function focus-box() {
+        box.focus();
+        box.select-all();
+    }
+
+    changed d => {
+        if d.caret-serial != root.last-caret-serial {
+            root.last-caret-serial = d.caret-serial;
+            box.set-selection-offsets(d.caret-request, d.caret-request);
+        }
+        if d.scroll-to >= 0 {
+            // Seçili satırı görünür yap (satır yüksekliği ~42, başlık ~22 yaklaşımıyla).
+            let y = d.scroll-to * 42px;
+            if y + 42px > -list.viewport-y + list.height { list.viewport-y = -(y + 42px - list.height); }
+            if y < -list.viewport-y { list.viewport-y = -y; }
+        }
+    }
+
+    VerticalLayout {
+        spacing: 6px;
+        Rectangle {
+            height: 40px;
+            border-radius: 14px;
+            background: Theme.notch-chip;
+            HorizontalLayout {
+                padding-left: 6px;
+                padding-right: 6px;
+                spacing: 0px;
+                VerticalLayout {
+                    alignment: center;
+                    ToolButton { icon: SearchText.help-glyph; clicked => { root.toggle-help(); } }
+                }
+                Rectangle {
+                    horizontal-stretch: 1;
+                    if d.show-placeholder: Text {
+                        x: 8px;
+                        text: SearchText.placeholder;
+                        font-size: 15px;
+                        color: Theme.notch-muted;
+                        vertical-alignment: center;
+                        font-family: Theme.notch-font;
+                    }
+                    Text {
+                        x: 8px;
+                        width: parent.width - 12px;
+                        text: d.suggestion;
+                        font-size: 15px;
+                        color: Theme.notch-text;
+                        opacity: 0.5;
+                        vertical-alignment: center;
+                        overflow: elide;
+                        font-family: Theme.notch-font;
+                    }
+                    FocusScope {
+                        x: 8px;
+                        width: parent.width - 12px;
+                        capture-key-pressed(e) => {
+                            let at-end = box.cursor-position-byte-offset == box.anchor-position-byte-offset && box.cursor-position-byte-offset >= box.text.character-count;
+                            let at-start = box.cursor-position-byte-offset == 0 && box.anchor-position-byte-offset == 0;
+                            root.allow-completion = e.text != Key.Backspace && e.text != Key.Delete;
+                            if root.key(e.text, e.modifiers.control, e.modifiers.shift, at-start, at-end) { return accept; }
+                            reject
+                        }
+                        box := TextInput {
+                            text: d.query;
+                            font-size: 15px;
+                            color: Theme.notch-text;
+                            vertical-alignment: center;
+                            single-line: true;
+                            font-family: Theme.notch-font;
+                            edited => {
+                                root.query-edited(self.text);
+                                if root.allow-completion {
+                                    let typed = self.text.character-count;
+                                    let full = root.completion(self.text);
+                                    if full.character-count > typed {
+                                        self.text = root.completion(self.text);
+                                        root.query-edited(self.text);
+                                        self.set-selection-offsets(self.text.character-count, typed);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if d.has-history: VerticalLayout {
+                    alignment: center;
+                    ToolButton { icon: Icons.chevron-down; clicked => { root.toggle-history(); } }
+                }
+                VerticalLayout {
+                    alignment: center;
+                    ToolButton { icon: Icons.settings; clicked => { root.open-settings(); } }
+                }
+                VerticalLayout {
+                    alignment: center;
+                    ToolButton { icon: Icons.pin; tint: d.is-pinned ? Theme.notch-accent-focus : Theme.notch-text-secondary; clicked => { root.toggle-pin(); } }
+                }
+            }
+        }
+        Rectangle {
+            vertical-stretch: 1;
+            if d.show-empty-hint: Text { text: SearchText.empty-hint; font-size: 12.5px; color: Theme.notch-muted; horizontal-alignment: center; vertical-alignment: center; font-family: Theme.notch-font; }
+            if d.is-searching: Text { text: SearchText.searching; font-size: 12.5px; color: Theme.notch-muted; horizontal-alignment: center; vertical-alignment: center; font-family: Theme.notch-font; }
+            list := Flickable {
+                content-height: rows.preferred-height;
+                rows := VerticalLayout {
+                    alignment: start;
+                    for r in d.rows: VerticalLayout {
+                        if r.header != "": Text {
+                            text: r.header;
+                            font-size: 10.5px;
+                            font-weight: 600;
+                            color: Theme.notch-muted;
+                            x: 8px;
+                            font-family: Theme.notch-font;
+                        }
+                        Rectangle {
+                            min-height: 38px;
+                            border-radius: 12px;
+                            background: r.selected ? Theme.notch-chip : row-touch.has-hover ? Theme.notch-hover : transparent;
+                            row-touch := TouchArea {
+                                mouse-cursor: pointer;
+                                property <bool> dragged;
+                                pointer-event(e) => {
+                                    if e.kind == PointerEventKind.down { self.dragged = false; }
+                                    if e.kind == PointerEventKind.up && e.button == PointerEventButton.left && !self.dragged { root.activate-row(r.index); }
+                                }
+                                moved => {
+                                    if self.pressed && !self.dragged && (abs(self.mouse-x - self.pressed-x) > 4px || abs(self.mouse-y - self.pressed-y) > 4px) {
+                                        self.dragged = true;
+                                        root.drag-row(r.index);
+                                    }
+                                }
+                            }
+                            HorizontalLayout {
+                                padding-left: 8px;
+                                padding-right: 8px;
+                                padding-top: 4px;
+                                padding-bottom: 4px;
+                                spacing: 6px;
+                                Rectangle {
+                                    width: 22px;
+                                    height: 22px;
+                                    y: (parent.height - self.height) / 2;
+                                    if !r.has-icon: KoyIcon { data: r.glyph; size: 18px; color: Theme.notch-text-secondary; }
+                                    if r.has-icon: Image { width: 22px; height: 22px; source: r.icon; image-fit: contain; }
+                                }
+                                VerticalLayout {
+                                    horizontal-stretch: 1;
+                                    alignment: center;
+                                    Text { text: r.title; font-size: 13.5px; color: Theme.notch-text; overflow: elide; font-family: Theme.notch-font; }
+                                    if r.subtitle != "": Text { text: r.subtitle; font-size: 11px; color: Theme.notch-muted; overflow: elide; wrap: word-wrap; max-height: 30px; font-family: Theme.notch-font; }
+                                }
+                                if r.selected: HorizontalLayout {
+                                    spacing: 6px;
+                                    alignment: center;
+                                    for a[ai] in r.actions: VerticalLayout {
+                                        alignment: center;
+                                        Rectangle {
+                                            border-radius: 8px;
+                                            background: a.active ? Theme.notch-accent-focus : Theme.notch-hover;
+                                            width: act-label.preferred-width + 16px;
+                                            height: act-label.preferred-height + 6px;
+                                            act-label := Text { text: a.label; font-size: 11px; color: Theme.notch-text; font-family: Theme.notch-font; }
+                                            TouchArea { mouse-cursor: pointer; clicked => { root.run-action(r.index, ai); } }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
