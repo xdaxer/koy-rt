@@ -3,6 +3,7 @@
 pub mod actions;
 pub mod focus;
 pub mod menu;
+pub mod shelf;
 pub mod shortcuts;
 pub mod status;
 pub mod system_info;

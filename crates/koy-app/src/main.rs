@@ -104,6 +104,30 @@ fn dev_snapshot(view: &str, path: String) -> Result<(), slint::PlatformError> {
             });
             v.run()
         }
+        "shelf" => {
+            use features::shelf::shelf_binding;
+            use koy_core::shelf::{ShelfItem, ShelfItemKind};
+            let v = NotchPanelPreview::new()?;
+            ThemeManager::install(&v);
+            shelf_binding::install_text(&v);
+            let now = chrono::Utc::now().fixed_offset();
+            let items = vec![
+                ShelfItem::new("1", "rapor.pdf", r"C:\x\rapor.pdf", ShelfItemKind::File, now),
+                ShelfItem::new("2", "Fotoğraflar", r"C:\x\Fotoğraflar", ShelfItemKind::Directory, now),
+                ShelfItem::new("3", "Toplantı notu", "Toplantı notu", ShelfItemKind::Text, now),
+            ];
+            v.set_panel("shelf".into());
+            v.set_shelf_items(shelf_binding::to_items(&items));
+            v.set_shelf_count(resources::strings::Strings::format("ShelfCount", &["3"]).into());
+            let w = v.as_weak();
+            let _t = infra::dispatch::delay(std::time::Duration::from_millis(700), move || {
+                if let Some(v) = w.upgrade() {
+                    infra::snapshot::save(v.window(), &path);
+                }
+                let _ = slint::quit_event_loop();
+            });
+            v.run()
+        }
         "system" => {
             let v = NotchPanelPreview::new()?;
             ThemeManager::install(&v);

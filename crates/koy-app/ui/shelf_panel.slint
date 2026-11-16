@@ -1,0 +1,184 @@
+// Karşılığı: koy/src/App/Features/Shelf/ShelfPanel.xaml. Başlık (Raf · 3 öğe, Temizle), öğe kutucukları (sığmazsa alta
+// sarar) ve sağda sabit bırakma kutusu. Öğe sürüklenip başka uygulamaya bırakılabilir; çift tıklayınca açılır.
+
+import { Theme } from "theme.slint";
+import { Icons, KoyIcon } from "icons.slint";
+
+// kind: 0 dosya, 1 klasör, 2 metin.
+export struct ShelfItemData { index: int, id: string, name: string, tooltip: string, kind: int, badge: string }
+
+export global ShelfText {
+    in property <string> shelf;
+    in property <string> clear;
+    in property <string> drop-here;
+}
+
+component ShelfTile inherits Rectangle {
+    in property <ShelfItemData> item;
+    callback remove();
+    callback open();
+    callback drag();
+    property <bool> dragging;
+    width: 120px;
+    height: 78px;
+    border-radius: 16px;
+    background: Theme.notch-surface;
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        double-clicked => { root.open(); }
+        pointer-event(e) => {
+            if e.kind == PointerEventKind.up { root.dragging = false; }
+        }
+        moved => {
+            // Basılıyken birkaç piksel kayınca OLE sürüklemesi başlar (WPF MouseMove + LeftButton).
+            if self.pressed && !root.dragging
+                && (abs(self.mouse-x - self.pressed-x) > 4px || abs(self.mouse-y - self.pressed-y) > 4px) {
+                root.dragging = true;
+                root.drag();
+            }
+        }
+    }
+    VerticalLayout {
+        padding: 8px;
+        spacing: 8px;
+        alignment: center;
+        HorizontalLayout {
+            alignment: center;
+            Rectangle {
+                width: 34px;
+                height: 40px;
+                border-radius: 7px;
+                background: item.kind == 1 ? Theme.notch-shelf-soft : item.kind == 2 ? Theme.notch-control-soft : Theme.notch-text-secondary;
+                Text {
+                    y: parent.height - self.height - 6px;
+                    text: item.badge;
+                    font-size: 10px;
+                    font-weight: 700;
+                    color: Theme.notch-surface;
+                    font-family: Theme.notch-font;
+                    horizontal-alignment: center;
+                }
+            }
+        }
+        Text {
+            text: item.name;
+            font-size: 11px;
+            color: Theme.notch-text;
+            font-family: Theme.notch-font;
+            horizontal-alignment: center;
+            overflow: elide;
+        }
+    }
+    Rectangle {
+        x: parent.width - 8px - 18px;
+        y: 8px;
+        width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        background: x-touch.has-hover ? Theme.notch-hover : transparent;
+        KoyIcon { data: Icons.x; size: 10px; color: Theme.notch-muted; }
+        x-touch := TouchArea { mouse-cursor: pointer; clicked => { root.remove(); } }
+    }
+}
+
+export component ShelfPanel inherits Rectangle {
+    in property <[ShelfItemData]> items;
+    in property <string> count-text;
+    callback remove(string);
+    callback clear-all();
+    callback open(int);
+    callback drag(int);
+    border-radius: 22px;
+    background: Theme.notch-shelf-card;
+    VerticalLayout {
+        padding: 14px;
+        spacing: 10px;
+        HorizontalLayout {
+            spacing: 4px;
+            Text {
+                text: ShelfText.shelf;
+                font-size: 13px;
+                font-weight: 600;
+                color: Theme.notch-text;
+                font-family: Theme.notch-font;
+                vertical-alignment: center;
+            }
+            Text {
+                horizontal-stretch: 1;
+                text: " · " + count-text;
+                font-size: 12px;
+                color: Theme.notch-shelf-soft;
+                font-family: Theme.notch-font;
+                vertical-alignment: center;
+            }
+            if items.length > 0: Rectangle {
+                height: 28px;
+                width: clear-label.preferred-width + 24px;
+                border-radius: 14px;
+                background: Theme.notch-shelf-chip;
+                opacity: clear-touch.has-hover ? 0.85 : 1;
+                clear-label := Text {
+                    text: ShelfText.clear;
+                    font-size: 11px;
+                    color: Theme.notch-shelf-chip-text;
+                    font-family: Theme.notch-font;
+                }
+                clear-touch := TouchArea { mouse-cursor: pointer; clicked => { root.clear-all(); } }
+            }
+        }
+        HorizontalLayout {
+            spacing: 10px;
+            vertical-stretch: 1;
+            // Öğeler: sütun sayısı genişliğe göre, satırlar alta sarar.
+            tiles := Flickable {
+                horizontal-stretch: 1;
+                property <int> columns: max(1, floor((self.width + 10px) / 130px));
+                content-height: ceil(items.length / columns) * 86px;
+                for item[i] in items: ShelfTile {
+                    x: mod(i, tiles.columns) * 130px;
+                    y: floor(i / tiles.columns) * 86px;
+                    item: item;
+                    remove => { root.remove(item.id); }
+                    open => { root.open(item.index); }
+                    drag => { root.drag(item.index); }
+                }
+            }
+            // Bırakma kutusu (kesik çizgili).
+            Rectangle {
+                width: 120px;
+                VerticalLayout {
+                    alignment: start;
+                    Rectangle {
+                        height: 78px;
+                        Path {
+                            width: 100%;
+                            height: 100%;
+                            viewbox-width: 120;
+                            viewbox-height: 78;
+                            commands: "M 16.00 0.75 L 20.50 0.75 M 25.00 0.75 L 29.50 0.75 M 34.00 0.75 L 38.50 0.75 M 43.00 0.75 L 47.50 0.75 M 52.00 0.75 L 56.50 0.75 M 61.00 0.75 L 65.50 0.75 M 70.00 0.75 L 74.50 0.75 M 79.00 0.75 L 83.50 0.75 M 88.00 0.75 L 92.50 0.75 M 97.00 0.75 L 101.50 0.75 M 105.99 0.88 L 106.98 1.04 L 107.95 1.27 L 108.90 1.56 L 109.84 1.91 L 110.30 2.12 M 114.07 4.55 L 114.78 5.22 L 115.47 5.94 L 116.10 6.72 L 116.68 7.53 L 116.96 7.98 M 118.74 12.09 L 118.96 13.02 L 119.12 14.01 L 119.22 15.00 L 119.25 16.00 L 119.25 16.55 M 119.25 21.05 L 119.25 25.55 M 119.25 30.05 L 119.25 34.55 M 119.25 39.05 L 119.25 43.55 M 119.25 48.05 L 119.25 52.55 M 119.25 57.05 L 119.25 61.55 M 118.71 66.00 L 118.44 66.90 L 118.09 67.84 L 117.68 68.74 L 117.21 69.62 L 116.91 70.11 M 114.00 73.51 L 113.28 74.10 L 112.47 74.68 L 111.62 75.21 L 110.74 75.68 L 110.21 75.92 M 105.90 77.13 L 105.00 77.22 L 104.00 77.25 L 101.40 77.25 M 96.90 77.25 L 92.40 77.25 M 87.90 77.25 L 83.40 77.25 M 78.90 77.25 L 74.40 77.25 M 69.90 77.25 L 65.40 77.25 M 60.90 77.25 L 56.40 77.25 M 51.90 77.25 L 47.40 77.25 M 42.90 77.25 L 38.40 77.25 M 33.90 77.25 L 29.40 77.25 M 24.90 77.25 L 20.40 77.25 M 15.90 77.25 L 15.00 77.22 L 14.01 77.12 L 13.02 76.96 L 12.05 76.73 L 11.47 76.55 M 7.43 74.61 L 6.72 74.10 L 5.94 73.47 L 5.22 72.78 L 4.53 72.06 L 4.14 71.57 M 1.86 67.71 L 1.56 66.90 L 1.27 65.95 L 1.04 64.98 L 0.88 63.99 L 0.82 63.35 M 0.75 58.85 L 0.75 54.35 M 0.75 49.85 L 0.75 45.35 M 0.75 40.85 L 0.75 36.35 M 0.75 31.85 L 0.75 27.35 M 0.75 22.85 L 0.75 18.35 M 0.91 13.86 L 1.04 13.02 L 1.27 12.05 L 1.56 11.10 L 1.91 10.16 L 2.18 9.56 M 4.65 5.82 L 5.22 5.22 L 5.94 4.53 L 6.72 3.90 L 7.53 3.32 L 8.10 2.96 M 12.24 1.23 L 13.02 1.04 L 14.01 0.88 L 15.00 0.78 L 16.00 0.75";
+                            stroke: Theme.notch-shelf-dash;
+                            stroke-width: 1.5px;
+                            stroke-line-cap: butt;
+                            fill: transparent;
+                        }
+                        VerticalLayout {
+                            alignment: center;
+                            spacing: 6px;
+                            HorizontalLayout {
+                                alignment: center;
+                                KoyIcon { data: Icons.download; size: 20px; color: Theme.notch-shelf-soft; }
+                            }
+                            Text {
+                                text: ShelfText.drop-here;
+                                font-size: 11px;
+                                color: Theme.notch-shelf-soft;
+                                font-family: Theme.notch-font;
+                                horizontal-alignment: center;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

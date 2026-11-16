@@ -4,6 +4,7 @@ pub mod dispatch;
 pub mod message_window;
 pub mod native_window;
 pub mod observable;
+pub mod ole_dnd;
 pub mod single_instance;
 pub mod snapshot;
 pub mod system_events;
