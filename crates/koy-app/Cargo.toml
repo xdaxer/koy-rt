@@ -13,7 +13,7 @@ koy-core = { workspace = true, features = ["all"] }
 koy-platform = { workspace = true, features = ["watchdog-launcher"] }
 slint = { version = "1", default-features = false, features = ["std", "compat-1-2", "backend-winit", "renderer-software", "raw-window-handle-06"] }
 raw-window-handle = "0.6"
-windows.workspace = true
+windows = { workspace = true, features = ["Win32_Graphics_Imaging", "Win32_System_Com", "Win32_System_Ole", "Win32_System_Memory", "Win32_System_SystemServices", "Win32_UI_Shell", "Win32_UI_Shell_Common"] }
 windows-core.workspace = true
 chrono.workspace = true
 

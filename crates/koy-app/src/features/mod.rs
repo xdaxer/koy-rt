@@ -5,6 +5,7 @@ pub mod calendar;
 pub mod clipboard_panel;
 pub mod focus;
 pub mod menu;
+pub mod music;
 pub mod shelf;
 pub mod shortcuts;
 pub mod status;
