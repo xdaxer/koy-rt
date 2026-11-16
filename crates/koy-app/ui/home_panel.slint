@@ -1,0 +1,708 @@
+// Karşılığı: koy/src/App/Features/Home/HomePanel.xaml, Music/SpectrumBars.cs ve Music/LyricsView.xaml.
+// Ana sekmesinin iki yüzü: tam sayfa müzik (büyük kapak, başlık, sözler / ses çubukları, ilerleme, denetimler) ve Ana
+// (solda "Bugün": gün, hava, sıradaki etkinlikler; sağda Odak satırı ve ayardaki sırayla kulaklık, sistem, hızlı başlat).
+
+import { Theme } from "theme.slint";
+import { Icons, KoyIcon } from "icons.slint";
+import { ArcRing } from "arc_ring.slint";
+import { WeatherGlyph } from "status.slint";
+import { NotchPlainButton } from "notch_controls.slint";
+
+export struct MusicCardData {
+    has-track: bool,
+    title: string,
+    artist: string,
+    source-app: string,
+    is-playing: bool,
+    is-live: bool,
+    has-thumbnail: bool,
+    thumbnail: image,
+    is-wide-cover: bool,
+    progress: float,
+    position-text: string,
+    duration-text: string,
+    // Kart boyası.
+    has-tint: bool,
+    card: color,
+    blend: [color],
+    sub-text: color,
+    has-spectrum-color: bool,
+    spectrum-color: color,
+    has-backdrop: bool,
+    backdrop: image,
+    tint-overlay: color,
+    // Görselleştirici: 0 çubuk, 1 dalga, 2 nokta.
+    show-spectrum: bool,
+    visualizer-style: int,
+    bar-count: int,
+    levels: [float],
+    // Sözler.
+    lyrics-can-toggle: bool,
+    lyrics-enabled: bool,
+    lyrics-shown: bool,
+    lyrics: [string],
+    lyrics-active: int,
+}
+
+export struct UpcomingData { index: int, when: string, title: string, until: string }
+export struct QuickItemData { index: int, name: string, initials: string, has-icon: bool, icon: image }
+
+export struct HomeData {
+    is-music-page: bool,
+    greeting: string,
+    day-date: string,
+    show-weather: bool,
+    show-no-location: bool,
+    weather-icon: string,
+    temperature-short: string,
+    weather-description: string,
+    place-name: string,
+    has-next-event: bool,
+    next-event: UpcomingData,
+    later-events: [UpcomingData],
+    show-focus-row: bool,
+    focus-running: bool,
+    focus-progress: float,
+    focus-home-line: string,
+    focus-running-text: string,
+    focus-can-skip: bool,
+    focus-time-text: string,
+    // Sağ sütun sırası: 1 kulaklık, 2 sistem, 3 hızlı başlat (yalnız görünür olanlar).
+    right-cards: [int],
+    headphone-is-speaker: bool,
+    headphone-name: string,
+    headphone-battery: string,
+    cpu-text: string,
+    top-process-text: string,
+    cpu-progress: float,
+    ram-text: string,
+    memory-detail-text: string,
+    ram-progress: float,
+    network-name: string,
+    download-text: string,
+    upload-text: string,
+    quick-items: [QuickItemData],
+    quick-can-add: bool,
+}
+
+export global HomeText {
+    in property <string> no-media;
+    in property <string> live;
+    in property <string> pick-location;
+    in property <string> next-up;
+    in property <string> no-events;
+    in property <string> focus-start;
+    in property <string> cpu;
+    in property <string> ram;
+    in property <string> quick-launch;
+    in property <string> quick-remove;
+    in property <string> quick-add-file;
+    in property <string> quick-add-folder;
+}
+
+// Yuvarlak oynatıcı düğmesi: fare üstünde hafif ışık, basınca hafif küçülme.
+component PlayerButton inherits Rectangle {
+    in property <brush> fill: transparent;
+    in property <bool> enabled: true;
+    callback clicked;
+    border-radius: self.width / 2;
+    background: touch.has-hover && enabled ? Theme.notch-hover : fill;
+    opacity: enabled ? 1 : 0.3;
+    @children
+    touch := TouchArea { enabled: enabled; mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+// Ses çubukları (24 çubuk; ayardaki sayı kadar), alttan büyür; dalga ve nokta biçimleri.
+export component SpectrumBars inherits Rectangle {
+    in property <[float]> levels;
+    in property <int> bar-count;
+    in property <length> bar-width: 6px;
+    in property <length> gap: 5px;
+    in property <int> style;
+    in property <color> fill;
+    property <int> count: bar-count > 0 ? min(levels.length, bar-count) : levels.length;
+    property <length> total: count * bar-width + max(0, count - 1) * gap;
+    for level[i] in levels: Rectangle {
+        property <length> bar-h: max(3px, round(level * root.height / 1px) * 1px);
+        visible: i < root.count;
+        x: max(0px, (root.width - root.total) / 2) + i * (root.bar-width + root.gap);
+        width: root.bar-width;
+        // 0 çubuk (alttan), 1 dalga (ortadan), 2 nokta.
+        y: root.style == 1 ? (root.height - self.height) / 2 : root.style == 2 ? clamp(root.height - bar-h, 0px, root.height - root.bar-width) : root.height - bar-h;
+        height: root.style == 2 ? root.bar-width : max(3px, bar-h);
+        border-radius: root.bar-width / 2;
+        background: root.fill;
+    }
+}
+
+// Sözler: etkin satır görünümün üst %35'ine yumuşakça kayar; satıra tıklayınca o ana atlanır.
+component LyricsView inherits Rectangle {
+    in property <[string]> lines;
+    in property <int> active;
+    in property <length> font-size: 13.5px;
+    callback seek(int);
+    property <length> line-h: font-size * 1.3 + 4px;
+    property <length> target: active < 0 ? 0px : clamp(self.height * 0.35 - (active + 0.5) * line-h, min(0px, self.height - lines.length * line-h), 0px);
+    clip: true;
+    TouchArea { }
+    list := Rectangle {
+        y: target;
+        animate y { duration: 380ms; easing: ease-out; }
+        height: lines.length * line-h;
+        for l[i] in lines: Text {
+            x: 0px;
+            y: i * line-h;
+            width: root.width;
+            height: line-h;
+            text: l;
+            font-size: root.font-size;
+            font-weight: 600;
+            color: Theme.notch-text;
+            opacity: i == root.active ? 1 : 0.42;
+            overflow: elide;
+            vertical-alignment: center;
+            font-family: Theme.notch-font;
+            TouchArea { mouse-cursor: pointer; clicked => { root.seek(i); } }
+        }
+    }
+}
+
+component MusicFace inherits Rectangle {
+    in property <MusicCardData> m;
+    callback toggle-lyrics();
+    callback seek-line(int);
+    callback seek(float);
+    callback previous();
+    callback play-pause();
+    callback next();
+    border-radius: 20px;
+    border-width: 1px;
+    border-color: Theme.notch-card-border;
+    background: m.has-tint ? m.card : Theme.notch-music-card;
+    clip: true;
+    // Müzik kartının boş yerine tıklama işlenmiş sayılır (çentik kapanmasın).
+    TouchArea { }
+    // Çok renkli kapak: köşelerden yayılan renkler.
+    for c[i] in m.blend: Rectangle {
+        background: @radial-gradient(circle, c 0%, transparent 70%);
+        width: parent.width * 1.4;
+        height: parent.height * 1.6;
+        x: (i == 0 || i == 2 ? 0.15 : 0.87) * parent.width - self.width / 2;
+        y: (i == 0 || i == 1 ? 0.15 : 0.9) * parent.height - self.height / 2;
+    }
+    // Kapak resmi stili: büyütülmüş kapak, kart tonu ve koyu perde.
+    if m.has-backdrop: Image { width: 100%; height: 100%; source: m.backdrop; image-fit: cover; image-rendering: smooth; }
+    if m.has-backdrop: Rectangle { background: m.tint-overlay; }
+    if m.has-backdrop: Rectangle { background: @linear-gradient(180deg, #0a0a0b8c 0%, #0a0a0bd9 100%); }
+    if !m.has-track: VerticalLayout {
+        alignment: center;
+        spacing: 10px;
+        HorizontalLayout {
+            alignment: center;
+            KoyIcon { data: Icons.music; size: 28px; color: Theme.notch-dim; }
+        }
+        Text { text: HomeText.no-media; font-size: 13px; color: Theme.notch-muted; horizontal-alignment: center; font-family: Theme.notch-font; }
+    }
+    if m.has-track: HorizontalLayout {
+        padding: 18px;
+        spacing: 20px;
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: 200px;
+                height: 200px;
+                border-radius: 20px;
+                background: Theme.notch-music-cover;
+                clip: true;
+                Path {
+                    width: 56px;
+                    height: 56px;
+                    commands: "M 12,3 L 6,5 L 6,11 A 2.5,2.5 0 1 1 3.5,8.5 L 5,8.5 L 5,4 L 12,2 Z";
+                    fill: #ffffff60;
+                }
+                if m.has-thumbnail && m.is-wide-cover: Image { width: 100%; height: 100%; source: m.thumbnail; image-fit: cover; opacity: 0.85; }
+                if m.has-thumbnail && m.is-wide-cover: Rectangle { background: #0a0a0b80; }
+                if m.has-thumbnail: Image { width: 100%; height: 100%; source: m.thumbnail; image-fit: m.is-wide-cover ? contain : cover; }
+            }
+        }
+        VerticalLayout {
+            horizontal-stretch: 1;
+            spacing: 0px;
+            HorizontalLayout {
+                spacing: 8px;
+                VerticalLayout {
+                    horizontal-stretch: 1;
+                    spacing: 2px;
+                    if m.is-live: HorizontalLayout {
+                        alignment: start;
+                        padding-bottom: 4px;
+                        Rectangle {
+                            border-radius: 9px;
+                            background: #ef4444;
+                            width: live-row.preferred-width + 14px;
+                            height: live-row.preferred-height + 4px;
+                            live-row := HorizontalLayout {
+                                spacing: 5px;
+                                VerticalLayout {
+                                    alignment: center;
+                                    Rectangle { width: 5px; height: 5px; border-radius: 2.5px; background: white; }
+                                }
+                                Text { text: HomeText.live; font-size: 10.5px; font-weight: 700; color: white; font-family: Theme.notch-font; }
+                            }
+                        }
+                    }
+                    Text {
+                        text: m.title;
+                        font-family: Theme.notch-display-font;
+                        font-size: 20px;
+                        font-weight: 600;
+                        color: Theme.notch-text;
+                        wrap: word-wrap;
+                        overflow: elide;
+                        max-height: 52px;
+                    }
+                    if m.artist != "": Text { text: m.artist; font-size: 12.5px; color: m.has-tint ? m.sub-text : Theme.notch-music-sub; overflow: elide; font-family: Theme.notch-font; }
+                    Text { text: m.source-app; font-size: 11px; color: m.has-tint ? m.sub-text : Theme.notch-music-sub; opacity: 0.7; overflow: elide; font-family: Theme.notch-font; }
+                }
+                if m.lyrics-can-toggle: PlayerButton {
+                    width: 30px;
+                    height: 30px;
+                    clicked => { root.toggle-lyrics(); }
+                    Path {
+                        width: 15px;
+                        height: 15px;
+                        viewbox-x: 3;
+                        viewbox-y: 5;
+                        viewbox-width: 18;
+                        viewbox-height: 17;
+                        commands: "M4 6h16M4 11h16M4 16h9M4 21h6";
+                        stroke: Theme.notch-text;
+                        stroke-width: 2px;
+                        stroke-line-cap: round;
+                        opacity: m.lyrics-enabled ? 1 : 0.45;
+                    }
+                }
+            }
+            Rectangle {
+                vertical-stretch: 1;
+                if m.show-spectrum && !m.lyrics-shown: SpectrumBars {
+                    y: (parent.height - self.height) / 2;
+                    height: 30px;
+                    levels: m.levels;
+                    bar-count: m.bar-count;
+                    style: m.visualizer-style;
+                    fill: m.has-tint && m.has-spectrum-color ? m.spectrum-color : Theme.notch-music-spectrum;
+                }
+                if m.lyrics-shown: LyricsView {
+                    y: 10px;
+                    height: parent.height - 18px;
+                    lines: m.lyrics;
+                    active: m.lyrics-active;
+                    seek(i) => { root.seek-line(i); }
+                }
+            }
+            if !m.is-live: VerticalLayout {
+                vertical-stretch: 0;
+                padding-bottom: 6px;
+                spacing: 5px;
+                bar := Rectangle {
+                    height: 4px;
+                    border-radius: 2px;
+                    background: #ffffff2e;
+                    Rectangle { x: 0px; width: parent.width * clamp(m.progress, 0, 1); height: 100%; border-radius: 2px; background: Theme.notch-text; }
+                    TouchArea {
+                        y: -6px;
+                        height: 16px;
+                        mouse-cursor: pointer;
+                        clicked => { root.seek(self.mouse-x / bar.width); }
+                    }
+                }
+                HorizontalLayout {
+                    Text { text: m.position-text; font-size: 11px; color: #ffffff8c; font-family: Theme.notch-font; }
+                    Text { horizontal-stretch: 1; text: m.duration-text; font-size: 11px; color: #ffffff8c; horizontal-alignment: right; font-family: Theme.notch-font; }
+                }
+            }
+            HorizontalLayout {
+                vertical-stretch: 0;
+                alignment: center;
+                spacing: 24px;
+                VerticalLayout {
+                    alignment: center;
+                    PlayerButton {
+                        width: 40px;
+                        height: 40px;
+                        enabled: !m.is-live;
+                        clicked => { root.previous(); }
+                        Path { width: 18px; height: 18px; viewbox-x: 6; viewbox-y: 5; viewbox-width: 14; viewbox-height: 14; commands: "M6 5h2v14H6zM20 5v14L9 12z"; fill: Theme.notch-text; }
+                    }
+                }
+                PlayerButton {
+                    width: 52px;
+                    height: 52px;
+                    fill: Theme.notch-text;
+                    drop-shadow-blur: 14px;
+                    drop-shadow-offset-y: 3px;
+                    drop-shadow-color: #00000059;
+                    clicked => { root.play-pause(); }
+                    if !m.is-playing: Path { width: 20px; height: 20px; viewbox-x: 4; viewbox-y: 4; viewbox-width: 16; viewbox-height: 16; commands: "M7 4l12 8-12 8z"; fill: Theme.notch-surface; }
+                    if m.is-playing: Path { width: 20px; height: 20px; viewbox-x: 4; viewbox-y: 4; viewbox-width: 16; viewbox-height: 16; commands: "M7 5h4v14H7zM13 5h4v14h-4z"; fill: Theme.notch-surface; }
+                }
+                VerticalLayout {
+                    alignment: center;
+                    PlayerButton {
+                        width: 40px;
+                        height: 40px;
+                        enabled: !m.is-live;
+                        clicked => { root.next(); }
+                        Path { width: 18px; height: 18px; viewbox-x: 4; viewbox-y: 5; viewbox-width: 14; viewbox-height: 14; commands: "M16 5h2v14h-2zM4 5v14l11-7z"; fill: Theme.notch-text; }
+                    }
+                }
+            }
+        }
+    }
+}
+
+component Card inherits Rectangle {
+    border-radius: 18px;
+    background: Theme.notch-card;
+    border-width: 1px;
+    border-color: Theme.notch-card-border;
+}
+
+component Meter inherits Rectangle {
+    in property <float> progress;
+    height: 4px;
+    border-radius: 2px;
+    background: Theme.notch-hover;
+    Rectangle { x: 0px; width: parent.width * clamp(progress, 0, 1); height: 100%; border-radius: 2px; background: #ffffffbf; }
+}
+
+component HomeFace inherits HorizontalLayout {
+    in property <HomeData> h;
+    callback refresh-weather();
+    callback choose-location();
+    callback open-event(int);
+    callback open-focus();
+    callback toggle-focus();
+    callback skip-focus();
+    callback open-system();
+    callback launch(int);
+    callback remove-quick(int);
+    callback add-quick();
+    callback add-quick-folder();
+    spacing: 10px;
+    // SOL: Bugün.
+    Card {
+        width: 268px;
+        VerticalLayout {
+            padding-left: 16px;
+            padding-right: 16px;
+            padding-top: 14px;
+            padding-bottom: 10px;
+            alignment: start;
+            Text { text: h.greeting; font-size: 12px; color: Theme.notch-muted; font-family: Theme.notch-font; }
+            Text { text: h.day-date; font-family: Theme.notch-display-font; font-size: 21px; font-weight: 600; color: Theme.notch-text; overflow: elide; }
+            if h.show-weather: NotchPlainButton {
+                clicked => { root.refresh-weather(); }
+                HorizontalLayout {
+                    padding-top: 10px;
+                    spacing: 10px;
+                    alignment: start;
+                    VerticalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 26px;
+                            height: 26px;
+                            WeatherGlyph { kind: h.weather-icon; }
+                        }
+                    }
+                    Text { vertical-alignment: center; text: h.temperature-short; font-family: Theme.notch-display-font; font-size: 25px; font-weight: 600; color: Theme.notch-text; }
+                    VerticalLayout {
+                        alignment: center;
+                        Text { text: h.weather-description; font-size: 12px; color: Theme.notch-text; overflow: elide; max-width: 130px; font-family: Theme.notch-font; }
+                        Text { text: h.place-name; font-size: 11.5px; color: Theme.notch-muted; overflow: elide; max-width: 130px; font-family: Theme.notch-font; }
+                    }
+                }
+            }
+            if h.show-no-location: NotchPlainButton {
+                clicked => { root.choose-location(); }
+                HorizontalLayout {
+                    padding-top: 10px;
+                    alignment: start;
+                    Text { text: HomeText.pick-location; font-size: 12px; color: Theme.notch-muted; font-family: Theme.notch-font; }
+                }
+            }
+            VerticalLayout {
+                padding-top: 12px;
+                padding-bottom: 8px;
+                Rectangle { height: 1px; background: Theme.notch-divider; }
+            }
+            if h.has-next-event: Rectangle {
+                border-radius: 12px;
+                background: #38bdf814;
+                VerticalLayout {
+                    padding-left: 10px;
+                    padding-right: 10px;
+                    padding-top: 7px;
+                    padding-bottom: 7px;
+                    Text { text: HomeText.next-up + " · " + h.next-event.until; font-size: 10.5px; font-weight: 600; color: Theme.notch-accent-calendar; overflow: elide; font-family: Theme.notch-font; }
+                    Text { text: h.next-event.title; font-size: 13.5px; font-weight: 600; color: Theme.notch-text; overflow: elide; font-family: Theme.notch-font; }
+                    Text { text: h.next-event.when; font-size: 11.5px; color: Theme.notch-muted; font-family: Theme.notch-font; }
+                }
+                TouchArea { mouse-cursor: pointer; clicked => { root.open-event(h.next-event.index); } }
+            }
+            if !h.has-next-event: Text { text: HomeText.no-events; font-size: 12px; color: Theme.notch-muted; font-family: Theme.notch-font; }
+            VerticalLayout {
+                padding-top: 4px;
+                for e in h.later-events: Rectangle {
+                    border-radius: 8px;
+                    background: row-touch.has-hover ? Theme.notch-hover : transparent;
+                    HorizontalLayout {
+                        padding: 3px;
+                        spacing: 0px;
+                        VerticalLayout {
+                            alignment: center;
+                            padding-right: 8px;
+                            Rectangle { width: 3px; height: 13px; border-radius: 2px; background: Theme.notch-accent-calendar; }
+                        }
+                        Text { width: 82px; text: e.when; font-size: 12px; color: Theme.notch-muted; overflow: elide; font-family: Theme.notch-font; }
+                        Text { horizontal-stretch: 1; text: e.title; font-size: 12px; color: Theme.notch-text; overflow: elide; font-family: Theme.notch-font; }
+                    }
+                    row-touch := TouchArea { mouse-cursor: pointer; clicked => { root.open-event(e.index); } }
+                }
+            }
+        }
+    }
+    // SAĞ.
+    VerticalLayout {
+        horizontal-stretch: 1;
+        spacing: 10px;
+        if h.show-focus-row: Card {
+            height: 58px;
+            if h.focus-running: HorizontalLayout {
+                padding-left: 12px;
+                padding-right: 12px;
+                spacing: 12px;
+                VerticalLayout {
+                    alignment: center;
+                    ArcRing { width: 36px; height: 36px; progress: h.focus-progress; thickness: 4px; track: Theme.notch-hover; fill: Theme.notch-accent-focus; }
+                }
+                NotchPlainButton {
+                    horizontal-stretch: 1;
+                    clicked => { root.open-focus(); }
+                    VerticalLayout {
+                        alignment: center;
+                        Text { text: h.focus-home-line; font-size: 11px; color: Theme.notch-accent-focus; overflow: elide; font-family: Theme.notch-font; }
+                        Text { text: h.focus-running-text; font-family: Theme.notch-display-font; font-size: 18px; font-weight: 600; color: Theme.notch-text; }
+                    }
+                }
+                HorizontalLayout {
+                    spacing: 4px;
+                    alignment: center;
+                    VerticalLayout {
+                        alignment: center;
+                        PlayerButton {
+                            width: 30px;
+                            height: 30px;
+                            fill: Theme.notch-chip;
+                            clicked => { root.toggle-focus(); }
+                            Path { width: 12px; height: 12px; viewbox-x: 7; viewbox-y: 5; viewbox-width: 10; viewbox-height: 14; commands: "M7 5h4v14H7zM13 5h4v14h-4z"; fill: Theme.notch-text; }
+                        }
+                    }
+                    if h.focus-can-skip: VerticalLayout {
+                        alignment: center;
+                        PlayerButton {
+                            width: 30px;
+                            height: 30px;
+                            clicked => { root.skip-focus(); }
+                            Path { width: 11px; height: 11px; viewbox-x: 4; viewbox-y: 5; viewbox-width: 14; viewbox-height: 14; commands: "M16 5h2v14h-2zM4 5v14l11-7z"; fill: Theme.notch-text; }
+                        }
+                    }
+                }
+            }
+            if !h.focus-running: Rectangle {
+                HorizontalLayout {
+                    padding-left: 14px;
+                    padding-right: 12px;
+                    spacing: 10px;
+                    VerticalLayout {
+                        alignment: center;
+                        KoyIcon { data: Icons.tab-focus; size: 17px; color: Theme.notch-accent-focus; }
+                    }
+                    Text { vertical-alignment: center; text: HomeText.focus-start; font-size: 12.5px; color: Theme.notch-text; font-family: Theme.notch-font; }
+                    Text { horizontal-stretch: 1; vertical-alignment: center; text: h.focus-time-text; font-size: 12.5px; color: Theme.notch-dim; font-family: Theme.notch-font; }
+                    VerticalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: 30px;
+                            height: 30px;
+                            border-radius: 15px;
+                            background: Theme.notch-chip;
+                            Path { x: 11px; width: 11px; height: 11px; viewbox-x: 7; viewbox-y: 4; viewbox-width: 12; viewbox-height: 16; commands: "M7 4l12 8-12 8z"; fill: Theme.notch-text; }
+                        }
+                    }
+                }
+                TouchArea { mouse-cursor: pointer; clicked => { root.toggle-focus(); } }
+            }
+        }
+        for kind in h.right-cards: Rectangle {
+            vertical-stretch: kind == 2 ? 1 : 0;
+            min-height: kind == 1 ? 40px : kind == 3 ? 54px : 0px;
+            max-height: kind == 1 ? 40px : kind == 3 ? 54px : 10000px;
+            // Kulaklık.
+            if kind == 1: Card {
+                height: 40px;
+                border-radius: 16px;
+                HorizontalLayout {
+                    padding-left: 14px;
+                    padding-right: 14px;
+                    spacing: 10px;
+                    VerticalLayout {
+                        alignment: center;
+                        KoyIcon { data: h.headphone-is-speaker ? Icons.speaker : Icons.headphones; size: 15px; color: Theme.notch-muted; }
+                    }
+                    Text { horizontal-stretch: 1; vertical-alignment: center; text: h.headphone-name; font-size: 12px; color: Theme.notch-text; overflow: elide; font-family: Theme.notch-font; }
+                    if h.headphone-battery != "": Text { vertical-alignment: center; text: h.headphone-battery; font-size: 12px; color: Theme.notch-muted; font-family: Theme.notch-font; }
+                }
+            }
+            // Sistem.
+            if kind == 2: Card {
+                height: 100%;
+                VerticalLayout {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    alignment: center;
+                    spacing: 6px;
+                    HorizontalLayout {
+                        Text { horizontal-stretch: 1; text: HomeText.cpu; font-size: 12.5px; color: Theme.notch-text; font-family: Theme.notch-font; }
+                        Text { text: h.cpu-text; font-size: 12.5px; font-weight: 600; color: Theme.notch-text; font-family: Theme.notch-font; }
+                        Text { text: " " + h.top-process-text; font-size: 12.5px; color: Theme.notch-muted; overflow: elide; max-width: 140px; font-family: Theme.notch-font; }
+                    }
+                    Meter { progress: h.cpu-progress; }
+                    HorizontalLayout {
+                        padding-top: 6px;
+                        Text { horizontal-stretch: 1; text: HomeText.ram; font-size: 12.5px; color: Theme.notch-text; font-family: Theme.notch-font; }
+                        Text { text: h.ram-text; font-size: 12.5px; font-weight: 600; color: Theme.notch-text; font-family: Theme.notch-font; }
+                        Text { text: " " + h.memory-detail-text; font-size: 12.5px; color: Theme.notch-muted; font-family: Theme.notch-font; }
+                    }
+                    Meter { progress: h.ram-progress; }
+                    HorizontalLayout {
+                        padding-top: 6px;
+                        spacing: 8px;
+                        VerticalLayout {
+                            alignment: center;
+                            KoyIcon { data: Icons.wifi; size: 14px; color: Theme.notch-muted; }
+                        }
+                        Text { vertical-alignment: center; text: h.network-name; font-size: 12.5px; color: Theme.notch-text; max-width: 110px; overflow: elide; font-family: Theme.notch-font; }
+                        Text {
+                            horizontal-stretch: 1;
+                            vertical-alignment: center;
+                            horizontal-alignment: right;
+                            text: h.download-text + "  " + h.upload-text;
+                            font-size: 11.5px;
+                            color: Theme.notch-muted;
+                            font-family: Theme.notch-font;
+                        }
+                    }
+                }
+                TouchArea { mouse-cursor: pointer; clicked => { root.open-system(); } }
+            }
+            // Hızlı başlat.
+            if kind == 3: Card {
+                height: 54px;
+                HorizontalLayout {
+                    padding-left: 16px;
+                    padding-right: 16px;
+                    spacing: 6px;
+                    alignment: start;
+                    Text { vertical-alignment: center; text: HomeText.quick-launch; font-size: 12px; color: Theme.notch-muted; font-family: Theme.notch-font; }
+                    Rectangle { width: 6px; }
+                    for q in h.quick-items: VerticalLayout {
+                        alignment: center;
+                        ContextMenuArea {
+                            width: 30px;
+                            height: 30px;
+                            Menu {
+                                MenuItem { title: HomeText.quick-remove; activated => { root.remove-quick(q.index); } }
+                            }
+                            Rectangle {
+                                width: 30px;
+                                height: 30px;
+                                border-radius: 9px;
+                                background: q-touch.has-hover ? Theme.notch-hover : Theme.notch-chip;
+                                if q.has-icon: Image { width: 19px; height: 19px; source: q.icon; image-fit: contain; }
+                                if !q.has-icon: Text { text: q.initials; font-size: 10px; font-weight: 700; color: Theme.notch-text; font-family: Theme.notch-font; }
+                                q-touch := TouchArea { mouse-cursor: pointer; clicked => { root.launch(q.index); } }
+                            }
+                        }
+                    }
+                    if h.quick-can-add: VerticalLayout {
+                        alignment: center;
+                        ContextMenuArea {
+                            width: 30px;
+                            height: 30px;
+                            Menu {
+                                MenuItem { title: HomeText.quick-add-file; activated => { root.add-quick(); } }
+                                MenuItem { title: HomeText.quick-add-folder; activated => { root.add-quick-folder(); } }
+                            }
+                            Rectangle {
+                                width: 30px;
+                                height: 30px;
+                                border-radius: 9px;
+                                border-width: 1.5px;
+                                border-color: Theme.notch-dash;
+                                KoyIcon { data: Icons.plus; size: 13px; stroke-units: 2.2; color: Theme.notch-muted; }
+                                TouchArea { mouse-cursor: pointer; clicked => { root.add-quick(); } }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component HomePanel inherits Rectangle {
+    in property <HomeData> h;
+    in property <MusicCardData> m;
+    callback toggle-lyrics();
+    callback seek-line(int);
+    callback seek(float);
+    callback previous();
+    callback play-pause();
+    callback next();
+    callback refresh-weather();
+    callback choose-location();
+    callback open-event(int);
+    callback open-focus();
+    callback toggle-focus();
+    callback skip-focus();
+    callback open-system();
+    callback launch(int);
+    callback remove-quick(int);
+    callback add-quick();
+    callback add-quick-folder();
+    if h.is-music-page: MusicFace {
+        m: m;
+        toggle-lyrics => { root.toggle-lyrics(); }
+        seek-line(i) => { root.seek-line(i); }
+        seek(f) => { root.seek(f); }
+        previous => { root.previous(); }
+        play-pause => { root.play-pause(); }
+        next => { root.next(); }
+    }
+    if !h.is-music-page: HomeFace {
+        h: h;
+        refresh-weather => { root.refresh-weather(); }
+        choose-location => { root.choose-location(); }
+        open-event(i) => { root.open-event(i); }
+        open-focus => { root.open-focus(); }
+        toggle-focus => { root.toggle-focus(); }
+        skip-focus => { root.skip-focus(); }
+        open-system => { root.open-system(); }
+        launch(i) => { root.launch(i); }
+        remove-quick(i) => { root.remove-quick(i); }
+        add-quick => { root.add-quick(); }
+        add-quick-folder => { root.add-quick-folder(); }
+    }
+}

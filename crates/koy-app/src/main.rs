@@ -168,6 +168,65 @@ fn dev_snapshot(view: &str, path: String) -> Result<(), slint::PlatformError> {
             });
             v.run()
         }
+        "home" | "music" => {
+            use slint::{ModelRc, VecModel};
+            let v = NotchPanelPreview::new()?;
+            ThemeManager::install(&v);
+            features::home::home_binding::install_text(&v);
+            v.set_preview_height(324.0);
+            let mut h = HomeData::default();
+            h.is_music_page = view == "music";
+            h.greeting = "İyi günler".into();
+            h.day_date = "Pazartesi, 16 Kasım".into();
+            h.show_weather = true;
+            h.weather_icon = "PartlyCloudy".into();
+            h.temperature_short = "14°".into();
+            h.weather_description = "Parçalı bulutlu".into();
+            h.place_name = "Ankara".into();
+            h.has_next_event = true;
+            h.next_event = UpcomingData { index: 0, when: "Bugün 16:00".into(), title: "Ekip toplantısı".into(), until: "1 sa 28 dk sonra".into() };
+            h.later_events = ModelRc::new(VecModel::from(vec![UpcomingData { index: 1, when: "Yarın 10:00".into(), title: "Diş hekimi".into(), until: "".into() }]));
+            h.show_focus_row = true;
+            h.focus_time_text = "25:00".into();
+            h.right_cards = ModelRc::new(VecModel::from(vec![2, 3]));
+            h.cpu_text = "%18".into();
+            h.top_process_text = "En çok: chrome".into();
+            h.cpu_progress = 0.18;
+            h.ram_text = "%61".into();
+            h.memory_detail_text = "9,8 / 16 GB".into();
+            h.ram_progress = 0.61;
+            h.network_name = "Ev Wi-Fi".into();
+            h.download_text = "↓ 1,2 MB/sn".into();
+            h.upload_text = "↑ 84 KB/sn".into();
+            h.quick_items = ModelRc::new(VecModel::from(vec![
+                QuickItemData { index: 0, name: "Notepad".into(), initials: "No".into(), has_icon: false, icon: Default::default() },
+                QuickItemData { index: 1, name: "Terminal".into(), initials: "Te".into(), has_icon: false, icon: Default::default() },
+            ]));
+            h.quick_can_add = true;
+            let mut m = MusicCardData::default();
+            m.has_track = true;
+            m.title = "Bohemian Rhapsody".into();
+            m.artist = "Queen".into();
+            m.source_app = "Spotify".into();
+            m.is_playing = true;
+            m.progress = 0.4;
+            m.position_text = "2:23".into();
+            m.duration_text = "5:55".into();
+            m.show_spectrum = true;
+            m.bar_count = 24;
+            m.levels = ModelRc::new(VecModel::from((0..24).map(|i| ((i * 37 % 100) as f32) / 100.0).collect::<Vec<f32>>()));
+            v.set_panel("home".into());
+            v.set_home(h);
+            v.set_music(m);
+            let w = v.as_weak();
+            let _t = infra::dispatch::delay(std::time::Duration::from_millis(700), move || {
+                if let Some(v) = w.upgrade() {
+                    infra::snapshot::save(v.window(), &path);
+                }
+                let _ = slint::quit_event_loop();
+            });
+            v.run()
+        }
         "calendar" | "calweek" => {
             use features::calendar::{calendar_binding, calendar_view_model::CalendarViewModel, shared_events::SharedEvents};
             let v = NotchPanelPreview::new()?;
