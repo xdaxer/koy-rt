@@ -5,7 +5,8 @@ import { NotchInput, NotchSwitch, NotchRowButton, NotchPillButton, NotchPlainBut
 import { SagAltMenuWindow, MenuText } from "menu.slint";
 import { WeatherGlyph } from "status.slint";
 import { SystemPanel, SystemStatsData, SystemText } from "system_panel.slint";
-export { Theme, Motion, SagAltMenuWindow, MenuText, SystemText, SystemStatsData }
+import { FocusPanel, FocusData, TasksData, FocusText, FocusTabData, FocusPresetData, FocusLapData, TaskRowData } from "focus_panel.slint";
+export { Theme, Motion, SagAltMenuWindow, MenuText, SystemText, SystemStatsData, FocusText, FocusData, TasksData, FocusTabData, FocusPresetData, FocusLapData, TaskRowData }
 
 // Bileşen denetimi: kontrol kitaplığının derlendiğini ve çizildiğini doğrulayan önizleme penceresi.
 export component Probe inherits Window {
@@ -36,11 +37,14 @@ export component Probe inherits Window {
 export component NotchPanelPreview inherits Window {
     in property <string> panel;
     in property <SystemStatsData> sys;
+    in property <FocusData> fdata;
+    in property <TasksData> tasks;
     width: 640px;
     height: 230px;
     background: Theme.notch-surface;
     VerticalLayout {
         padding: 16px;
         if panel == "system": SystemPanel { data: sys; }
+        if panel == "focus": FocusPanel { fdata: fdata; tasks: tasks; }
     }
 }

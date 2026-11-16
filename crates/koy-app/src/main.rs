@@ -66,6 +66,44 @@ fn dev_snapshot(view: &str, path: String) -> Result<(), slint::PlatformError> {
             let _t = save_after(v.as_weak(), path);
             v.run()
         }
+        "focus" | "stopwatch" | "timer" => {
+            use features::focus::{focus_binding, focus_view_model::FocusViewModel, tasks_view_model::{TaskRow, TasksState}};
+            let v = NotchPanelPreview::new()?;
+            ThemeManager::install(&v);
+            focus_binding::install_text(&v);
+            let timers = std::sync::Arc::new(koy_core::timers::FocusTimers::new(None, None, None));
+            let vm = FocusViewModel::new(timers, &koy_core::settings::AppSettings::default(), None);
+            match view {
+                "stopwatch" => vm.select_tab(koy_core::timers::FocusKind::Stopwatch),
+                "timer" => vm.select_tab(koy_core::timers::FocusKind::Countdown),
+                _ => {}
+            }
+            let row = |t: &str, done: bool, time: &str, next: bool| TaskRow {
+                id: Default::default(),
+                title: t.into(),
+                done,
+                is_next: next,
+                is_now: next,
+                time_text: time.into(),
+                day_text: String::new(),
+            };
+            let tasks = TasksState {
+                rows: vec![row("Rapor taslağı", false, "", true), row("Toplantı", false, "16:00", false), row("E-posta", true, "", false)],
+                title: resources::strings::Strings::get("TaskToday"),
+                ..Default::default()
+            };
+            v.set_panel("focus".into());
+            v.set_fdata(focus_binding::to_focus_data(&vm.state(), &vm.presets));
+            v.set_tasks(focus_binding::to_tasks_data(&tasks));
+            let w = v.as_weak();
+            let _t = infra::dispatch::delay(std::time::Duration::from_millis(700), move || {
+                if let Some(v) = w.upgrade() {
+                    infra::snapshot::save(v.window(), &path);
+                }
+                let _ = slint::quit_event_loop();
+            });
+            v.run()
+        }
         "system" => {
             let v = NotchPanelPreview::new()?;
             ThemeManager::install(&v);

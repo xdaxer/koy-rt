@@ -1,0 +1,460 @@
+// Karşılığı: koy/src/App/Features/Focus/FocusPanel.xaml. Sol kart: alt sekmeler, halka, düğmeler. Sağ kart seçili
+// sekmeye göre: Odak / Mola → görev listesi, Sayaç → süre ve hazır süreler, Kronometre → turlar.
+
+import { Theme } from "theme.slint";
+import { Icons, KoyIcon } from "icons.slint";
+import { ArcRing } from "arc_ring.slint";
+import { NotchInput, NotchPlainButton } from "notch_controls.slint";
+
+export struct FocusTabData { kind: int, label: string, selected: bool }
+export struct FocusPresetData { minutes: int, label: string }
+export struct FocusLapData { label: string, total: string, split: string }
+export struct TaskRowData { index: int, title: string, done: bool, is-next: bool, is-now: bool, time-text: string, day-text: string }
+
+export struct FocusData {
+    tabs: [FocusTabData],
+    // 0 Odak, 1 Mola, 2 Sayaç, 3 Kronometre (core FocusKind sırası).
+    selected: int,
+    time-text: string,
+    sub-text: string,
+    progress: float,
+    is-running: bool,
+    can-edit-countdown: bool,
+    countdown-duration-text: string,
+    presets: [FocusPresetData],
+    laps: [FocusLapData],
+}
+
+export struct TasksData {
+    rows: [TaskRowData],
+    // 0 Gün, 1 Hafta, 2 Ay.
+    scope: int,
+    title: string,
+    is-empty: bool,
+    new-title: string,
+    new-time: string,
+    new-time-invalid: bool,
+}
+
+export global FocusText {
+    in property <string> reset;
+    in property <string> play-pause;
+    in property <string> skip;
+    in property <string> scope-day;
+    in property <string> scope-week;
+    in property <string> scope-month;
+    in property <string> task-empty;
+    in property <string> task-now;
+    in property <string> task-add;
+    in property <string> task-time-hint;
+    in property <string> timer;
+    in property <string> lap;
+    in property <string> laps-empty;
+}
+
+// Yuvarlak simge düğmesi (sıfırla, başlat / duraklat): 38 px.
+component RoundButton inherits Rectangle {
+    in property <brush> fill: Theme.notch-focus-button;
+    in property <bool> enabled: true;
+    callback clicked;
+    width: 38px;
+    height: 38px;
+    border-radius: 19px;
+    background: fill;
+    opacity: !enabled ? 0.4 : touch.has-hover ? 0.85 : 1;
+    @children
+    touch := TouchArea { enabled: enabled; mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+// Hap düğmesi (hazır süreler, tur).
+component ChipButton inherits Rectangle {
+    in property <string> text;
+    in property <bool> enabled: true;
+    callback clicked;
+    height: 28px;
+    width: label.preferred-width + 24px;
+    border-radius: 14px;
+    background: touch.has-hover && enabled ? Theme.bg-hover : Theme.notch-chip;
+    opacity: enabled ? 1 : 0.4;
+    label := Text {
+        text: text;
+        font-size: 12px;
+        color: Theme.notch-text;
+        font-family: Theme.notch-font;
+        vertical-alignment: center;
+        horizontal-alignment: center;
+    }
+    touch := TouchArea { enabled: enabled; mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+// Gün · Hafta · Ay: düz yazı bağlantısı, seçili olan açık renk.
+component ScopeLink inherits Rectangle {
+    in property <string> text;
+    in property <bool> selected;
+    callback clicked;
+    width: label.preferred-width + 6px;
+    height: label.preferred-height;
+    label := Text {
+        x: 6px;
+        text: text;
+        font-size: 11px;
+        font-family: Theme.notch-font;
+        font-weight: selected ? 600 : 400;
+        color: touch.has-hover ? Theme.notch-text : selected ? Theme.notch-focus-soft : Theme.notch-muted;
+    }
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+export component FocusPanel inherits Rectangle {
+    in property <FocusData> fdata;
+    in-out property <TasksData> tasks;
+    in property <bool> has-tasks: true;
+    callback select-tab(int);
+    callback toggle();
+    callback reset();
+    callback skip();
+    callback lap();
+    callback increase-countdown();
+    callback decrease-countdown();
+    callback set-countdown-minutes(int);
+    callback set-scope(int);
+    callback task-toggle(int);
+    callback task-remove(int);
+    callback task-title-edited(string);
+    callback task-time-edited(string);
+    callback task-add();
+
+    property <bool> pomodoro-tab: fdata.selected == 0 || fdata.selected == 1;
+
+    HorizontalLayout {
+        spacing: 10px;
+        // SOL KART
+        Rectangle {
+            width: 262px;
+            border-radius: 22px;
+            background: Theme.notch-focus-card;
+            VerticalLayout {
+                padding: 14px;
+                spacing: 8px;
+                alignment: start;
+                HorizontalLayout {
+                    alignment: center;
+                    Rectangle {
+                        border-radius: 14px;
+                        background: Theme.notch-surface;
+                        HorizontalLayout {
+                            padding: 3px;
+                            spacing: 2px;
+                            for tab in fdata.tabs: Rectangle {
+                                border-radius: 11px;
+                                background: tab.selected ? Theme.notch-accent-focus : tab-touch.has-hover ? Theme.notch-hover : transparent;
+                                width: tab-label.preferred-width + 14px;
+                                height: tab-label.preferred-height + 10px;
+                                tab-label := Text {
+                                    text: tab.label;
+                                    font-size: 10.5px;
+                                    font-family: Theme.notch-font;
+                                    font-weight: tab.selected ? 600 : 400;
+                                    color: tab.selected ? Theme.notch-surface : Theme.notch-text-secondary;
+                                }
+                                tab-touch := TouchArea { mouse-cursor: pointer; clicked => { root.select-tab(tab.kind); } }
+                            }
+                        }
+                    }
+                }
+                HorizontalLayout {
+                    alignment: center;
+                    Rectangle {
+                        width: 112px;
+                        height: 112px;
+                        ArcRing { progress: fdata.progress; thickness: 8px; track: Theme.notch-focus-track; fill: Theme.notch-accent-focus; }
+                        VerticalLayout {
+                            alignment: center;
+                            Text {
+                                text: fdata.time-text;
+                                font-size: 26px;
+                                font-weight: 600;
+                                color: Theme.notch-text;
+                                font-family: Theme.notch-font;
+                                horizontal-alignment: center;
+                            }
+                            Text {
+                                text: fdata.sub-text;
+                                font-size: 10px;
+                                color: Theme.notch-focus-soft;
+                                font-family: Theme.notch-font;
+                                horizontal-alignment: center;
+                            }
+                        }
+                    }
+                }
+                HorizontalLayout {
+                    alignment: center;
+                    spacing: 12px;
+                    RoundButton {
+                        clicked => { root.reset(); }
+                        KoyIcon { data: Icons.rotate-ccw; size: 16px; color: Theme.notch-text; }
+                    }
+                    RoundButton {
+                        fill: Theme.notch-accent-focus;
+                        clicked => { root.toggle(); }
+                        if !fdata.is-running: Path {
+                            width: 16px;
+                            height: 16px;
+                            commands: "M7 4l12 8-12 8z";
+                            viewbox-x: 4;
+                            viewbox-y: 4;
+                            viewbox-width: 16;
+                            viewbox-height: 16;
+                            fill: Theme.notch-surface;
+                        }
+                        if fdata.is-running: Path {
+                            width: 16px;
+                            height: 16px;
+                            commands: "M7 5h4v14H7zM13 5h4v14h-4z";
+                            viewbox-x: 4;
+                            viewbox-y: 4;
+                            viewbox-width: 16;
+                            viewbox-height: 16;
+                            fill: Theme.notch-surface;
+                        }
+                    }
+                    if pomodoro-tab: RoundButton {
+                        clicked => { root.skip(); }
+                        Path {
+                            width: 16px;
+                            height: 16px;
+                            commands: "M16 5h2v14h-2zM4 5v14l11-7z";
+                            viewbox-x: 4;
+                            viewbox-y: 4;
+                            viewbox-width: 14;
+                            viewbox-height: 16;
+                            fill: Theme.notch-text;
+                        }
+                    }
+                }
+            }
+        }
+        // SAĞ KART
+        Rectangle {
+            horizontal-stretch: 1;
+            border-radius: 22px;
+            background: Theme.notch-card;
+            // Odak / Mola: görev listesi.
+            if pomodoro-tab && has-tasks: VerticalLayout {
+                padding: 14px;
+                spacing: 8px;
+                HorizontalLayout {
+                    Text {
+                        text: tasks.title;
+                        font-size: 13px;
+                        font-weight: 600;
+                        color: Theme.notch-text;
+                        font-family: Theme.notch-font;
+                        vertical-alignment: center;
+                        horizontal-stretch: 1;
+                    }
+                    ScopeLink { text: FocusText.scope-day; selected: tasks.scope == 0; clicked => { root.set-scope(0); } }
+                    ScopeLink { text: FocusText.scope-week; selected: tasks.scope == 1; clicked => { root.set-scope(1); } }
+                    ScopeLink { text: FocusText.scope-month; selected: tasks.scope == 2; clicked => { root.set-scope(2); } }
+                }
+                Rectangle {
+                    vertical-stretch: 1;
+                    if tasks.is-empty: Text {
+                        y: 0px;
+                        text: FocusText.task-empty;
+                        font-size: 12px;
+                        color: Theme.notch-muted;
+                        font-family: Theme.notch-font;
+                    }
+                    Flickable {
+                        content-height: rows.preferred-height;
+                        rows := VerticalLayout {
+                            alignment: start;
+                            spacing: 2px;
+                            for row in tasks.rows: HorizontalLayout {
+                                height: 26px;
+                                spacing: 4px;
+                                NotchPlainButton {
+                                    horizontal-stretch: 1;
+                                    clicked => { root.task-toggle(row.index); }
+                                    HorizontalLayout {
+                                        spacing: 10px;
+                                        Rectangle {
+                                            y: (parent.height - 16px) / 2;
+                                            width: 16px;
+                                            height: 16px;
+                                            border-radius: 5px;
+                                            border-width: 1.5px;
+                                            border-color: row.done ? Theme.notch-accent-focus : Theme.notch-check-border;
+                                            background: row.done ? Theme.notch-accent-focus : transparent;
+                                            if row.done: KoyIcon { data: Icons.check; size: 10px; stroke-units: 3; color: Theme.notch-surface; }
+                                        }
+                                        Rectangle {
+                                            horizontal-stretch: 1;
+                                            title-text := Text {
+                                                x: 0px;
+                                                width: parent.width;
+                                                text: row.title;
+                                                font-size: 12px;
+                                                font-family: Theme.notch-font;
+                                                color: row.done ? Theme.notch-done-text : Theme.notch-text;
+                                                vertical-alignment: center;
+                                                overflow: elide;
+                                            }
+                                            // Tamamlanan görevin üstü çizilir (WPF TextDecorations.Strikethrough).
+                                            if row.done: Rectangle {
+                                                x: 0px;
+                                                width: min(title-text.preferred-width, parent.width);
+                                                height: 1px;
+                                                y: parent.height / 2;
+                                                background: Theme.notch-done-text;
+                                            }
+                                        }
+                                        if row.day-text != "": Text {
+                                            text: row.day-text;
+                                            font-size: 11px;
+                                            color: Theme.notch-muted;
+                                            font-family: Theme.notch-font;
+                                            vertical-alignment: center;
+                                        }
+                                        if row.time-text != "": Text {
+                                            text: row.time-text;
+                                            font-size: 11px;
+                                            color: Theme.notch-muted;
+                                            font-family: Theme.notch-font;
+                                            vertical-alignment: center;
+                                        }
+                                        if row.is-now: Text {
+                                            text: FocusText.task-now;
+                                            font-size: 11px;
+                                            color: Theme.notch-focus-soft;
+                                            font-family: Theme.notch-font;
+                                            vertical-alignment: center;
+                                        }
+                                    }
+                                }
+                                NotchPlainButton {
+                                    width: 22px;
+                                    clicked => { root.task-remove(row.index); }
+                                    KoyIcon { data: Icons.x; size: 12px; color: Theme.notch-muted; }
+                                }
+                            }
+                        }
+                    }
+                }
+                HorizontalLayout {
+                    spacing: 6px;
+                    NotchInput {
+                        height: 32px;
+                        horizontal-stretch: 1;
+                        fill: Theme.notch-chip;
+                        hint: FocusText.task-add;
+                        text: tasks.new-title;
+                        edited(t) => { root.task-title-edited(t); }
+                        accepted => { root.task-add(); }
+                    }
+                    NotchInput {
+                        width: 72px;
+                        height: 32px;
+                        fill: Theme.notch-chip;
+                        hint: FocusText.task-time-hint;
+                        text: tasks.new-time;
+                        text-color: tasks.new-time-invalid ? Theme.notch-accent-focus : Theme.notch-text;
+                        edited(t) => { root.task-time-edited(t); }
+                        accepted => { root.task-add(); }
+                    }
+                    NotchPlainButton {
+                        width: 32px;
+                        height: 32px;
+                        clicked => { root.task-add(); }
+                        Rectangle {
+                            border-radius: 16px;
+                            background: Theme.notch-text;
+                            KoyIcon { data: Icons.plus; size: 16px; stroke-units: 2.4; color: Theme.notch-surface; }
+                        }
+                    }
+                }
+            }
+            // Sayaç.
+            if fdata.selected == 2: VerticalLayout {
+                padding: 14px;
+                spacing: 10px;
+                alignment: start;
+                Text { text: FocusText.timer; font-size: 13px; font-weight: 600; color: Theme.notch-text; font-family: Theme.notch-font; }
+                HorizontalLayout {
+                    alignment: start;
+                    RoundButton {
+                        enabled: fdata.can-edit-countdown;
+                        clicked => { root.decrease-countdown(); }
+                        KoyIcon { data: Icons.minus; size: 16px; color: Theme.notch-text; }
+                    }
+                    Text {
+                        width: 110px;
+                        text: fdata.countdown-duration-text;
+                        font-size: 30px;
+                        font-weight: 600;
+                        color: Theme.notch-text;
+                        font-family: Theme.notch-font;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    RoundButton {
+                        enabled: fdata.can-edit-countdown;
+                        clicked => { root.increase-countdown(); }
+                        Path {
+                            width: 14px;
+                            height: 14px;
+                            commands: "M11 4h2v7h7v2h-7v7h-2v-7H4v-2h7z";
+                            viewbox-x: 4;
+                            viewbox-y: 4;
+                            viewbox-width: 16;
+                            viewbox-height: 16;
+                            fill: Theme.notch-text;
+                        }
+                    }
+                }
+                HorizontalLayout {
+                    alignment: start;
+                    spacing: 6px;
+                    for p in fdata.presets: ChipButton {
+                        text: p.label;
+                        enabled: fdata.can-edit-countdown;
+                        clicked => { root.set-countdown-minutes(p.minutes); }
+                    }
+                }
+            }
+            // Kronometre.
+            if fdata.selected == 3: VerticalLayout {
+                padding: 14px;
+                spacing: 10px;
+                alignment: start;
+                HorizontalLayout {
+                    alignment: start;
+                    ChipButton { text: FocusText.lap; enabled: fdata.is-running; clicked => { root.lap(); } }
+                }
+                if fdata.laps.length == 0: Text {
+                    text: FocusText.laps-empty;
+                    font-size: 11px;
+                    color: Theme.notch-muted;
+                    font-family: Theme.notch-font;
+                    wrap: word-wrap;
+                }
+                if fdata.laps.length > 0: Flickable {
+                    vertical-stretch: 1;
+                    content-height: laps.preferred-height;
+                    laps := VerticalLayout {
+                        alignment: start;
+                        spacing: 4px;
+                        for l in fdata.laps: HorizontalLayout {
+                            spacing: 14px;
+                            Text { horizontal-stretch: 1; text: l.label; font-size: 12px; color: Theme.notch-muted; font-family: Theme.notch-font; }
+                            Text { text: l.split; font-size: 12px; color: Theme.notch-focus-soft; font-family: Theme.notch-font; }
+                            Text { text: l.total; font-size: 12px; color: Theme.notch-text; font-family: Theme.notch-font; }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

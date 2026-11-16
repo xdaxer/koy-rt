@@ -9,11 +9,13 @@ export component NotchInput inherits Rectangle {
     in property <string> hint;
     in property <bool> password;
     in property <length> radius: 15px;
+    in property <brush> fill: Theme.notch-surface;
+    in property <color> text-color: Theme.notch-text;
     callback edited(string);
     callback accepted(string);
     height: 30px;
     border-radius: radius;
-    background: Theme.notch-surface;
+    background: fill;
     border-width: 1px;
     border-color: input.has-focus ? Theme.notch-check-border : transparent;
     forward-focus: input;
@@ -31,7 +33,7 @@ export component NotchInput inherits Rectangle {
         x: 12px;
         width: parent.width - 24px;
         text <=> root.text;
-        color: Theme.notch-text;
+        color: text-color;
         font-size: 12px;
         font-family: Theme.notch-font;
         vertical-alignment: center;
