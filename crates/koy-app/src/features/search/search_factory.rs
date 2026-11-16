@@ -82,7 +82,7 @@ pub fn create_app_source(shell_actions: Arc<dyn IShellActionService>) -> Arc<App
     let mut source = AppSearchSource::new(
         Arc::new(InstalledAppsService),
         Arc::new(move |app: InstalledApp| {
-            shell_actions.launch(&InstalledAppsService::shell_path(&app), None);
+            let _ = shell_actions.launch(&InstalledAppsService::shell_path(&app), None);
         }),
         translate(),
         Some(Arc::new(app_icon)),

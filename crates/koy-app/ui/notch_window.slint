@@ -196,8 +196,8 @@ export component NotchWindow inherits Window {
                 if root.d.state == 2 && !root.d.osd-active && !root.d.search-open: Rectangle {
                     x: 24px;
                     y: 10px;
-                    width: 592px;
-                    height: 342px;
+                    width: parent.width - 48px;
+                    height: parent.height - 22px;
                     NotchTopRow {
                         y: 0px;
                         width: parent.width;
@@ -317,8 +317,8 @@ export component NotchWindow inherits Window {
                 Rectangle {
                     x: 24px;
                     y: 10px;
-                    width: 592px;
-                    height: 342px;
+                    width: parent.width - 48px;
+                    height: parent.height - 22px;
                     visible: root.d.search-open;
                     search-host := SearchPanel {
                         d: root.search;

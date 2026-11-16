@@ -28,6 +28,8 @@ type DropHandler = Rc<dyn Fn(DropData)>;
 #[implement(IDropTarget)]
 struct DropTarget {
     on_drop: DropHandler,
+    // Kabul edilen veri pencerenin üstünde sürüklenirken: true girişte, false sonraki hareketlerde.
+    on_hover: Option<Rc<dyn Fn(bool)>>,
     // Sürükleme sürerken veri kabul edilebilir mi (DragEnter'da belirlenir).
     accepts: RefCell<bool>,
 }
@@ -87,12 +89,21 @@ impl IDropTarget_Impl for DropTarget_Impl {
         *self.accepts.borrow_mut() = ok;
         // SAFETY: OLE geçerli bir çıkış göstergesi verir.
         unsafe { *effect = if ok { DROPEFFECT_COPY } else { DROPEFFECT_NONE } };
+        if ok && let Some(h) = &self.on_hover {
+            let h = Rc::clone(h);
+            crate::infra::dispatch::post_local(move || h(true));
+        }
         Ok(())
     }
 
     fn DragOver(&self, _keys: MODIFIERKEYS_FLAGS, _pt: &POINTL, effect: *mut DROPEFFECT) -> windows::core::Result<()> {
         // SAFETY: OLE geçerli bir çıkış göstergesi verir.
-        unsafe { *effect = if *self.accepts.borrow() { DROPEFFECT_COPY } else { DROPEFFECT_NONE } };
+        let ok = *self.accepts.borrow();
+        unsafe { *effect = if ok { DROPEFFECT_COPY } else { DROPEFFECT_NONE } };
+        if ok && let Some(h) = &self.on_hover {
+            let h = Rc::clone(h);
+            crate::infra::dispatch::post_local(move || h(false));
+        }
         Ok(())
     }
 
@@ -130,8 +141,21 @@ impl Drop for DropRegistration {
 
 /// `hwnd` penceresine dosya / metin bırakmayı açar. winit'in kendi hedefi (yalnız dosya) önce kaldırılır.
 pub fn register_drop(hwnd: isize, on_drop: impl Fn(DropData) + 'static) -> Option<DropRegistration> {
+    register(hwnd, None, Rc::new(on_drop))
+}
+
+/// `register_drop` gibi; ayrıca kabul edilen veri pencere üstünde sürüklenirken `on_hover` çağrılır (true: giriş).
+pub fn register_drop_with_hover(
+    hwnd: isize,
+    on_hover: impl Fn(bool) + 'static,
+    on_drop: impl Fn(DropData) + 'static,
+) -> Option<DropRegistration> {
+    register(hwnd, Some(Rc::new(on_hover)), Rc::new(on_drop))
+}
+
+fn register(hwnd: isize, on_hover: Option<Rc<dyn Fn(bool)>>, on_drop: DropHandler) -> Option<DropRegistration> {
     let hwnd = HWND(hwnd as *mut _);
-    let target: IDropTarget = DropTarget { on_drop: Rc::new(on_drop), accepts: RefCell::new(false) }.into();
+    let target: IDropTarget = DropTarget { on_drop, on_hover, accepts: RefCell::new(false) }.into();
     // SAFETY: arayüz iş parçacığı STA'dır; OleInitialize tekrar çağrılırsa S_FALSE döner. Hedef COM sayımıyla yaşar.
     unsafe {
         let _ = OleInitialize(None);

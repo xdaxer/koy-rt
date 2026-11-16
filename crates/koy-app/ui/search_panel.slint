@@ -83,8 +83,8 @@ export component SearchPanel inherits Rectangle {
         if d.scroll-to >= 0 {
             // Seçili satırı görünür yap (satır yüksekliği ~42, başlık ~22 yaklaşımıyla).
             let y = d.scroll-to * 42px;
-            if y + 42px > -list.viewport-y + list.height { list.viewport-y = -(y + 42px - list.height); }
-            if y < -list.viewport-y { list.viewport-y = -y; }
+            if y + 42px > -list.content-y + list.height { list.content-y = -(y + 42px - list.height); }
+            if y < -list.content-y { list.content-y = -y; }
         }
     }
 
