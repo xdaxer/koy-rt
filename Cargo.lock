@@ -2208,6 +2208,7 @@ dependencies = [
  "raw-window-handle",
  "slint",
  "slint-build",
+ "windows",
 ]
 
 [[package]]

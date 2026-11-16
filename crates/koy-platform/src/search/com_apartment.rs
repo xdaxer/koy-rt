@@ -7,18 +7,18 @@ use windows::Win32::System::Com::{CoInitializeEx, CoUninitialize, COINIT, COINIT
 
 /// Oluşturulduğu iş parçacığında COM'u başlatır, düşünce (başarılı başlatmışsa) `CoUninitialize` çağırır.
 /// Bu koruma, ondan sonra oluşturulan tüm COM nesnelerinden SONRA düşecek biçimde (önce bildirilerek) tutulmalıdır.
-pub(crate) struct ComApartment {
+pub struct ComApartment {
     initialized: bool,
 }
 
 impl ComApartment {
     /// Tek iş parçacıklı apartman (kabuk nesneleri için).
-    pub(crate) fn sta() -> Self {
+    pub fn sta() -> Self {
         Self::init(COINIT_APARTMENTTHREADED)
     }
 
     /// Çok iş parçacıklı apartman (iş parçacığı havuzunun varsayılanı).
-    pub(crate) fn mta() -> Self {
+    pub fn mta() -> Self {
         Self::init(COINIT_MULTITHREADED)
     }
 

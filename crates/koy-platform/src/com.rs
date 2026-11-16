@@ -2,6 +2,9 @@
 
 use std::mem::ManuallyDrop;
 
+/// İş parçacığı başına COM başlatma koruması (App katmanı da kullanır).
+pub use crate::search::com_apartment::ComApartment;
+
 use windows::Win32::System::Com::{
     CLSCTX_ALL, CLSIDFromProgID, CoCreateInstance, DISPATCH_FLAGS, DISPATCH_METHOD, DISPATCH_PROPERTYGET, DISPPARAMS, IDispatch,
 };
