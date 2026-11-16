@@ -60,6 +60,8 @@ pub struct NotchWindowHost {
     drag_entered_at: Cell<Option<Instant>>,
     drop: RefCell<Option<DropRegistration>>,
     hooks: RefCell<Vec<usize>>,
+    /// Yerel pencere hazır olunca bir kez çağrılır (özelliğin tanıtıcıya ihtiyaç duyan kurulumu).
+    pub native_ready: RefCell<Option<Box<dyn FnOnce(isize)>>>,
     subs: RefCell<Vec<(u8, u64)>>,
     /// Ekran düzeni değişti (WM_DISPLAYCHANGE).
     pub display_change_handler: RefCell<Option<Box<dyn Fn()>>>,
@@ -99,6 +101,7 @@ impl NotchWindowHost {
             drag_entered_at: Cell::new(None),
             drop: RefCell::new(None),
             hooks: RefCell::new(Vec::new()),
+            native_ready: RefCell::new(None),
             subs: RefCell::new(Vec::new()),
             display_change_handler: RefCell::new(None),
             voice_confirm_requested: RefCell::new(None),
@@ -136,11 +139,24 @@ impl NotchWindowHost {
         if self.window.show().is_err() {
             return;
         }
+        self.attach_native(0);
+    }
+
+    /// winit yerel pencereyi olay döngüsü dönmeye başlayınca kurar: tanıtıcı gelene kadar kısa aralıklarla yeniden denenir.
+    fn attach_native(self: &Rc<Self>, attempt: u32) {
         let hwnd = native_window::hwnd_of(self.window.window());
-        self.hwnd.set(hwnd);
         if hwnd == 0 {
+            if attempt < 200 {
+                let weak = Rc::downgrade(self);
+                slint::Timer::single_shot(Duration::from_millis(15), move || {
+                    if let Some(h) = weak.upgrade() {
+                        h.attach_native(attempt + 1);
+                    }
+                });
+            }
             return;
         }
+        self.hwnd.set(hwnd);
         WindowStyles::apply_tool_window_and_no_activate(hwnd);
         WindowStyles::reassert_topmost(hwnd);
         self.place_at_top_center(None);
@@ -186,6 +202,9 @@ impl NotchWindowHost {
             WindowStyles::set_click_through(hwnd, true);
         }
         self.render_frame();
+        if let Some(f) = self.native_ready.borrow_mut().take() {
+            f(hwnd);
+        }
     }
 
     pub fn set_target_monitor(&self, monitor: Option<DisplayMonitor>) {

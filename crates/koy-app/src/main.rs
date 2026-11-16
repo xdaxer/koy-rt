@@ -14,6 +14,12 @@ use resources::theme_manager::ThemeManager;
 slint::include_modules!();
 
 fn main() -> Result<(), slint::PlatformError> {
+    // Arayüz iş parçacığı tek iş parçacıklı COM (OLE) olur: winit'in sürükle-bırak desteği bunu ister. Servislerin aynı
+    // iş parçacığında sonradan istediği çok iş parçacıklı kip `RPC_E_CHANGED_MODE` ile reddedilir ve onlar bunu tolere eder.
+    // SAFETY: süreç başında bir kez; eşleşen OleUninitialize süreç sonunda gerekmez.
+    unsafe {
+        let _ = windows::Win32::System::Ole::OleInitialize(None);
+    }
     let settings = SettingsStore::new(SettingsStore::default_path()).try_load().unwrap_or_default();
     resources::strings::Strings::set_ui_culture(&settings.general.language);
     ThemeManager::apply(&settings);
@@ -23,6 +29,23 @@ fn main() -> Result<(), slint::PlatformError> {
         let view = args.get(i + 1).cloned().unwrap_or_default();
         let path = args.get(i + 2).cloned().unwrap_or_else(|| "snapshot.png".into());
         return dev_snapshot(&view, path);
+    }
+
+    // Geliştirici: yalnız çentik özelliğini çalıştırır (`--quit-after <sn>` verilirse o kadar sonra çıkar).
+    if args.iter().any(|a| a == "--notch") {
+        use features::Feature;
+        let shared = std::rc::Rc::new(std::cell::RefCell::new(settings));
+        let services = std::rc::Rc::new(shared_services::SharedServices::default());
+        let notch = features::notch::notch_feature::NotchFeature::new(shared, services);
+        notch.start();
+        let _quit = args.iter().position(|a| a == "--quit-after").and_then(|i| args.get(i + 1)).and_then(|v| v.parse::<u64>().ok()).map(|secs| {
+            infra::dispatch::delay(std::time::Duration::from_secs(secs), || {
+                let _ = slint::quit_event_loop();
+            })
+        });
+        slint::run_event_loop_until_quit()?;
+        notch.stop();
+        return Ok(());
     }
 
     let probe = Probe::new()?;
