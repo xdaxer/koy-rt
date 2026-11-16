@@ -1,0 +1,329 @@
+// Karşılığı: koy/src/App/Features/Calendar/CalendarPanel.xaml. Sol kart: başlık, görünüm seçici, ay ızgarası ya da
+// hafta satırları (Gün görünümünde gizli). Sağ kart: seçili günün gündemi ve etkinlik ekleme.
+
+import { Theme } from "theme.slint";
+import { Icons, KoyIcon } from "icons.slint";
+import { NotchInput, NotchPlainButton } from "notch_controls.slint";
+
+export struct CalCellData { index: int, day: int, current-month: bool, today: bool, selected: bool, has-events: bool }
+export struct CalWeekRowData { index: int, label: string, today: bool, selected: bool, summary: string }
+export struct CalEventData { id: string, time-text: string, title: string, can-delete: bool, badge: string }
+
+export struct CalendarData {
+    // 0 Ay, 1 Hafta, 2 Gün.
+    view-mode: int,
+    header-title: string,
+    day-title: string,
+    weekday-headers: [string],
+    cells: [CalCellData],
+    week-days: [CalWeekRowData],
+    day-events: [CalEventData],
+    new-event-title: string,
+    new-event-time: string,
+    new-event-time-invalid: bool,
+}
+
+export global CalendarText {
+    in property <string> view-month;
+    in property <string> view-week;
+    in property <string> view-day;
+    in property <string> no-events;
+    in property <string> title-hint;
+    in property <string> time-hint;
+}
+
+component CalIconButton inherits Rectangle {
+    in property <string> icon;
+    in property <length> icon-size: 14px;
+    in property <color> tint: Theme.notch-calendar-soft;
+    callback clicked;
+    width: 26px;
+    height: 26px;
+    border-radius: self.height / 2;
+    background: touch.has-hover ? Theme.notch-calendar-chip : transparent;
+    KoyIcon { data: icon; size: icon-size; color: tint; }
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+component CalPill inherits Rectangle {
+    in property <string> text;
+    in property <bool> selected;
+    callback clicked;
+    border-radius: 11px;
+    width: label.preferred-width + 20px;
+    height: label.preferred-height + 8px;
+    background: selected ? Theme.notch-accent-calendar : Theme.notch-calendar-chip;
+    label := Text {
+        text: text;
+        font-size: 11px;
+        font-family: Theme.notch-font;
+        font-weight: selected ? 600 : 400;
+        color: selected ? Theme.notch-text-on-light : Theme.notch-calendar-soft;
+    }
+    TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+component ViewPills inherits HorizontalLayout {
+    in property <int> mode;
+    callback set-view(int);
+    spacing: 4px;
+    CalPill { text: CalendarText.view-month; selected: mode == 0; clicked => { root.set-view(0); } }
+    CalPill { text: CalendarText.view-week; selected: mode == 1; clicked => { root.set-view(1); } }
+    CalPill { text: CalendarText.view-day; selected: mode == 2; clicked => { root.set-view(2); } }
+}
+
+export component CalendarPanel inherits Rectangle {
+    in property <CalendarData> data;
+    callback previous();
+    callback next();
+    callback go-today();
+    callback set-view(int);
+    callback select-cell(int);
+    callback select-week-row(int);
+    callback delete-event(string);
+    callback title-edited(string);
+    callback time-edited(string);
+    callback add-event();
+
+    HorizontalLayout {
+        spacing: 10px;
+        // SOL KART
+        if data.view-mode != 2: Rectangle {
+            width: 298px;
+            border-radius: 22px;
+            background: Theme.notch-calendar-card;
+            VerticalLayout {
+                padding: 12px;
+                spacing: 6px;
+                HorizontalLayout {
+                    CalIconButton { icon: Icons.chevron-left; clicked => { root.previous(); } }
+                    Text {
+                        horizontal-stretch: 1;
+                        text: data.header-title;
+                        font-size: 13px;
+                        font-weight: 600;
+                        color: Theme.notch-text;
+                        font-family: Theme.notch-font;
+                        horizontal-alignment: center;
+                        vertical-alignment: center;
+                    }
+                    CalIconButton { icon: Icons.calendar; clicked => { root.go-today(); } }
+                    CalIconButton { icon: Icons.chevron-right; clicked => { root.next(); } }
+                }
+                HorizontalLayout {
+                    alignment: center;
+                    ViewPills { mode: data.view-mode; set-view(m) => { root.set-view(m); } }
+                }
+                // AY
+                if data.view-mode == 0: VerticalLayout {
+                    vertical-stretch: 1;
+                    HorizontalLayout {
+                        for h in data.weekday-headers: Text {
+                            horizontal-stretch: 1;
+                            text: h;
+                            font-size: 10px;
+                            color: Theme.notch-calendar-soft;
+                            opacity: 0.7;
+                            font-family: Theme.notch-font;
+                            horizontal-alignment: center;
+                        }
+                    }
+                    grid := Rectangle {
+                        vertical-stretch: 1;
+                        property <length> cw: self.width / 7;
+                        property <length> ch: self.height / 6;
+                        for c in data.cells: Rectangle {
+                            x: mod(c.index, 7) * grid.cw + 1px;
+                            y: floor(c.index / 7) * grid.ch + 1px;
+                            width: grid.cw - 2px;
+                            height: grid.ch - 2px;
+                            border-radius: 8px;
+                            background: c.selected ? Theme.notch-accent-calendar : cell-touch.has-hover ? Theme.notch-calendar-chip : transparent;
+                            Text {
+                                y: (parent.height - self.height) / 2 - 2px;
+                                text: c.day;
+                                font-size: 11px;
+                                font-family: Theme.notch-font;
+                                font-weight: c.selected || c.today ? 700 : 400;
+                                color: c.selected ? Theme.notch-text-on-light : c.today ? Theme.notch-accent-calendar : Theme.notch-text;
+                                opacity: c.current-month ? 1 : 0.35;
+                            }
+                            if c.has-events: Rectangle {
+                                y: parent.height - 2px - 4px;
+                                width: 4px;
+                                height: 4px;
+                                border-radius: 2px;
+                                background: c.selected ? Theme.notch-text-on-light : Theme.notch-accent-calendar;
+                            }
+                            cell-touch := TouchArea { mouse-cursor: pointer; clicked => { root.select-cell(c.index); } }
+                        }
+                    }
+                }
+                // HAFTA
+                if data.view-mode == 1: VerticalLayout {
+                    vertical-stretch: 1;
+                    spacing: 2px;
+                    for r in data.week-days: Rectangle {
+                        vertical-stretch: 1;
+                        border-radius: 8px;
+                        background: row-touch.has-hover ? Theme.notch-calendar-chip : transparent;
+                        HorizontalLayout {
+                            padding-left: 8px;
+                            padding-right: 8px;
+                            Rectangle {
+                                width: 52px;
+                                day-label := Text {
+                                    x: 0px;
+                                    text: r.label;
+                                    font-size: 11.5px;
+                                    font-weight: 600;
+                                    font-family: Theme.notch-font;
+                                    color: r.today ? Theme.notch-accent-calendar : Theme.notch-text;
+                                }
+                                if r.selected: Rectangle {
+                                    x: 0px;
+                                    y: day-label.y + day-label.height - 1px;
+                                    width: day-label.width;
+                                    height: 1px;
+                                    background: day-label.color;
+                                }
+                            }
+                            Text {
+                                horizontal-stretch: 1;
+                                text: r.summary;
+                                font-size: 11px;
+                                color: Theme.notch-calendar-soft;
+                                font-family: Theme.notch-font;
+                                vertical-alignment: center;
+                                overflow: elide;
+                            }
+                        }
+                        row-touch := TouchArea { mouse-cursor: pointer; clicked => { root.select-week-row(r.index); } }
+                    }
+                }
+            }
+        }
+        // SAĞ KART
+        Rectangle {
+            horizontal-stretch: 1;
+            border-radius: 22px;
+            background: Theme.notch-card;
+            VerticalLayout {
+                padding: 14px;
+                spacing: 8px;
+                HorizontalLayout {
+                    spacing: 6px;
+                    if data.view-mode == 2: CalIconButton { icon: Icons.chevron-left; clicked => { root.previous(); } }
+                    if data.view-mode == 2: CalIconButton { icon: Icons.chevron-right; clicked => { root.next(); } }
+                    Text {
+                        horizontal-stretch: 1;
+                        text: data.day-title;
+                        font-size: 13px;
+                        font-weight: 600;
+                        color: Theme.notch-text;
+                        font-family: Theme.notch-font;
+                        vertical-alignment: center;
+                        overflow: elide;
+                    }
+                    if data.view-mode == 2: ViewPills { mode: 2; set-view(m) => { root.set-view(m); } }
+                }
+                Rectangle {
+                    vertical-stretch: 1;
+                    if data.day-events.length == 0: Text {
+                        x: 0px;
+                        y: 0px;
+                        width: parent.width;
+                        text: CalendarText.no-events;
+                        font-size: 12px;
+                        color: Theme.notch-muted;
+                        font-family: Theme.notch-font;
+                        wrap: word-wrap;
+                    }
+                    if data.day-events.length > 0: Flickable {
+                        content-height: list.preferred-height;
+                        list := VerticalLayout {
+                            alignment: start;
+                            spacing: 6px;
+                            for e in data.day-events: HorizontalLayout {
+                                height: 24px;
+                                Text {
+                                    width: 46px;
+                                    text: e.time-text;
+                                    color: Theme.notch-accent-calendar;
+                                    font-weight: 600;
+                                    font-size: 12px;
+                                    font-family: Theme.notch-font;
+                                    vertical-alignment: center;
+                                }
+                                Text {
+                                    horizontal-stretch: 1;
+                                    text: e.title;
+                                    color: Theme.notch-text;
+                                    font-size: 12px;
+                                    font-family: Theme.notch-font;
+                                    vertical-alignment: center;
+                                    overflow: elide;
+                                }
+                                if e.badge != "": VerticalLayout {
+                                    alignment: center;
+                                    padding-left: 4px;
+                                    Rectangle {
+                                        border-radius: 6px;
+                                        background: Theme.notch-calendar-chip;
+                                        width: badge.preferred-width + 10px;
+                                        height: badge.preferred-height + 2px;
+                                        badge := Text {
+                                            text: e.badge;
+                                            font-size: 10px;
+                                            font-weight: 600;
+                                            color: Theme.notch-calendar-soft;
+                                            font-family: Theme.notch-font;
+                                        }
+                                    }
+                                }
+                                if e.can-delete: CalIconButton {
+                                    width: 24px;
+                                    height: 24px;
+                                    icon: Icons.x;
+                                    icon-size: 12px;
+                                    tint: Theme.notch-muted;
+                                    clicked => { root.delete-event(e.id); }
+                                }
+                            }
+                        }
+                    }
+                }
+                HorizontalLayout {
+                    spacing: 6px;
+                    NotchInput {
+                        height: 32px;
+                        horizontal-stretch: 1;
+                        hint: CalendarText.title-hint;
+                        text: data.new-event-title;
+                        edited(t) => { root.title-edited(t); }
+                        accepted => { root.add-event(); }
+                    }
+                    NotchInput {
+                        width: 72px;
+                        height: 32px;
+                        hint: CalendarText.time-hint;
+                        text: data.new-event-time;
+                        text-color: data.new-event-time-invalid ? Theme.notch-accent-focus : Theme.notch-text;
+                        edited(t) => { root.time-edited(t); }
+                        accepted => { root.add-event(); }
+                    }
+                    NotchPlainButton {
+                        width: 32px;
+                        height: 32px;
+                        clicked => { root.add-event(); }
+                        Rectangle {
+                            border-radius: 16px;
+                            background: Theme.notch-text;
+                            KoyIcon { data: Icons.plus; size: 16px; stroke-units: 2.4; color: Theme.notch-surface; }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

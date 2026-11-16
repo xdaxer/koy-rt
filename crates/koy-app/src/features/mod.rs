@@ -1,6 +1,7 @@
 //! Karşılığı: `koy/src/App/Features/`.
 
 pub mod actions;
+pub mod calendar;
 pub mod clipboard_panel;
 pub mod focus;
 pub mod menu;

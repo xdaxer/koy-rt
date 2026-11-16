@@ -125,7 +125,7 @@ impl CalendarSyncService {
         }
     }
 
-    fn sync(&self, provider: CalendarProvider, client: &OAuthClient, from_utc: DateTimeOffset, to_utc: DateTimeOffset, ct: &CancellationToken) -> CalendarSyncResult {
+    pub fn sync(&self, provider: CalendarProvider, client: &OAuthClient, from_utc: DateTimeOffset, to_utc: DateTimeOffset, ct: &CancellationToken) -> CalendarSyncResult {
         let source = CalendarOAuthConfig::to_event_source(provider);
         let Some(mut tokens) = self.token_store.load(provider) else {
             return self.load_cached_for_provider(source, "missing_token");

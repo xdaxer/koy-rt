@@ -104,6 +104,27 @@ fn dev_snapshot(view: &str, path: String) -> Result<(), slint::PlatformError> {
             });
             v.run()
         }
+        "calendar" | "calweek" => {
+            use features::calendar::{calendar_binding, calendar_view_model::CalendarViewModel, shared_events::SharedEvents};
+            let v = NotchPanelPreview::new()?;
+            ThemeManager::install(&v);
+            calendar_binding::install_text(&v);
+            let vm = CalendarViewModel::new(&koy_core::settings::AppSettings::default(), SharedEvents::new());
+            vm.set_active(true);
+            if view == "calweek" {
+                vm.set_view(koy_core::calendar::CalendarViewMode::Week);
+            }
+            v.set_panel("calendar".into());
+            v.set_cal(calendar_binding::to_data(&vm.state(), &vm.weekday_headers));
+            let w = v.as_weak();
+            let _t = infra::dispatch::delay(std::time::Duration::from_millis(700), move || {
+                if let Some(v) = w.upgrade() {
+                    infra::snapshot::save(v.window(), &path);
+                }
+                let _ = slint::quit_event_loop();
+            });
+            v.run()
+        }
         "clipboard" => {
             use features::clipboard_panel::{clipboard_binding, clipboard_view_model::{ClipboardCard, ClipboardState, ClipboardViewModel}};
             let _ = ClipboardViewModel::new;

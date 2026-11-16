@@ -29,7 +29,10 @@
      `rev` ile DynamicResource; palette.rs ve ui/theme.slint, ui/icons.slint `tools/gen_*.py` ile XAML'den üretilir),
      motion, material_state, window_frame, user_style_watcher. `ui/controls.slint` (Styles.xaml), `ui/notch_controls.slint`.
    - ✅ Menü: `features/menu` (SagAltMenuWindow, TrayIconManager).
-   - Sıradaki: Notch (alt VM'ler: Status, Music, ControlCenter, Focus/Tasks, Shelf, Calendar, SystemInfo, QuickLaunch,
+   - ✅ Çentik alt panelleri: Status (VM + WeatherGlyph), SystemInfo, Focus/Tasks (ArcRing), Shelf (OLE sürükle-bırak:
+     `infra/ole_dnd.rs`), ClipboardPanel, Calendar (SharedEvents + Google/Outlook eşitleme). Önizleme:
+     `koy --snapshot <system|focus|timer|shelf|clipboard|calendar|calweek> <png>`.
+   - Sıradaki: Notch (kalan alt VM'ler: Music, ControlCenter, Focus/Tasks, Shelf, Calendar, SystemInfo, QuickLaunch,
      ClipboardPanel, Search, OSD → NotchViewModel → NotchWindow → NotchFeature), sonra Dock, Settings/KoyWindow, Extensions,
      Rules, Wizard, Home, `app.rs` (App.xaml.cs) ve main.
    - Desen: C# ViewModel → Rust struct (`Rc`), görünüm durumu Slint bileşen özelliklerine / global'lere yazılır; olaylar
