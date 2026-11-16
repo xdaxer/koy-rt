@@ -7,6 +7,7 @@ pub mod dock_menus;
 pub mod dock_popups;
 pub mod dock_settings_store;
 pub mod dock_view_model;
+pub mod dock_window;
 pub mod entries;
 pub mod hooks;
 pub mod presentation;
