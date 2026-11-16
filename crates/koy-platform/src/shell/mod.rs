@@ -3,6 +3,8 @@
 mod app_user_model_id_reader;
 mod corner_hook_service;
 mod dwm;
+mod focus_assist_service;
+mod fullscreen_detector;
 mod hotkey_service;
 mod hook_thread;
 mod icon_helper;
@@ -21,6 +23,8 @@ pub mod watchdog_launcher;
 pub use app_user_model_id_reader::*;
 pub use corner_hook_service::*;
 pub use dwm::*;
+pub use focus_assist_service::*;
+pub use fullscreen_detector::FullscreenDetector;
 pub use hotkey_service::*;
 pub use icon_helper::*;
 pub use keyboard_hook_service::*;
