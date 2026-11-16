@@ -64,10 +64,10 @@ fn zlib_stored(data: &[u8]) -> Vec<u8> {
     out
 }
 
-pub(crate) struct PngEncoder;
+pub struct PngEncoder;
 
 impl PngEncoder {
-    pub(crate) fn encode(rgba: &[u8], width: i32, height: i32) -> Vec<u8> {
+    pub fn encode(rgba: &[u8], width: i32, height: i32) -> Vec<u8> {
         let mut out = vec![0x89, b'P', b'N', b'G', 0x0D, 0x0A, 0x1A, 0x0A];
         let mut header = [0u8; 13];
         header[..4].copy_from_slice(&width.to_be_bytes());

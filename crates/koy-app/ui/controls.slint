@@ -1,0 +1,757 @@
+// Karşılığı: koy/src/App/Resources/Styles.xaml (Koy penceresi, sihirbaz ve sağ alt menü ortak bileşenleri).
+// Bütün renk, boyut ve köşe değerleri Theme belirteçlerinden gelir. Hareket (hover, basma, anahtar yayı) Motion
+// süreleriyle: WPF Motion ekli özellikleri FadeTo 140 ms, ScaleTo 110 ms, KnobOn 260 ms (yay), PageEnter 200 ms.
+
+import { Theme } from "theme.slint";
+import { Icons, KoyIcon } from "icons.slint";
+
+// Hareket çarpanı Rust'tan (resources::motion) gelir; 0 ise geçişler anında olur.
+export global Motion {
+    in property <float> scale: 1;
+    out property <duration> fade: 140ms * scale;
+    out property <duration> press: 110ms * scale;
+    out property <duration> knob: 260ms * scale;
+    out property <duration> page: 200ms * scale;
+    // CubicEase EaseOut ve BackEase EaseOut (Amplitude 0.45) yaklaşıkları.
+    out property <easing> ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+    out property <easing> spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+}
+
+// Klavye odak halkası: 2 px vurgu, kenardan 3 px dışarıda.
+export component FocusRing inherits Rectangle {
+    in property <bool> visible-when;
+    in property <length> radius: 7px;
+    x: -3px;
+    y: -3px;
+    border-width: visible-when ? 2px : 0px;
+    border-color: Theme.focus-ring;
+    border-radius: radius;
+}
+
+// ---- Metin stilleri ----
+
+export component PageTitle inherits Text {
+    font-size: Theme.font-page-title;
+    font-weight: 600;
+    color: Theme.text-primary;
+    font-family: Theme.font;
+}
+
+export component PageSubtitle inherits Text {
+    font-size: Theme.font-subtitle;
+    color: Theme.text-secondary;
+    wrap: word-wrap;
+    font-family: Theme.font;
+}
+
+// Bölüm başlığı (kenar boşluğu 2,24,0,8 çağıranın düzeninde verilir). `filtered-out`: "yalnız değişenler" süzgeci.
+export component SectionHeader inherits Text {
+    in property <bool> filtered-out;
+    font-size: Theme.font-section;
+    font-weight: 600;
+    color: Theme.text-muted;
+    font-family: Theme.font;
+    visible: !filtered-out;
+}
+
+export component SettingTitle inherits Text {
+    font-size: Theme.font-row-title;
+    color: Theme.text-primary;
+    wrap: word-wrap;
+    font-family: Theme.font;
+}
+
+export component SettingDesc inherits Text {
+    font-size: Theme.font-caption;
+    color: Theme.text-secondary;
+    wrap: word-wrap;
+    font-family: Theme.font;
+}
+
+// Ayar satırı: en az 52 px, satır zemini + 1 px kenarlık, ince köşe, iç boşluk 14,8. Aramadan gelindiyse vurgu
+// kenarlığı; "yalnız değişenler" süzgecinde gizlenir; değişmiş ayarda solda küçük vurgu noktası.
+export component SettingRow inherits Rectangle {
+    in property <bool> highlighted;
+    in property <bool> filtered-out;
+    in property <bool> changed;
+    visible: !filtered-out;
+    min-height: Theme.row-min-height;
+    background: Theme.bg-row;
+    border-width: 1px;
+    border-color: highlighted ? Theme.accent : Theme.border-hairline;
+    border-radius: Theme.radius-row;
+    if changed: Rectangle {
+        x: 5px;
+        width: 4px;
+        height: 4px;
+        border-radius: 2px;
+        background: Theme.accent;
+    }
+    HorizontalLayout {
+        padding-left: 14px;
+        padding-right: 14px;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        spacing: 12px;
+        @children
+    }
+}
+
+// Satırın sol tarafı: başlık ve açıklama.
+export component SettingText inherits VerticalLayout {
+    in property <string> title;
+    in property <string> description;
+    alignment: center;
+    horizontal-stretch: 1;
+    SettingTitle { text: title; }
+    if description != "": SettingDesc { text: description; }
+}
+
+// Anahtar (toggle): 40x22 iz, yaylı 16 px düğme. Kapalı izin kenarı 3:1 kontrastlı.
+export component ToggleSwitch inherits Rectangle {
+    in-out property <bool> checked;
+    in property <bool> enabled: true;
+    callback toggled(bool);
+    width: 40px;
+    height: 22px;
+    opacity: enabled ? 1 : 0.45;
+    property <float> press-scale: touch.pressed ? 0.94 : 1;
+    animate press-scale { duration: Motion.press; easing: Motion.ease-out; }
+    accessible-role: switch;
+    accessible-checked: checked;
+    forward-focus: focus;
+
+    inner := Rectangle {
+        width: parent.width * press-scale;
+        height: parent.height * press-scale;
+        Rectangle {
+            border-radius: self.height / 2;
+            background: Theme.toggle-track-off;
+            border-width: 1px;
+            border-color: Theme.border-control;
+        }
+        Rectangle {
+            border-radius: self.height / 2;
+            background: Theme.accent;
+            opacity: checked ? 1 : 0;
+            animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+        }
+        knob := Rectangle {
+            width: 16px * press-scale;
+            height: 16px * press-scale;
+            x: (checked ? 21px : 3px) * press-scale;
+            animate x { duration: Motion.knob; easing: Motion.spring; }
+            Rectangle { border-radius: self.width / 2; background: Theme.toggle-knob-off; }
+            Rectangle {
+                border-radius: self.width / 2;
+                background: Theme.toggle-knob-on;
+                opacity: checked ? 1 : 0;
+                animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+            }
+        }
+    }
+    touch := TouchArea {
+        enabled: enabled;
+        mouse-cursor: pointer;
+        clicked => {
+            checked = !checked;
+            toggled(checked);
+        }
+    }
+    focus := FocusScope {
+        enabled: enabled;
+        key-pressed(e) => {
+            if (e.text == " " || e.text == "\n") {
+                checked = !checked;
+                toggled(checked);
+                return accept;
+            }
+            reject
+        }
+    }
+    FocusRing { visible-when: focus.has-focus; radius: 14px; width: root.width + 6px; height: root.height + 6px; }
+}
+
+// Onay kutusu: 20 px kutu, işaretliyken vurgu zemini ve onay simgesi.
+export component KoyCheckBox inherits Rectangle {
+    in-out property <bool> checked;
+    in property <string> text;
+    callback toggled(bool);
+    accessible-role: checkbox;
+    accessible-checked: checked;
+    min-height: 20px;
+    HorizontalLayout {
+        spacing: 8px;
+        Rectangle {
+            width: 20px;
+            height: 20px;
+            y: (parent.height - self.height) / 2;
+            Rectangle {
+                border-radius: Theme.radius-small;
+                background: Theme.bg-control;
+                border-width: 1.5px;
+                border-color: Theme.border-control;
+            }
+            Rectangle {
+                border-radius: Theme.radius-small;
+                background: Theme.accent;
+                opacity: checked ? 1 : 0;
+                animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+            }
+            KoyIcon {
+                data: Icons.check;
+                size: 14px;
+                stroke-units: 2.5;
+                color: Theme.on-accent;
+                opacity: checked ? 1 : 0;
+                animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+            }
+        }
+        if text != "": Text {
+            text: text;
+            color: Theme.text-primary;
+            font-size: Theme.font-body;
+            font-family: Theme.font;
+            vertical-alignment: center;
+        }
+    }
+    TouchArea {
+        mouse-cursor: pointer;
+        clicked => {
+            checked = !checked;
+            toggled(checked);
+        }
+    }
+}
+
+// Segment kapsayıcısı ve düğmeleri (WPF SegmentContainerStyle + SegRadioStyle). `items` başlıklar, `selected` dizin.
+export component Segmented inherits Rectangle {
+    in property <[string]> items;
+    in-out property <int> selected;
+    callback changed(int);
+    background: Theme.bg-segment;
+    border-width: 1px;
+    border-color: Theme.border-hairline;
+    border-radius: Theme.radius-control;
+    accessible-role: tab-list;
+    HorizontalLayout {
+        padding: 2px;
+        for item[i] in items: seg := Rectangle {
+            accessible-role: tab;
+            accessible-label: item;
+            Rectangle {
+                border-radius: Theme.radius-small;
+                background: Theme.bg-hover;
+                opacity: i != selected && seg-touch.has-hover ? 0.7 : 0;
+                animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+            }
+            Rectangle {
+                border-radius: Theme.radius-small;
+                background: Theme.bg-active;
+                border-width: 1px;
+                border-color: Theme.border-strong;
+                opacity: i == selected ? 1 : 0;
+                animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+            }
+            HorizontalLayout {
+                padding-left: 12px;
+                padding-right: 12px;
+                padding-top: 5px;
+                padding-bottom: 5px;
+                Text {
+                    text: item;
+                    font-size: Theme.font-control;
+                    font-weight: 500;
+                    font-family: Theme.font;
+                    color: i == selected ? Theme.text-primary : Theme.text-secondary;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+            seg-touch := TouchArea {
+                mouse-cursor: pointer;
+                clicked => {
+                    if (selected != i) {
+                        selected = i;
+                        changed(i);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Renk seçimi: 24 px halka, seçili halka metin renginde.
+export component ColorSwatch inherits Rectangle {
+    in property <color> swatch;
+    in property <bool> checked;
+    in property <string> label;
+    callback clicked;
+    width: 28px;
+    height: 28px;
+    accessible-role: button;
+    accessible-label: label;
+    Rectangle {
+        border-radius: self.width / 2;
+        border-width: 2px;
+        border-color: Theme.border-control;
+        opacity: touch.has-hover ? 1 : 0;
+        animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+    }
+    Rectangle {
+        border-radius: self.width / 2;
+        border-width: 2px;
+        border-color: Theme.text-primary;
+        opacity: checked ? 1 : 0;
+        animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+    }
+    Rectangle { width: 18px; height: 18px; border-radius: 9px; background: swatch; }
+    KoyIcon {
+        data: Icons.check;
+        size: 12px;
+        stroke-units: 3;
+        color: #0a0a0b;
+        opacity: checked ? 0.85 : 0;
+        animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+    }
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+export enum ButtonKind { standard, primary, danger }
+
+// Standart / birincil / tehlikeli düğme: 28 px, hover katmanı yumuşak belirir, basılınca %97'ye küçülür.
+export component KoyButton inherits Rectangle {
+    in property <string> text;
+    in property <ButtonKind> kind: ButtonKind.standard;
+    in property <bool> enabled: true;
+    in property <image> icon;
+    callback clicked;
+    height: Theme.control-height;
+    min-width: label.preferred-width + 24px + (icon.width > 0 ? 22px : 0px);
+    opacity: enabled ? 1 : 0.5;
+    accessible-role: button;
+    accessible-label: text;
+    property <float> s: touch.pressed ? 0.97 : 1;
+    animate s { duration: Motion.press; easing: Motion.ease-out; }
+    forward-focus: focus;
+
+    Rectangle {
+        width: parent.width * s;
+        height: parent.height * s;
+        Rectangle {
+            border-radius: Theme.radius-control;
+            background: kind == ButtonKind.primary ? Theme.accent : Theme.bg-control;
+            border-width: kind == ButtonKind.primary ? 0px : 1px;
+            border-color: kind == ButtonKind.danger ? Theme.danger-border : Theme.border-strong;
+        }
+        Rectangle {
+            border-radius: Theme.radius-control;
+            background: kind == ButtonKind.primary ? Theme.accent-hover : Theme.bg-hover;
+            opacity: touch.has-hover && enabled ? 1 : 0;
+            animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+        }
+        HorizontalLayout {
+            padding-left: 12px;
+            padding-right: 12px;
+            spacing: 6px;
+            alignment: center;
+            if icon.width > 0: Image { source: icon; width: 16px; height: 16px; y: (parent.height - 16px) / 2; }
+            label := Text {
+                text: root.text;
+                font-size: Theme.font-control;
+                font-weight: kind == ButtonKind.primary ? 600 : 500;
+                font-family: Theme.font;
+                color: kind == ButtonKind.primary ? Theme.on-accent : kind == ButtonKind.danger ? Theme.danger-text : Theme.text-primary;
+                vertical-alignment: center;
+            }
+        }
+    }
+    touch := TouchArea {
+        enabled: enabled;
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+    }
+    focus := FocusScope {
+        enabled: enabled;
+        key-pressed(e) => {
+            if (e.text == " " || e.text == "\n") {
+                root.clicked();
+                return accept;
+            }
+            reject
+        }
+    }
+    FocusRing { visible-when: focus.has-focus; width: root.width + 6px; height: root.height + 6px; }
+}
+
+// Başlık çubuğu düğmesi: 40x28, simge 14 px.
+export component TitleButton inherits Rectangle {
+    in property <string> icon;
+    in property <string> label;
+    callback clicked;
+    width: 40px;
+    height: 28px;
+    accessible-role: button;
+    accessible-label: label;
+    Rectangle {
+        x: 2px;
+        y: 2px;
+        width: parent.width - 4px;
+        height: parent.height - 4px;
+        border-radius: Theme.radius-control;
+        background: Theme.bg-hover;
+        opacity: touch.has-hover ? 1 : 0;
+        animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+    }
+    KoyIcon { data: icon; size: 14px; color: touch.has-hover ? Theme.text-primary : Theme.text-secondary; }
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+// Kenar çubuğu gezinme öğesi: simge + ad, seçiliyken solda vurgu çubuğu.
+export component NavItem inherits Rectangle {
+    in property <string> icon;
+    in property <string> text;
+    in property <bool> checked;
+    callback clicked;
+    height: Theme.nav-item-height;
+    accessible-role: tab;
+    accessible-label: text;
+    Rectangle {
+        border-radius: Theme.radius-control;
+        background: Theme.bg-nav-hover;
+        opacity: touch.has-hover ? 1 : 0;
+        animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+    }
+    Rectangle {
+        border-radius: Theme.radius-control;
+        background: Theme.bg-nav-active;
+        border-width: 1px;
+        border-color: Theme.border-hairline;
+        opacity: checked ? 1 : 0;
+        animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+    }
+    Rectangle {
+        x: 1px;
+        width: 3px;
+        height: 16px;
+        border-radius: 2px;
+        background: Theme.accent;
+        opacity: checked ? 1 : 0;
+        animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+    }
+    HorizontalLayout {
+        padding-left: 14px;
+        padding-right: 8px;
+        spacing: 12px;
+        KoyIcon {
+            data: icon;
+            size: 16px;
+            stroke-units: 1.9;
+            y: (parent.height - 16px) / 2;
+            color: checked ? Theme.accent-text : touch.has-hover ? Theme.text-primary : Theme.text-secondary;
+        }
+        Text {
+            text: root.text;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: Theme.font;
+            color: checked || touch.has-hover ? Theme.text-primary : Theme.text-secondary;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+// Klavye tuş rozeti.
+export component KeyBadge inherits Rectangle {
+    in property <string> text;
+    min-width: 24px;
+    height: 24px;
+    background: Theme.bg-control;
+    border-width: 1px;
+    border-color: Theme.border-strong;
+    border-radius: Theme.radius-small;
+    HorizontalLayout {
+        padding-left: 7px;
+        padding-right: 7px;
+        Text {
+            text: root.text;
+            font-family: Theme.font-mono;
+            font-size: Theme.font-key;
+            color: Theme.text-primary;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+}
+
+// Mavi bilgi kutusu.
+export component InfoNotice inherits Rectangle {
+    in property <string> text;
+    background: Theme.bg-info;
+    border-radius: Theme.radius-row;
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 12px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        spacing: 8px;
+        KoyIcon { data: Icons.info; color: Theme.fg-info; }
+        Text {
+            text: root.text;
+            color: Theme.fg-info;
+            font-size: Theme.font-caption;
+            font-family: Theme.font;
+            wrap: word-wrap;
+            horizontal-stretch: 1;
+        }
+    }
+}
+
+// Açılır liste (WPF SettingComboBoxStyle): düğme + açılır pencere; seçili öğe vurgu tonunda.
+export component KoyComboBox inherits Rectangle {
+    in property <[string]> items;
+    in-out property <int> selected;
+    in property <bool> enabled: true;
+    callback changed(int);
+    height: Theme.control-height;
+    min-width: 120px;
+    opacity: enabled ? 1 : 0.5;
+    accessible-role: combobox;
+    accessible-value: items[selected];
+    Rectangle {
+        border-radius: Theme.radius-control;
+        background: Theme.bg-control;
+        border-width: 1px;
+        border-color: popup-open ? Theme.accent : Theme.border-strong;
+    }
+    property <bool> popup-open;
+    Rectangle {
+        border-radius: Theme.radius-control;
+        background: Theme.bg-hover;
+        opacity: touch.has-hover ? 1 : 0;
+        animate opacity { duration: Motion.fade; easing: Motion.ease-out; }
+    }
+    Text {
+        x: 12px;
+        width: parent.width - 44px;
+        text: selected >= 0 && selected < items.length ? items[selected] : "";
+        color: Theme.text-primary;
+        font-size: Theme.font-control;
+        font-family: Theme.font;
+        vertical-alignment: center;
+        overflow: elide;
+    }
+    KoyIcon {
+        x: parent.width - 24px;
+        data: Icons.chevron-down;
+        size: 14px;
+        color: touch.has-hover ? Theme.text-primary : Theme.text-secondary;
+    }
+    touch := TouchArea {
+        enabled: enabled;
+        mouse-cursor: pointer;
+        clicked => {
+            popup-open = true;
+            popup.show();
+        }
+    }
+    popup := PopupWindow {
+        x: 0;
+        y: root.height + 4px;
+        width: max(root.width, 160px);
+        close-policy: close-on-click-outside;
+        Rectangle {
+            background: Theme.bg-row;
+            border-width: 1px;
+            border-color: Theme.border-strong;
+            border-radius: Theme.radius-control;
+            drop-shadow-blur: 14px;
+            drop-shadow-offset-y: 3px;
+            drop-shadow-color: #00000059;
+            VerticalLayout {
+                padding: 2px;
+                for item[i] in items: Rectangle {
+                    height: 32px;
+                    Rectangle {
+                        x: 2px;
+                        y: 1px;
+                        width: parent.width - 4px;
+                        height: parent.height - 2px;
+                        border-radius: Theme.radius-small;
+                        background: i == selected ? Theme.accent-subtle : item-touch.has-hover ? Theme.bg-hover : transparent;
+                    }
+                    Text {
+                        x: 12px;
+                        text: item;
+                        color: i == selected ? Theme.accent-text : Theme.text-primary;
+                        font-weight: i == selected ? 600 : 400;
+                        font-size: Theme.font-control;
+                        font-family: Theme.font;
+                        vertical-alignment: center;
+                    }
+                    item-touch := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => {
+                            popup-open = false;
+                            if (selected != i) {
+                                selected = i;
+                                changed(i);
+                            }
+                            popup.close();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Tek satırlık metin kutusu: kontrol yüksekliğinde, odakta vurgu kenarlığı.
+export component KoyTextBox inherits Rectangle {
+    in-out property <string> text;
+    in property <string> placeholder;
+    in property <bool> enabled: true;
+    in property <bool> password;
+    callback edited(string);
+    callback accepted(string);
+    height: Theme.control-height;
+    opacity: enabled ? 1 : 0.5;
+    border-radius: Theme.radius-control;
+    background: Theme.bg-control;
+    border-width: 1px;
+    border-color: input.has-focus ? Theme.accent : Theme.border-strong;
+    forward-focus: input;
+    if text == "" && !input.has-focus: Text {
+        x: 10px;
+        width: parent.width - 20px;
+        text: placeholder;
+        color: Theme.text-muted;
+        font-size: Theme.font-control;
+        font-family: Theme.font;
+        vertical-alignment: center;
+        overflow: elide;
+    }
+    input := TextInput {
+        x: 10px;
+        width: parent.width - 20px;
+        text <=> root.text;
+        enabled: root.enabled;
+        color: Theme.text-primary;
+        selection-background-color: Theme.accent-subtle;
+        font-size: Theme.font-control;
+        font-family: Theme.font;
+        vertical-alignment: center;
+        single-line: true;
+        input-type: password ? InputType.password : InputType.text;
+        edited => { root.edited(self.text); }
+        accepted => { root.accepted(self.text); }
+    }
+}
+
+// Bağlantı düğmesi: vurgu renginde metin ve sağa ok, üzerine gelince altı çizilir.
+export component LinkButton inherits Rectangle {
+    in property <string> text;
+    in property <bool> enabled: true;
+    callback clicked;
+    opacity: enabled ? 1 : 0.5;
+    accessible-role: button;
+    accessible-label: text;
+    HorizontalLayout {
+        spacing: 5px;
+        Text {
+            text: root.text;
+            color: Theme.accent-text;
+            font-size: Theme.font-caption;
+            font-family: Theme.font;
+            vertical-alignment: center;
+            // Slint'te altı çizili yazı yok: üzerine gelince ince çizgi.
+            Rectangle {
+                y: parent.height - 2px;
+                height: 1px;
+                background: touch.has-hover ? Theme.accent-text : transparent;
+            }
+        }
+        Path {
+            width: 9px;
+            height: 9px;
+            y: (parent.height - 9px) / 2;
+            commands: "M 9 18 L 15 12 L 9 6";
+            viewbox-x: 8;
+            viewbox-y: 5;
+            viewbox-width: 8;
+            viewbox-height: 14;
+            stroke: Theme.accent-text;
+            stroke-width: 1.6px;
+            stroke-line-cap: round;
+            stroke-line-join: round;
+            fill: transparent;
+        }
+    }
+    touch := TouchArea { enabled: enabled; mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+// Dock düz düğmesi (Başlat, İndirilenler, Koy menüsü): koyu yüzeyde beyaz yüzdesi katmanlar.
+export component DockFlatButton inherits Rectangle {
+    in property <string> label;
+    callback clicked;
+    callback right-clicked(length, length);
+    accessible-role: button;
+    accessible-label: label;
+    border-radius: 10px;
+    background: touch.pressed ? #ffffff33 : touch.has-hover ? Theme.dock-active : transparent;
+    @children
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+        pointer-event(e) => {
+            if (e.button == PointerEventButton.right && e.kind == PointerEventKind.up) {
+                root.right-clicked(self.mouse-x, self.mouse-y);
+            }
+        }
+    }
+}
+
+// Koy marka logosu (squircle + çentik + K), 256 birimlik tuval.
+export component KoyLogo inherits Path {
+    in property <color> color: Theme.text-primary;
+    commands: "M 80,32 H 176 C 202,32 224,54 224,80 V 176 C 224,202 202,224 176,224 H 80 C 54,224 32,202 32,176 V 80 C 32,54 54,32 80,32 Z M 88,32 C 94,44 104,54 116,54 H 140 C 152,54 162,44 168,32 H 88 Z M 76,96 C 76,88 83,82 91,82 C 99,82 106,88 106,96 V 176 C 106,184 99,190 91,190 C 83,190 76,184 76,176 Z M 106,136 L 148,88 C 154,82 164,81 170,87 C 176,93 176,102 170,107 L 134,143 L 170,179 C 176,184 176,193 170,199 C 164,205 154,204 148,198 L 106,148 Z";
+    viewbox-width: 256;
+    viewbox-height: 256;
+    fill: color;
+    fill-rule: evenodd;
+}
+
+// Dock Başlat düğmesinin varsayılan simgesi: Koy uygulama simgesi (küçük boyutlar için kalınlaştırılmış).
+export component KoyStartIcon inherits Rectangle {
+    Path {
+        commands: "M 80,24 H 176 C 208,24 232,48 232,80 V 176 C 232,208 208,232 176,232 H 80 C 48,232 24,208 24,176 V 80 C 24,48 48,24 80,24 Z";
+        viewbox-x: 24; viewbox-y: 24; viewbox-width: 208; viewbox-height: 208;
+        fill: #2563eb;
+    }
+    Path {
+        commands: "M 78,24 C 86,42 98,56 114,56 H 142 C 158,56 170,42 178,24 H 78 Z";
+        viewbox-x: 24; viewbox-y: 24; viewbox-width: 208; viewbox-height: 208;
+        fill: #93c5fd;
+    }
+    Path {
+        commands: "M 88,80 H 88 A 18 18 0 0 1 106 98 V 176 A 18 18 0 0 1 88 194 A 18 18 0 0 1 70 176 V 98 A 18 18 0 0 1 88 80 Z M 106,137 L 150,85 C 156,78 168,77 175,83 C 182,89 183,100 176,107 L 138,143 L 176,181 C 183,188 182,199 175,205 C 168,211 156,210 150,203 L 106,149 Z";
+        viewbox-x: 24; viewbox-y: 24; viewbox-width: 208; viewbox-height: 208;
+        fill: white;
+    }
+}
+
+// Windows 11 logosu (köşesiz dört kare, sol üstten sağ alta mavi geçiş).
+export component WindowsLogo inherits Path {
+    commands: "M 0,0 H 9.5 V 9.5 H 0 Z M 10.5,0 H 20 V 9.5 H 10.5 Z M 0,10.5 H 9.5 V 20 H 0 Z M 10.5,10.5 H 20 V 20 H 10.5 Z";
+    viewbox-width: 20;
+    viewbox-height: 20;
+    fill: @linear-gradient(135deg, #52d3ff 0%, #0a64d6 100%);
+}
+
+// Ayırıcı (WPF Separator): 1 px, menü ayırıcı rengi.
+export component Separator inherits Rectangle {
+    height: 1px;
+    background: Theme.menu-separator;
+}

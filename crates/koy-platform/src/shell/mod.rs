@@ -14,7 +14,7 @@ mod outside_click_hook;
 mod pinned_apps_service;
 mod tray_host_service;
 mod tray_icon_service;
-mod png_encoder;
+pub mod png_encoder;
 mod small;
 mod window_styles;
 mod window_tracker;

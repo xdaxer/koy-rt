@@ -1,15 +1,29 @@
 import { Theme } from "theme.slint";
-export { Theme }
+import { Icons, KoyIcon } from "icons.slint";
+import { Motion, ToggleSwitch, KoyButton, ButtonKind, Segmented, KoyComboBox, KoyTextBox, SettingRow, SettingText, NavItem, KoyLogo, WindowsLogo, KoyStartIcon, LinkButton, InfoNotice, KeyBadge, ColorSwatch, KoyCheckBox } from "controls.slint";
+export { Theme, Motion }
 
+// Bileşen denetimi: kontrol kitaplığının derlendiğini ve çizildiğini doğrulayan önizleme penceresi.
 export component Probe inherits Window {
     no-frame: true;
     background: transparent;
     always-on-top: true;
-    width: 200px;
-    height: 36px;
+    width: 420px;
+    height: 320px;
     Rectangle {
-        background: Theme.notch-surface;
-        border-radius: 18px;
-        Text { text: "Koy"; color: Theme.notch-text; font-family: Theme.notch-font; }
+        background: Theme.bg-window;
+        border-radius: 12px;
+        VerticalLayout {
+            padding: 12px;
+            spacing: 8px;
+            SettingRow { SettingText { title: "Koy"; description: "Bileşen önizleme"; } ToggleSwitch { checked: true; } }
+            HorizontalLayout { spacing: 8px; KoyButton { text: "Standart"; } KoyButton { text: "Birincil"; kind: ButtonKind.primary; } KoyButton { text: "Sil"; kind: ButtonKind.danger; } }
+            Segmented { items: ["Koyu", "Açık", "Sistem"]; selected: 0; }
+            KoyComboBox { items: ["Bir", "İki"]; selected: 0; }
+            KoyTextBox { placeholder: "Ara"; }
+            HorizontalLayout { spacing: 8px; KoyLogo { width: 24px; height: 24px; } WindowsLogo { width: 20px; height: 20px; } KoyStartIcon { width: 20px; height: 20px; } KeyBadge { text: "Ctrl"; } ColorSwatch { swatch: #3b82f6; checked: true; } KoyCheckBox { checked: true; } }
+            NavItem { icon: Icons.settings; text: "Genel"; checked: true; }
+            LinkButton { text: "Daha fazla"; }
+        }
     }
 }
