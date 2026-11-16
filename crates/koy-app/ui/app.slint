@@ -5,9 +5,10 @@ import { NotchInput, NotchSwitch, NotchRowButton, NotchPillButton, NotchPlainBut
 import { SagAltMenuWindow, MenuText } from "menu.slint";
 import { WeatherGlyph } from "status.slint";
 import { SystemPanel, SystemStatsData, SystemText } from "system_panel.slint";
+import { ClipboardPanel, ClipFilterData, ClipCardData, ClipText } from "clipboard_panel.slint";
 import { ShelfPanel, ShelfItemData, ShelfText } from "shelf_panel.slint";
 import { FocusPanel, FocusData, TasksData, FocusText, FocusTabData, FocusPresetData, FocusLapData, TaskRowData } from "focus_panel.slint";
-export { Theme, Motion, SagAltMenuWindow, MenuText, SystemText, SystemStatsData, FocusText, FocusData, TasksData, FocusTabData, FocusPresetData, FocusLapData, TaskRowData, ShelfItemData, ShelfText }
+export { Theme, Motion, SagAltMenuWindow, MenuText, SystemText, SystemStatsData, FocusText, FocusData, TasksData, FocusTabData, FocusPresetData, FocusLapData, TaskRowData, ShelfItemData, ShelfText, ClipFilterData, ClipCardData, ClipText }
 
 // Bileşen denetimi: kontrol kitaplığının derlendiğini ve çizildiğini doğrulayan önizleme penceresi.
 export component Probe inherits Window {
@@ -42,12 +43,15 @@ export component NotchPanelPreview inherits Window {
     in property <TasksData> tasks;
     in property <[ShelfItemData]> shelf-items;
     in property <string> shelf-count;
+    in property <[ClipFilterData]> clip-filters;
+    in property <[ClipCardData]> clip-items;
     width: 640px;
     height: 230px;
     background: Theme.notch-surface;
     VerticalLayout {
         padding: 16px;
         if panel == "system": SystemPanel { data: sys; }
+        if panel == "clipboard": ClipboardPanel { filters: clip-filters; items: clip-items; }
         if panel == "shelf": ShelfPanel { items: shelf-items; count-text: shelf-count; }
         if panel == "focus": FocusPanel { fdata: fdata; tasks: tasks; }
     }

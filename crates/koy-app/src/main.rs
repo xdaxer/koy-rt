@@ -104,6 +104,47 @@ fn dev_snapshot(view: &str, path: String) -> Result<(), slint::PlatformError> {
             });
             v.run()
         }
+        "clipboard" => {
+            use features::clipboard_panel::{clipboard_binding, clipboard_view_model::{ClipboardCard, ClipboardState, ClipboardViewModel}};
+            let _ = ClipboardViewModel::new;
+            let v = NotchPanelPreview::new()?;
+            ThemeManager::install(&v);
+            clipboard_binding::install_text(&v);
+            let now = chrono::Local::now().fixed_offset();
+            let item = |text: &str, kind, pinned, mins: i64| koy_core::clipboard::ClipboardItem {
+                id: Default::default(),
+                text: text.into(),
+                kind,
+                pinned,
+                copied_at: now - chrono::Duration::minutes(mins),
+            };
+            use koy_core::clipboard::ClipboardKind as K;
+            let mut cards: Vec<ClipboardCard> = [
+                item("https://github.com/xdaxer/koy-rt", K::Link, true, 0),
+                item("#3B82F6", K::Color, false, 2),
+                item("fn main() {\n    println!(\"merhaba\");\n}", K::Code, false, 75),
+                item("Toplantı saat 16:00'da, ikinci kattaki odada.", K::Text, false, 3000),
+            ]
+            .iter()
+            .map(|i| ClipboardCard::new(i, now))
+            .collect();
+            cards[1].is_copied = true;
+            let mut st = ClipboardState { items: cards, ..Default::default() };
+            for (f, k) in [(koy_core::clipboard::ClipboardFilter::All, "ClipFilterAll"), (koy_core::clipboard::ClipboardFilter::Pinned, "ClipFilterPinned"), (koy_core::clipboard::ClipboardFilter::Link, "ClipFilterLink"), (koy_core::clipboard::ClipboardFilter::Color, "ClipFilterColor"), (koy_core::clipboard::ClipboardFilter::Code, "ClipFilterCode")] {
+                st.filters.push(features::clipboard_panel::clipboard_view_model::ClipboardFilterChip { filter: f, label: resources::strings::Strings::get(k), is_selected: k == "ClipFilterAll" });
+            }
+            v.set_panel("clipboard".into());
+            v.set_clip_filters(clipboard_binding::filters(&st));
+            v.set_clip_items(clipboard_binding::cards(&st));
+            let w = v.as_weak();
+            let _t = infra::dispatch::delay(std::time::Duration::from_millis(700), move || {
+                if let Some(v) = w.upgrade() {
+                    infra::snapshot::save(v.window(), &path);
+                }
+                let _ = slint::quit_event_loop();
+            });
+            v.run()
+        }
         "shelf" => {
             use features::shelf::shelf_binding;
             use koy_core::shelf::{ShelfItem, ShelfItemKind};

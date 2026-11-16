@@ -1,0 +1,216 @@
+// Karşılığı: koy/src/App/Features/ClipboardPanel/ClipboardPanel.xaml. Arama, süzgeç hapları, Temizle; kart ızgarası
+// (karta tıklayınca panoya geri kopyalanır, sabitle / sil düğmeleri) ve alt bilgi.
+
+import { Theme } from "theme.slint";
+import { Icons, KoyIcon } from "icons.slint";
+import { NotchInput } from "notch_controls.slint";
+
+export struct ClipFilterData { filter: int, label: string, selected: bool }
+export struct ClipCardData {
+    index: int,
+    header: string,
+    preview: string,
+    is-pinned: bool,
+    is-link: bool,
+    is-copied: bool,
+    has-swatch: bool,
+    swatch: color,
+    pin-tip: string,
+}
+
+export global ClipText {
+    in property <string> search;
+    in property <string> clear;
+    in property <string> copied;
+    in property <string> footer;
+}
+
+component FilterChip inherits Rectangle {
+    in property <string> text;
+    in property <bool> selected;
+    callback clicked;
+    height: label.preferred-height + 12px;
+    width: label.preferred-width + 20px;
+    border-radius: 13px;
+    background: selected ? Theme.notch-accent-clipboard : Theme.notch-clip-chip;
+    label := Text {
+        text: text;
+        font-size: 11px;
+        font-family: Theme.notch-font;
+        font-weight: selected ? 600 : 400;
+        color: selected ? Theme.notch-text-on-light : Theme.notch-clip-chip-text;
+    }
+    TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+component CardIconButton inherits Rectangle {
+    in property <string> icon;
+    in property <color> tint: Theme.notch-clip-soft;
+    callback clicked;
+    width: 22px;
+    height: 22px;
+    border-radius: 11px;
+    background: touch.has-hover ? Theme.notch-clip-chip : transparent;
+    KoyIcon { data: icon; size: 13px; color: tint; }
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+component ClipCard inherits Rectangle {
+    in property <ClipCardData> card;
+    callback copy-back();
+    callback toggle-pin();
+    callback remove();
+    width: 166px;
+    height: 68px;
+    border-radius: 14px;
+    background: touch.has-hover ? Theme.notch-card : Theme.notch-surface;
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.copy-back(); } }
+    VerticalLayout {
+        padding-left: 10px;
+        padding-right: 6px;
+        padding-top: 6px;
+        padding-bottom: 6px;
+        HorizontalLayout {
+            height: 22px;
+            if !card.is-copied: Text {
+                horizontal-stretch: 1;
+                text: card.header;
+                font-size: 11px;
+                color: Theme.notch-clip-soft;
+                font-family: Theme.notch-font;
+                vertical-alignment: center;
+                overflow: elide;
+            }
+            if card.is-copied: Text {
+                horizontal-stretch: 1;
+                text: ClipText.copied;
+                font-size: 11px;
+                font-weight: 600;
+                color: Theme.notch-accent-clipboard;
+                font-family: Theme.notch-font;
+                vertical-alignment: center;
+            }
+            CardIconButton {
+                icon: Icons.pin;
+                tint: card.is-pinned ? Theme.notch-accent-clipboard : Theme.notch-clip-soft;
+                clicked => { root.toggle-pin(); }
+            }
+            CardIconButton { icon: Icons.trash2; clicked => { root.remove(); } }
+        }
+        if !card.has-swatch: Rectangle {
+            vertical-stretch: 1;
+            preview := Text {
+                x: 0px;
+                y: 3px;
+                width: parent.width - 4px;
+                height: parent.height - 3px;
+                text: card.preview;
+                font-size: 11px;
+                color: Theme.notch-text;
+                font-family: Theme.notch-font;
+                wrap: word-wrap;
+                overflow: elide;
+                vertical-alignment: top;
+            }
+            // Bağlantının altı çizilir (tek satırlık yaklaşık çizgi).
+            if card.is-link: Rectangle {
+                x: 0px;
+                y: 3px + 14px;
+                width: min(preview.preferred-width, parent.width - 4px);
+                height: 1px;
+                background: Theme.notch-text;
+            }
+        }
+        if card.has-swatch: HorizontalLayout {
+            padding-top: 4px;
+            spacing: 8px;
+            alignment: start;
+            Rectangle {
+                width: 26px;
+                height: 26px;
+                border-radius: 8px;
+                background: card.swatch;
+                border-width: 1px;
+                border-color: Theme.notch-check-border;
+            }
+            Text {
+                text: card.preview;
+                font-size: 12px;
+                color: Theme.notch-text;
+                font-family: Theme.notch-font;
+                vertical-alignment: center;
+            }
+        }
+    }
+}
+
+export component ClipboardPanel inherits Rectangle {
+    in property <[ClipFilterData]> filters;
+    in property <[ClipCardData]> items;
+    in property <bool> is-empty;
+    in property <string> empty-text;
+    in-out property <string> search-text;
+    callback search-edited(string);
+    callback set-filter(int);
+    callback clear();
+    callback copy-back(int);
+    callback toggle-pin(int);
+    callback remove(int);
+    border-radius: 22px;
+    background: Theme.notch-clip-card;
+    VerticalLayout {
+        padding: 14px;
+        spacing: 10px;
+        HorizontalLayout {
+            spacing: 8px;
+            NotchInput {
+                horizontal-stretch: 1;
+                hint: ClipText.search;
+                text: search-text;
+                edited(t) => { root.search-text = t; root.search-edited(t); }
+            }
+            HorizontalLayout {
+                spacing: 4px;
+                alignment: center;
+                for f in filters: VerticalLayout {
+                    alignment: center;
+                    FilterChip { text: f.label; selected: f.selected; clicked => { root.set-filter(f.filter); } }
+                }
+                VerticalLayout {
+                    alignment: center;
+                    FilterChip { text: ClipText.clear; clicked => { root.clear(); } }
+                }
+            }
+        }
+        Rectangle {
+            vertical-stretch: 1;
+            if is-empty: Text {
+                text: empty-text;
+                font-size: 12px;
+                color: Theme.notch-clip-soft;
+                font-family: Theme.notch-font;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+            grid := Flickable {
+                property <int> columns: max(1, floor((self.width + 6px) / 172px));
+                content-height: ceil(items.length / columns) * 74px;
+                for c[i] in items: ClipCard {
+                    x: mod(i, grid.columns) * 172px;
+                    y: floor(i / grid.columns) * 74px;
+                    card: c;
+                    copy-back => { root.copy-back(c.index); }
+                    toggle-pin => { root.toggle-pin(c.index); }
+                    remove => { root.remove(c.index); }
+                }
+            }
+        }
+        Text {
+            text: ClipText.footer;
+            font-size: 10px;
+            color: Theme.notch-muted;
+            font-family: Theme.notch-font;
+            overflow: elide;
+        }
+    }
+}
