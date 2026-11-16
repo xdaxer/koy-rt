@@ -3,6 +3,7 @@
 pub mod app_icons;
 pub mod context_menu_state;
 pub mod dock_binding;
+pub mod dock_feature;
 pub mod dock_menus;
 pub mod dock_popups;
 pub mod dock_settings_store;
