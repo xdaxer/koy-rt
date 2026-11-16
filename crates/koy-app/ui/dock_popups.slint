@@ -1,0 +1,316 @@
+// Dock'un açılır pencereleri (WPF'te Popup; burada ayrı üst düzey pencere, şekle kırpılır):
+// Tray/TrayButton.xaml (tepsi), Recents/RecentsButton.xaml (son kullanılanlar), Folder/FolderPanel.xaml (klasör),
+// DockWindow.xaml içindeki küçük resim önizlemesi (canlı DWM küçük resimleri Rust'ta pencereye çizilir).
+
+import { Theme } from "theme.slint";
+
+component PopupFrame inherits Rectangle {
+    in property <length> pad: 8px;
+    border-radius: 14px;
+    border-width: 1px;
+    border-color: Theme.menu-border;
+    background: Theme.menu-bg;
+}
+
+// ---- Tepsi ----
+export struct TrayIconData { has-icon: bool, icon: image, tooltip: string }
+
+export component TrayPopupWindow inherits Window {
+    in property <string> title-text;
+    in property <string> empty-text;
+    in property <[TrayIconData]> icons;
+    // Simge: dizin, eylem (0 sol bas, 1 sol bırak, 2 sağ bırak).
+    callback icon-action(int, int);
+    callback escape();
+    title: "Koy";
+    no-frame: true;
+    always-on-top: true;
+    background: Theme.menu-bg;
+    property <int> columns: 6;
+    width: frame-layout.preferred-width;
+    height: frame-layout.preferred-height;
+    FocusScope {
+        key-pressed(e) => {
+            if e.text == Key.Escape { root.escape(); return accept; }
+            reject
+        }
+        PopupFrame {
+            frame-layout := VerticalLayout {
+                padding: 8px;
+                spacing: 6px;
+                Text { text: root.title-text; font-size: 11px; color: Theme.menu-text-muted; x: 4px; }
+                if icons.length > 0: Rectangle {
+                    width: min(icons.length, root.columns) * 36px;
+                    height: ceil(icons.length / root.columns) * 36px;
+                    for ic[i] in icons: Rectangle {
+                        x: mod(i, root.columns) * 36px;
+                        y: floor(i / root.columns) * 36px;
+                        width: 36px;
+                        height: 36px;
+                        border-radius: 8px;
+                        background: t.has-hover ? Theme.menu-hover : transparent;
+                        // Tepsi simgeleri sistemin küçük simge boyutunda (16 DIP) gösterilir: büyütülmez.
+                        if ic.has-icon: Image { width: 16px; height: 16px; source: ic.icon; image-fit: contain; }
+                        t := TouchArea {
+                            mouse-cursor: pointer;
+                            pointer-event(e) => {
+                                if e.button == PointerEventButton.left && e.kind == PointerEventKind.down { root.icon-action(i, 0); }
+                                if e.button == PointerEventButton.left && e.kind == PointerEventKind.up { root.icon-action(i, 1); }
+                                if e.button == PointerEventButton.right && e.kind == PointerEventKind.up { root.icon-action(i, 2); }
+                            }
+                        }
+                    }
+                }
+                if icons.length == 0: Text { text: root.empty-text; font-size: 12px; color: Theme.menu-text-muted; x: 4px; }
+            }
+        }
+    }
+}
+
+// ---- Son kullanılanlar ----
+export component RecentsPopupWindow inherits Window {
+    in property <string> title-text;
+    in property <string> empty-text;
+    in property <[string]> names;
+    callback open(int);
+    callback escape();
+    title: "Koy";
+    no-frame: true;
+    always-on-top: true;
+    background: Theme.menu-bg;
+    width: clamp(rl.preferred-width, 240px, 320px);
+    height: rl.preferred-height;
+    FocusScope {
+        key-pressed(e) => {
+            if e.text == Key.Escape { root.escape(); return accept; }
+            reject
+        }
+        PopupFrame {
+            rl := VerticalLayout {
+                padding: 6px;
+                Text { text: root.title-text; font-size: 11px; color: Theme.menu-text-muted; x: 8px; height: 22px; vertical-alignment: center; }
+                for n[i] in names: Rectangle {
+                    height: 32px;
+                    border-radius: 8px;
+                    background: rt.has-hover ? Theme.menu-hover : transparent;
+                    Text { x: 8px; width: parent.width - 16px; text: n; font-size: 12.5px; color: Theme.menu-text; overflow: elide; vertical-alignment: center; }
+                    rt := TouchArea { mouse-cursor: pointer; clicked => { root.open(i); } }
+                }
+                if names.length == 0: Text { text: root.empty-text; font-size: 12px; color: Theme.menu-text-muted; x: 8px; height: 24px; vertical-alignment: center; }
+            }
+        }
+    }
+}
+
+// ---- Klasör paneli ----
+export struct FolderAppData { title: string, has-icon: bool, icon: image, running: bool }
+
+export component FolderPopupWindow inherits Window {
+    in property <string> folder-title;
+    in property <string> rename-tip;
+    in property <string> dissolve-tip;
+    in-out property <bool> editing;
+    in property <[FolderAppData]> apps;
+    callback rename(string);
+    callback cancel-edit();
+    callback start-edit();
+    callback dissolve();
+    // Uygulama: dizin, eylem (0 bas, 1 bırak / tıkla), pencere koordinatı.
+    callback app-pointer(int, int, length, length);
+    callback app-moved(int, length, length);
+    callback escape();
+    title: "Koy";
+    no-frame: true;
+    always-on-top: true;
+    background: Theme.menu-bg;
+    width: clamp(fl.preferred-width, 200px, 320px);
+    height: fl.preferred-height;
+    public function focus-title() {
+        title-input.focus();
+        title-input.select-all();
+    }
+    FocusScope {
+        key-pressed(e) => {
+            if e.text == Key.Escape {
+                if root.editing { root.cancel-edit(); } else { root.escape(); }
+                return accept;
+            }
+            reject
+        }
+        PopupFrame {
+            fl := VerticalLayout {
+                padding: 12px;
+                spacing: 8px;
+                HorizontalLayout {
+                    padding-left: 4px;
+                    padding-right: 4px;
+                    spacing: 4px;
+                    Rectangle {
+                        horizontal-stretch: 1;
+                        height: 24px;
+                        if !root.editing: Text {
+                            text: root.folder-title;
+                            font-size: 13px;
+                            font-weight: 600;
+                            color: Theme.menu-text;
+                            vertical-alignment: center;
+                            overflow: elide;
+                            TouchArea { mouse-cursor: pointer; clicked => { root.start-edit(); } }
+                        }
+                        Rectangle {
+                            visible: root.editing;
+                            border-radius: 4px;
+                            border-width: 1px;
+                            border-color: Theme.accent;
+                            background: #ffffff2a;
+                            title-input := TextInput {
+                                x: 4px;
+                                width: parent.width - 8px;
+                                text: root.folder-title;
+                                font-size: 13px;
+                                font-weight: 600;
+                                color: white;
+                                vertical-alignment: center;
+                                single-line: true;
+                                accepted => { root.rename(self.text); }
+                            }
+                        }
+                    }
+                    for b[i] in [0, 1]: Rectangle {
+                        width: 24px;
+                        height: 24px;
+                        border-radius: 4px;
+                        background: bt.has-hover ? Theme.menu-hover : transparent;
+                        Path {
+                            width: 12px;
+                            height: 12px;
+                            commands: b == 0
+                                ? "M 3,14 L 3,17 L 6,17 L 15,8 L 12,5 Z M 16,7 L 13,4 L 14.5,2.5 C 14.8,2.2 15.2,2.2 15.5,2.5 L 17.5,4.5 C 17.8,4.8 17.8,5.2 17.5,5.5 Z"
+                                : "M 3,3 L 8,3 L 8,5 L 5,5 L 5,8 L 3,8 Z M 16,3 L 21,3 L 21,8 L 19,8 L 19,5 L 16,5 Z M 3,16 L 5,16 L 5,19 L 8,19 L 8,21 L 3,21 Z M 19,16 L 21,16 L 21,21 L 16,21 L 16,19 L 19,19 Z";
+                            fill: Theme.menu-text-muted;
+                        }
+                        bt := TouchArea {
+                            mouse-cursor: pointer;
+                            clicked => { if b == 0 { root.start-edit(); } else { root.dissolve(); } }
+                        }
+                    }
+                }
+                Rectangle { height: 1px; background: Theme.menu-border; }
+                Rectangle {
+                    width: min(root.apps.length, 4) * 56px;
+                    height: ceil(root.apps.length / 4) * 60px;
+                    for a[i] in root.apps: Rectangle {
+                        x: mod(i, 4) * 56px + 2px;
+                        y: floor(i / 4) * 60px + 2px;
+                        width: 52px;
+                        height: 56px;
+                        border-radius: 8px;
+                        background: at.has-hover ? Theme.menu-hover : transparent;
+                        VerticalLayout {
+                            alignment: center;
+                            spacing: 3px;
+                            HorizontalLayout {
+                                alignment: center;
+                                Rectangle {
+                                    width: 28px;
+                                    height: 28px;
+                                    if a.has-icon: Image { width: 100%; height: 100%; source: a.icon; image-fit: contain; }
+                                    if !a.has-icon: Rectangle { border-radius: 6px; background: #ffffff33; }
+                                }
+                            }
+                            Text { text: a.title; font-size: 10px; color: Theme.menu-text-muted; overflow: elide; horizontal-alignment: center; width: 48px; x: 2px; }
+                        }
+                        if a.running: Rectangle { y: parent.height - 2px; width: 4px; height: 4px; border-radius: 2px; background: Theme.accent; }
+                        at := TouchArea {
+                            mouse-cursor: pointer;
+                            pointer-event(e) => {
+                                if e.button == PointerEventButton.left && e.kind == PointerEventKind.down { root.app-pointer(i, 0, parent.x + self.mouse-x, parent.y + self.mouse-y); }
+                                if e.button == PointerEventButton.left && e.kind == PointerEventKind.up { root.app-pointer(i, 1, parent.x + self.mouse-x, parent.y + self.mouse-y); }
+                            }
+                            moved => { root.app-moved(i, parent.x + self.mouse-x, parent.y + self.mouse-y); }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---- Pencere önizlemesi ----
+export struct PreviewWindowData { title: string }
+
+export component PreviewPopupWindow inherits Window {
+    in property <bool> multi;
+    in property <[PreviewWindowData]> windows;
+    in property <string> close-tip;
+    // Küçük resim: dizin, eylem (0 sol tık, 1 orta tık), kapat düğmesi: 2.
+    callback thumb-action(int, int);
+    callback hover(bool);
+    title: "Koy";
+    no-frame: true;
+    always-on-top: true;
+    background: Theme.dock-preview-surface;
+    width: multi ? windows.length * 148px + 16px + 2px : 232px + 16px + 2px;
+    height: multi ? 8px + 18px + 70px + 8px + 2px : 8px + 28px + 132px + 8px + 2px;
+    TouchArea {
+        changed has-hover => { root.hover(self.has-hover); }
+        Rectangle {
+            border-radius: 14px;
+            border-width: 1px;
+            border-color: Theme.dock-capsule-border;
+            background: Theme.dock-preview-surface;
+            if !root.multi && root.windows.length > 0: Rectangle {
+                x: 9px;
+                y: 9px;
+                width: 232px;
+                height: 28px + 132px;
+                Text { x: 4px; y: 0px; height: 22px; width: 200px; text: root.windows[0].title; font-size: 12px; color: Theme.dock-preview-text; overflow: elide; vertical-alignment: center; }
+                Rectangle {
+                    x: parent.width - 26px;
+                    y: 0px;
+                    width: 22px;
+                    height: 22px;
+                    border-radius: 5px;
+                    background: ct.has-hover ? #ffffff33 : transparent;
+                    Path { width: 8px; height: 8px; commands: "M 3,3 L 11,11 M 11,3 L 3,11"; stroke: Theme.dock-preview-text; stroke-width: 1.5px; stroke-line-cap: round; }
+                    ct := TouchArea { mouse-cursor: pointer; clicked => { root.thumb-action(0, 2); } }
+                }
+                // Canlı küçük resim bu alana çizilir (DWM).
+                Rectangle {
+                    y: 28px;
+                    height: 132px;
+                    border-radius: 8px;
+                    background: #1e1e1e;
+                    TouchArea {
+                        mouse-cursor: pointer;
+                        pointer-event(e) => {
+                            if e.kind == PointerEventKind.up && e.button == PointerEventButton.left { root.thumb-action(0, 0); }
+                            if e.kind == PointerEventKind.down && e.button == PointerEventButton.middle { root.thumb-action(0, 1); }
+                        }
+                    }
+                }
+            }
+            if root.multi: HorizontalLayout {
+                padding: 9px;
+                spacing: 8px;
+                for w[i] in root.windows: VerticalLayout {
+                    width: 140px;
+                    spacing: 4px;
+                    Text { height: 14px; text: w.title; font-size: 11px; color: Theme.dock-preview-text; overflow: elide; x: 2px; }
+                    Rectangle {
+                        height: 70px;
+                        border-radius: 6px;
+                        background: #1e1e1e;
+                        TouchArea {
+                            mouse-cursor: pointer;
+                            pointer-event(e) => {
+                                if e.kind == PointerEventKind.up && e.button == PointerEventButton.left { root.thumb-action(i, 0); }
+                                if e.kind == PointerEventKind.down && e.button == PointerEventButton.middle { root.thumb-action(i, 1); }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
