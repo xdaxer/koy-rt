@@ -1,3 +1,4 @@
+import { NotchWindow } from "notch_window.slint";
 import { Theme } from "theme.slint";
 import { Icons, KoyIcon } from "icons.slint";
 import { Motion, ToggleSwitch, KoyButton, ButtonKind, Segmented, KoyComboBox, KoyTextBox, SettingRow, SettingText, NavItem, KoyLogo, WindowsLogo, KoyStartIcon, LinkButton, InfoNotice, KeyBadge, ColorSwatch, KoyCheckBox } from "controls.slint";
@@ -14,7 +15,7 @@ import { CalendarPanel, CalendarData, CalendarText, CalCellData, CalWeekRowData,
 import { ClipboardPanel, ClipFilterData, ClipCardData, ClipText } from "clipboard_panel.slint";
 import { ShelfPanel, ShelfItemData, ShelfText } from "shelf_panel.slint";
 import { FocusPanel, FocusData, TasksData, FocusText, FocusTabData, FocusPresetData, FocusLapData, TaskRowData } from "focus_panel.slint";
-export { Theme, Motion, SagAltMenuWindow, MenuText, SystemText, SystemStatsData, FocusText, FocusData, TasksData, FocusTabData, FocusPresetData, FocusLapData, TaskRowData, ShelfItemData, ShelfText, ClipFilterData, ClipCardData, ClipText, CalendarData, CalendarText, CalCellData, CalWeekRowData, CalEventData, NotchData, NotchTabData, NotchText, OsdData, HomeData, MusicCardData, UpcomingData, QuickItemData, HomeText, ControlData, ControlText, RadioTileData, ConnectedDeviceData, WifiRowData, BluetoothRowData, SearchData, SearchRowData, SearchActionData, SearchText }
+export { NotchWindow, Theme, Motion, SagAltMenuWindow, MenuText, SystemText, SystemStatsData, FocusText, FocusData, TasksData, FocusTabData, FocusPresetData, FocusLapData, TaskRowData, ShelfItemData, ShelfText, ClipFilterData, ClipCardData, ClipText, CalendarData, CalendarText, CalCellData, CalWeekRowData, CalEventData, NotchData, NotchTabData, NotchText, OsdData, HomeData, MusicCardData, UpcomingData, QuickItemData, HomeText, ControlData, ControlText, RadioTileData, ConnectedDeviceData, WifiRowData, BluetoothRowData, SearchData, SearchRowData, SearchActionData, SearchText }
 
 // Bileşen denetimi: kontrol kitaplığının derlendiğini ve çizildiğini doğrulayan önizleme penceresi.
 export component Probe inherits Window {

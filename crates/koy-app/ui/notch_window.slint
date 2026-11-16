@@ -1,0 +1,340 @@
+// Karşılığı: koy/src/App/Features/Notch/NotchWindow.xaml. Sabit 640×364 tuval; şeklin dışı pencere bölgesiyle kırpılır.
+// Katmanlar: kapalı / göz atma (NotchSurface), gösterge ve kart, açık çentik (üst satır + sayfa), arama.
+
+import { Theme } from "theme.slint";
+import { NotchSurface, NotchTopRow, NotchData } from "notch.slint";
+import { OsdView, NotchCardView, OsdData } from "osd.slint";
+import { HomePanel, HomeData, MusicCardData } from "home_panel.slint";
+import { FocusPanel, FocusData, TasksData } from "focus_panel.slint";
+import { CalendarPanel, CalendarData } from "calendar_panel.slint";
+import { ShelfPanel, ShelfItemData } from "shelf_panel.slint";
+import { ClipboardPanel, ClipFilterData, ClipCardData } from "clipboard_panel.slint";
+import { SystemPanel, SystemStatsData } from "system_panel.slint";
+import { ControlCenterPanel, ControlData } from "control_center_panel.slint";
+import { SearchPanel, SearchData } from "search_panel.slint";
+
+export component NotchWindow inherits Window {
+    in property <NotchData> d;
+    in property <string> shape-path;
+    in property <length> shape-width: 236px;
+    in property <length> shape-height: 34px;
+    in property <length> translate-y: 0px;
+    in property <length> panel-translate-x: 0px;
+    in property <float> panel-opacity: 1;
+    in property <OsdData> osd;
+    in property <HomeData> home;
+    in property <MusicCardData> music;
+    in property <FocusData> fdata;
+    in property <TasksData> tasks;
+    in property <bool> has-tasks: true;
+    in property <CalendarData> cal;
+    in property <[ShelfItemData]> shelf-items;
+    in property <string> shelf-count;
+    in property <[ClipFilterData]> clip-filters;
+    in property <[ClipCardData]> clip-items;
+    in property <bool> clip-empty;
+    in property <string> clip-empty-text;
+    in property <string> clip-search;
+    in property <SystemStatsData> sys;
+    in property <ControlData> control;
+    in property <SearchData> search;
+    in property <string> settings-label;
+    // Kabuk.
+    callback mouse-entered();
+    callback mouse-left();
+    callback notch-clicked();
+    callback wheel(length);
+    callback open-settings();
+    callback open-control-center();
+    callback key(string) -> bool;
+    // Üst satır.
+    callback refresh-weather();
+    callback choose-location();
+    callback show-music();
+    callback show-home();
+    callback select-tab(int);
+    callback open-notifications();
+    callback toggle-pinned();
+    // Gösterge.
+    callback voice-input-edited(string);
+    callback voice-enter();
+    callback card-action();
+    callback card-dismiss();
+    // Ana.
+    callback home-toggle-lyrics();
+    callback home-seek-line(int);
+    callback home-seek(float);
+    callback home-previous();
+    callback home-play-pause();
+    callback home-next();
+    callback home-open-event(int);
+    callback home-open-focus();
+    callback home-toggle-focus();
+    callback home-skip-focus();
+    callback home-open-system();
+    callback home-launch(int);
+    callback home-remove-quick(int);
+    callback home-add-quick();
+    callback home-add-quick-folder();
+    // Odak.
+    callback focus-select-tab(int);
+    callback focus-toggle();
+    callback focus-reset();
+    callback focus-skip();
+    callback focus-lap();
+    callback focus-increase();
+    callback focus-decrease();
+    callback focus-set-minutes(int);
+    callback tasks-set-scope(int);
+    callback tasks-toggle(int);
+    callback tasks-remove(int);
+    callback tasks-title-edited(string);
+    callback tasks-time-edited(string);
+    callback tasks-add();
+    // Takvim.
+    callback cal-previous();
+    callback cal-next();
+    callback cal-today();
+    callback cal-set-view(int);
+    callback cal-select-cell(int);
+    callback cal-select-week-row(int);
+    callback cal-delete-event(string);
+    callback cal-title-edited(string);
+    callback cal-time-edited(string);
+    callback cal-add-event();
+    // Raf ve pano.
+    callback shelf-remove(string);
+    callback shelf-clear();
+    callback shelf-open(int);
+    callback shelf-drag(int);
+    callback clip-search-edited(string);
+    callback clip-set-filter(int);
+    callback clip-clear();
+    callback clip-copy-back(int);
+    callback clip-toggle-pin(int);
+    callback clip-remove(int);
+    // Kontrol Merkezi.
+    callback cc-activate-radio(int);
+    callback cc-open-page(int);
+    callback cc-back();
+    callback cc-open-dnd();
+    callback cc-volume(int);
+    callback cc-toggle-mute();
+    callback cc-brightness(int);
+    callback cc-move-tile(string, int);
+    callback cc-wifi-activate(string);
+    callback cc-wifi-disconnect(string);
+    callback cc-wifi-password(string, string);
+    callback cc-wifi-connect(string);
+    callback cc-wifi-location();
+    callback cc-wifi-settings();
+    callback cc-bt-activate(string);
+    callback cc-bt-settings();
+    // Arama.
+    callback search-key(string, bool, bool, bool, bool) -> bool;
+    callback search-edited(string);
+    callback search-completion(string) -> string;
+    callback search-toggle-help();
+    callback search-toggle-history();
+    callback search-open-settings();
+    callback search-toggle-pin();
+    callback search-activate-row(int);
+    callback search-run-action(int, int);
+    callback search-drag-row(int);
+
+    public function focus-search() {
+        search-host.focus-box();
+    }
+
+    public function focus-window() {
+        keys.focus();
+    }
+
+    title: "Koy";
+    no-frame: true;
+    always-on-top: true;
+    width: 640px;
+    height: 364px;
+    background: d.surface;
+    default-font-family: Theme.notch-font;
+
+    keys := FocusScope {
+        key-pressed(e) => {
+            if root.key(e.text) { return accept; }
+            reject
+        }
+        ContextMenuArea {
+            Menu {
+                MenuItem { title: root.settings-label; activated => { root.open-settings(); } }
+            }
+            NotchSurface {
+                d: root.d;
+                shape-path: root.shape-path;
+                shape-width: root.shape-width;
+                shape-height: root.shape-height;
+                translate-y: root.translate-y;
+                mouse-entered => { root.mouse-entered(); }
+                mouse-left => { root.mouse-left(); }
+                clicked => { root.notch-clicked(); }
+                wheel(dy) => { root.wheel(dy); }
+                open-control-center => { root.open-control-center(); }
+                if root.d.osd-active && root.osd.kind != 6: OsdView {
+                    x: (parent.width - self.width) / 2;
+                    y: (parent.height - self.height) / 2;
+                    d: root.osd;
+                    voice-input-edited(t) => { root.voice-input-edited(t); }
+                    enter-clicked => { root.voice-enter(); }
+                }
+                if root.d.osd-active && root.osd.kind == 6: NotchCardView {
+                    x: (parent.width - self.width) / 2;
+                    y: (parent.height - self.height) / 2;
+                    d: root.osd;
+                    primary-action => { root.card-action(); }
+                    dismiss => { root.card-dismiss(); }
+                }
+                // Açık çentik: üst satır ve sayfa.
+                if root.d.state == 2 && !root.d.osd-active && !root.d.search-open: Rectangle {
+                    x: 24px;
+                    y: 10px;
+                    width: 592px;
+                    height: 342px;
+                    NotchTopRow {
+                        y: 0px;
+                        width: parent.width;
+                        d: root.d;
+                        refresh-weather => { root.refresh-weather(); }
+                        choose-location => { root.choose-location(); }
+                        show-music => { root.show-music(); }
+                        show-home => { root.show-home(); }
+                        select-tab(p) => { root.select-tab(p); }
+                        open-notifications => { root.open-notifications(); }
+                        toggle-pinned => { root.toggle-pinned(); }
+                    }
+                    Rectangle {
+                        x: root.panel-translate-x;
+                        y: 40px;
+                        width: parent.width;
+                        height: parent.height - 40px;
+                        opacity: root.panel-opacity;
+                        // 0 Ana, 1 Odak, 2 Takvim, 3 Raf, 4 Pano, 5 Sistem, 6 Kontrol.
+                        if root.d.current-panel == 0: HomePanel {
+                            h: root.home;
+                            m: root.music;
+                            toggle-lyrics => { root.home-toggle-lyrics(); }
+                            seek-line(i) => { root.home-seek-line(i); }
+                            seek(f) => { root.home-seek(f); }
+                            previous => { root.home-previous(); }
+                            play-pause => { root.home-play-pause(); }
+                            next => { root.home-next(); }
+                            refresh-weather => { root.refresh-weather(); }
+                            choose-location => { root.choose-location(); }
+                            open-event(i) => { root.home-open-event(i); }
+                            open-focus => { root.home-open-focus(); }
+                            toggle-focus => { root.home-toggle-focus(); }
+                            skip-focus => { root.home-skip-focus(); }
+                            open-system => { root.home-open-system(); }
+                            launch(i) => { root.home-launch(i); }
+                            remove-quick(i) => { root.home-remove-quick(i); }
+                            add-quick => { root.home-add-quick(); }
+                            add-quick-folder => { root.home-add-quick-folder(); }
+                        }
+                        if root.d.current-panel == 1: FocusPanel {
+                            fdata: root.fdata;
+                            tasks: root.tasks;
+                            has-tasks: root.has-tasks;
+                            select-tab(k) => { root.focus-select-tab(k); }
+                            toggle => { root.focus-toggle(); }
+                            reset => { root.focus-reset(); }
+                            skip => { root.focus-skip(); }
+                            lap => { root.focus-lap(); }
+                            increase-countdown => { root.focus-increase(); }
+                            decrease-countdown => { root.focus-decrease(); }
+                            set-countdown-minutes(m) => { root.focus-set-minutes(m); }
+                            set-scope(s) => { root.tasks-set-scope(s); }
+                            task-toggle(i) => { root.tasks-toggle(i); }
+                            task-remove(i) => { root.tasks-remove(i); }
+                            task-title-edited(t) => { root.tasks-title-edited(t); }
+                            task-time-edited(t) => { root.tasks-time-edited(t); }
+                            task-add => { root.tasks-add(); }
+                        }
+                        if root.d.current-panel == 2: CalendarPanel {
+                            data: root.cal;
+                            previous => { root.cal-previous(); }
+                            next => { root.cal-next(); }
+                            go-today => { root.cal-today(); }
+                            set-view(m) => { root.cal-set-view(m); }
+                            select-cell(i) => { root.cal-select-cell(i); }
+                            select-week-row(i) => { root.cal-select-week-row(i); }
+                            delete-event(id) => { root.cal-delete-event(id); }
+                            title-edited(t) => { root.cal-title-edited(t); }
+                            time-edited(t) => { root.cal-time-edited(t); }
+                            add-event => { root.cal-add-event(); }
+                        }
+                        if root.d.current-panel == 3: ShelfPanel {
+                            items: root.shelf-items;
+                            count-text: root.shelf-count;
+                            remove(id) => { root.shelf-remove(id); }
+                            clear-all => { root.shelf-clear(); }
+                            open(i) => { root.shelf-open(i); }
+                            drag(i) => { root.shelf-drag(i); }
+                        }
+                        if root.d.current-panel == 4: ClipboardPanel {
+                            filters: root.clip-filters;
+                            items: root.clip-items;
+                            is-empty: root.clip-empty;
+                            empty-text: root.clip-empty-text;
+                            search-text: root.clip-search;
+                            search-edited(t) => { root.clip-search-edited(t); }
+                            set-filter(f) => { root.clip-set-filter(f); }
+                            clear => { root.clip-clear(); }
+                            copy-back(i) => { root.clip-copy-back(i); }
+                            toggle-pin(i) => { root.clip-toggle-pin(i); }
+                            remove(i) => { root.clip-remove(i); }
+                        }
+                        if root.d.current-panel == 5: SystemPanel { data: root.sys; }
+                        if root.d.current-panel == 6: ControlCenterPanel {
+                            c: root.control;
+                            activate-radio(k) => { root.cc-activate-radio(k); }
+                            open-page(k) => { root.cc-open-page(k); }
+                            back => { root.cc-back(); }
+                            open-dnd => { root.cc-open-dnd(); }
+                            volume-changed(v) => { root.cc-volume(v); }
+                            toggle-mute => { root.cc-toggle-mute(); }
+                            brightness-changed(v) => { root.cc-brightness(v); }
+                            move-tile(id, to) => { root.cc-move-tile(id, to); }
+                            wifi-activate(s) => { root.cc-wifi-activate(s); }
+                            wifi-disconnect(s) => { root.cc-wifi-disconnect(s); }
+                            wifi-password(s, p) => { root.cc-wifi-password(s, p); }
+                            wifi-connect(s) => { root.cc-wifi-connect(s); }
+                            wifi-location-settings => { root.cc-wifi-location(); }
+                            wifi-settings => { root.cc-wifi-settings(); }
+                            bt-activate(id) => { root.cc-bt-activate(id); }
+                            bt-settings => { root.cc-bt-settings(); }
+                        }
+                    }
+                }
+                // Arama: açık çentiğin bütün gövdesi.
+                Rectangle {
+                    x: 24px;
+                    y: 10px;
+                    width: 592px;
+                    height: 342px;
+                    visible: root.d.search-open;
+                    search-host := SearchPanel {
+                        d: root.search;
+                        key(t, c, s, a, e) => { return root.search-key(t, c, s, a, e); }
+                        query-edited(t) => { root.search-edited(t); }
+                        completion(t) => { return root.search-completion(t); }
+                        toggle-help => { root.search-toggle-help(); }
+                        toggle-history => { root.search-toggle-history(); }
+                        open-settings => { root.search-open-settings(); }
+                        toggle-pin => { root.search-toggle-pin(); }
+                        activate-row(i) => { root.search-activate-row(i); }
+                        run-action(r, a) => { root.search-run-action(r, a); }
+                        drag-row(i) => { root.search-drag-row(i); }
+                    }
+                }
+            }
+        }
+    }
+}
