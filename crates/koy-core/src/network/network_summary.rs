@@ -1,8 +1,9 @@
 use super::i_network_service::{NetworkKind, NetworkStatus};
 
 /// Arayüzde gösterilecek ağ durumunun kısa sınıfı (metni ve simgeyi bu belirler).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum NetworkDisplay {
+    #[default]
     Disconnected,
     NoInternet,
     WiFi,

@@ -97,3 +97,13 @@ mod tests {
         assert!(generated::EN.len() > 1000);
     }
 }
+
+/// Geçerli arayüz kültürü (C# `CultureInfo.CurrentCulture`: en-US ya da tr-TR).
+pub fn culture() -> koy_core::clock::Culture {
+    if Strings::is_turkish() { koy_core::clock::Culture::tr_tr() } else { koy_core::clock::Culture::en_us() }
+}
+
+/// Ayardaki dile göre kültür (C# `new CultureInfo(settings.General.Language == "en" ? "en-US" : "tr-TR")`).
+pub fn culture_for(language: &str) -> koy_core::clock::Culture {
+    if language == "en" { koy_core::clock::Culture::en_us() } else { koy_core::clock::Culture::tr_tr() }
+}

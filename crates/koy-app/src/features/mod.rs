@@ -3,6 +3,7 @@
 pub mod actions;
 pub mod menu;
 pub mod shortcuts;
+pub mod status;
 
 /// Uygulama özelliği (Notch, Dock). C# `IFeature`.
 pub trait Feature {

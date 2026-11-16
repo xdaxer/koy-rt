@@ -1,0 +1,75 @@
+// Karşılığı: koy/src/App/Features/Status/WeatherGlyph.xaml. Hava durumu simgesi: güneş, bulut, parçalı bulut,
+// yağmur/çisenti, kar, sis, fırtına. Bilinmeyen tür boş kalır (WPF'te de hiçbir yol görünmez).
+
+component CloudPath inherits Path {
+    commands: "M 19.35,10.04 C 18.67,6.59 15.64,4 12,4 C 9.11,4 6.6,5.64 5.35,8.04 C 2.34,8.36 0,10.91 0,14 C 0,17.31 2.69,20 6,20 L 19,20 C 21.76,20 24,17.76 24,15 C 24,12.36 21.95,10.22 19.35,10.04 Z";
+}
+
+export component WeatherGlyph inherits Rectangle {
+    in property <string> kind;
+    width: 20px;
+    height: 22px;
+    if kind == "Sun": Path {
+        width: 18px;
+        height: 18px;
+        commands: "M 12,7 A 5,5 0 1 1 7,12 A 5,5 0 0 1 12,7 M 12,1 L 12,4 M 12,20 L 12,23 M 4.22,4.22 L 6.34,6.34 M 17.66,17.66 L 19.78,19.78 M 1,12 L 4,12 M 20,12 L 23,12 M 4.22,19.78 L 6.34,17.66 M 17.66,6.34 L 19.78,4.22";
+        fill: #f59e0b;
+        stroke: #f59e0b;
+        stroke-width: 1.2px;
+    }
+    if kind == "Cloud": CloudPath { width: 18px; height: 18px * 16 / 24; fill: #cccccc; }
+    if kind == "PartlyCloudy": Rectangle {
+        Path {
+            x: 0px;
+            y: 0px;
+            width: 12px;
+            height: 12px;
+            commands: "M 12,7 A 5,5 0 1 1 7,12 A 5,5 0 0 1 12,7 M 12,1 L 12,4 M 1,12 L 4,12";
+            fill: #f59e0b;
+            stroke: #f59e0b;
+            stroke-width: 1.2px;
+        }
+        CloudPath { x: 4px; y: 7px; width: 16px; height: 11px; fill: #cccccc; }
+    }
+    if kind == "Rain" || kind == "Drizzle": Rectangle {
+        CloudPath { x: 2px; y: 2px; width: 16px; height: 11px; fill: #b0bec5; }
+        Path {
+            x: 4px;
+            y: 15px;
+            width: 12px;
+            height: 6px;
+            commands: "M 4,1 L 2,6 M 8,1 L 6,6 M 12,1 L 10,6";
+            stroke: #60a5fa;
+            stroke-width: 1.5px;
+            stroke-line-cap: round;
+        }
+    }
+    if kind == "Snow": Rectangle {
+        CloudPath { x: 2px; y: 2px; width: 16px; height: 11px; fill: #b0bec5; }
+        Path {
+            x: 4px;
+            y: 15px;
+            width: 12px;
+            height: 3px;
+            commands: "M 3,1 A 1,1 0 1 1 3,3 A 1,1 0 0 1 3,1 M 7,1 A 1,1 0 1 1 7,3 A 1,1 0 0 1 7,1 M 11,1 A 1,1 0 1 1 11,3 A 1,1 0 0 1 11,1";
+            fill: #e0f2fe;
+        }
+    }
+    if kind == "Fog": Rectangle {
+        CloudPath { x: 2px; y: 2px; width: 16px; height: 10px; fill: #90a4ae; }
+        Path {
+            x: 3px;
+            y: 15px;
+            width: 14px;
+            height: 4px;
+            commands: "M 2,1 L 18,1 M 4,4 L 16,4";
+            stroke: #b0bec5;
+            stroke-width: 1.5px;
+            stroke-line-cap: round;
+        }
+    }
+    if kind == "Thunderstorm": Rectangle {
+        CloudPath { x: 2px; y: 1px; width: 16px; height: 11px; fill: #78909c; }
+        Path { x: 6px; y: 12px; width: 8px; height: 10px; commands: "M 7,2 L 2,9 L 6,9 L 4,16 L 11,8 L 7,8 Z"; fill: #fbbf24; }
+    }
+}
