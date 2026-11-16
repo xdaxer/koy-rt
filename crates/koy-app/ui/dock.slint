@@ -1,0 +1,791 @@
+// Karşılığı: koy/src/App/Features/Dock/DockWindow.xaml, DockCapsule.xaml, DockFullWidth.xaml, DockItemsStrip.xaml.
+// Yüzen kapsül ve tam genişlik dock; ortak uygulama şeridi (göstergeler, rozet, dikkat, etiket); çekil tutamağı ve gizli
+// dock kenar çizgisi. Yazılım çizici saydam pencere desteklemediğinden pencere bölgesi kapsülün şekline kırpılır.
+
+import { Theme } from "theme.slint";
+import { Icons, KoyIcon } from "icons.slint";
+import { KoyLogo, KoyStartIcon, WindowsLogo } from "controls.slint";
+
+export struct DockEntryData {
+    // 0 uygulama, 1 klasör, 2 ek öğe.
+    kind: int,
+    id: string,
+    title: string,
+    has-icon: bool,
+    icon: image,
+    icon-size: length,
+    item-size: length,
+    scale: float,
+    press-scale: float,
+    press-opacity: float,
+    translate-x: length,
+    translate-y: length,
+    target-glow: bool,
+    // Uygulama.
+    active: bool,
+    running: bool,
+    attention: bool,
+    highlight: bool,
+    indicator-count: int,
+    show-badge: bool,
+    badge-text: string,
+    // Klasör.
+    preview-icons: [image],
+    // Ek öğe: 0 ayırıcı, 1 boşluk, 2 saat, 3 çöp kutusu, 4 özel düğme.
+    extra-kind: int,
+    glyph: string,
+    time-text: string,
+    date-text: string,
+}
+
+export struct DockPresentationData {
+    draws-mark: bool,
+    use-line: bool,
+    is-highlight: bool,
+    has-indicator-color: bool,
+    indicator-color: color,
+    has-highlight-color: bool,
+    highlight-color: color,
+    badge-dot-only: bool,
+    has-badge-color: bool,
+    badge-color: color,
+    badge-right: bool,
+    badge-top: bool,
+    // 0 gizli, 1 her zaman, 2 fare üstünde.
+    label-mode: int,
+}
+
+export struct DockData {
+    vertical: bool,
+    full-width: bool,
+    item-size: length,
+    slot-spacing: length,
+    inner-padding: length,
+    capsule-surface: color,
+    full-surface: color,
+    // Kapsülün kendi boyutu (yatayda yükseklik, dikeyde genişlik) ve kenar boşlukları.
+    dock-height: length,
+    margin-left: length,
+    margin-top: length,
+    margin-right: length,
+    margin-bottom: length,
+    radius-tl: length,
+    radius-tr: length,
+    radius-br: length,
+    radius-bl: length,
+    full-border-left: length,
+    full-border-top: length,
+    full-border-right: length,
+    full-border-bottom: length,
+    translate-x: length,
+    translate-y: length,
+    opacity: float,
+    is-visible: bool,
+    show-start: bool,
+    // 0 Koy, 1 Windows, 2 özel.
+    start-kind: int,
+    start-image: image,
+    show-folders: bool,
+    show-recents: bool,
+    show-full-tray: bool,
+    show-small-tray: bool,
+    show-right-section: bool,
+    small-tray-width: length,
+    tray-open: bool,
+    recents-open: bool,
+    has-now-playing: bool,
+    now-playing-title: string,
+    now-playing-artist: string,
+    has-cover: bool,
+    now-playing-cover: image,
+    // Şerit hizası: 0 orta, 1 baş (sol / üst), 2 son (sağ / alt).
+    strip-alignment: int,
+    items-max-length: length,
+    strip-clipped: bool,
+    handle-visible: bool,
+    handle-width: length,
+    handle-height: length,
+    // Tutamak ve kenar çizgisi hangi kenarda: 0 alt, 1 üst, 2 sol, 3 sağ.
+    edge: int,
+    edge-line-visible: bool,
+}
+
+export global DockText {
+    in property <string> start-menu;
+    in property <string> downloads;
+    in property <string> recent-files;
+    in property <string> system-tray;
+    in property <string> koy-menu;
+    in property <string> now-playing;
+    in property <string> show-dock;
+}
+
+// Düz dock düğmesi: fare üstünde açık zemin, 10 px köşe.
+component FlatButton inherits Rectangle {
+    in property <string> tip;
+    in property <bool> active;
+    in property <length> radius: 10px;
+    callback clicked;
+    callback right-clicked;
+    border-radius: radius;
+    background: active ? Theme.notch-active : touch.pressed ? Theme.notch-pressed : touch.has-hover ? Theme.dock-hover : transparent;
+    accessible-role: button;
+    accessible-label: tip;
+    @children
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.clicked(); }
+        pointer-event(e) => {
+            if e.button == PointerEventButton.right && e.kind == PointerEventKind.up { root.right-clicked(); }
+        }
+    }
+}
+
+component DownloadsGlyph inherits Rectangle {
+    width: 28px;
+    height: 29px;
+    Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: 28;
+        viewbox-height: 29;
+        commands: "M 3,8 C 3,6.8 3.8,6 5,6 H 10 L 12,8 H 23 C 24.1,8 25,8.8 25,10 V 21 C 25,22.1 24.1,23 23,23 H 5 C 3.8,23 3,22.1 3,21 Z";
+        fill: #3b82f6;
+    }
+    Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: 28;
+        viewbox-height: 29;
+        commands: "M 14,11 V 17 M 11,14 L 14,17 L 17,14";
+        stroke: white;
+        stroke-width: 1.8px;
+        stroke-line-cap: round;
+    }
+}
+
+component StartGlyph inherits Rectangle {
+    in property <int> kind;
+    in property <image> custom;
+    in property <length> size: 18px;
+    width: size;
+    height: size;
+    if kind == 0: KoyStartIcon { width: 100%; height: 100%; }
+    if kind == 1: WindowsLogo { width: 100%; height: 100%; }
+    if kind == 2: Image { width: 100%; height: 100%; source: custom; image-fit: contain; }
+}
+
+// Tek şerit girdisi (uygulama, klasör, ek öğe).
+component DockEntryView inherits Rectangle {
+    in property <DockEntryData> e;
+    in property <DockPresentationData> p;
+    in property <int> index;
+    in property <bool> vertical;
+    in property <length> spacing;
+    // Basma / hareket / bırakma: tür (0 bas, 1 hareket, 2 bırak), tuş (0 sol, 1 orta, 2 sağ), şerit koordinatı, yuva boyu.
+    callback pointer(int, int, int, length, length, length);
+    callback entered(int);
+    callback left(int);
+    property <length> extra-width: e.extra-kind == 0 ? 9px : e.extra-kind == 1 ? 20px : e.extra-kind == 2 ? 72px : e.item-size;
+    property <length> own-width: e.kind == 2 ? extra-width : e.item-size;
+    property <length> slot: (vertical ? e.item-size : own-width) + spacing;
+    width: vertical ? e.item-size : own-width;
+    height: e.item-size;
+    // Yuva: kayma ve büyütme kutuyu taşır, düzen yerini korur.
+    body := Rectangle {
+        x: e.translate-x;
+        y: e.translate-y;
+        width: parent.width;
+        height: parent.height;
+        border-radius: 10px;
+        border-width: e.target-glow ? 1.5px : (e.kind == 1 ? 1px : 0px);
+        border-color: e.target-glow ? Theme.accent : (e.kind == 1 ? (touch.has-hover ? #ffffff44 : #2e2e33) : transparent);
+        background: e.target-glow ? Theme.accent-subtle
+            : e.kind == 1 ? (touch.has-hover ? #ffffff2a : Theme.dock-active)
+            : e.kind == 2 ? (touch.has-hover && e.extra-kind >= 2 ? Theme.dock-hover : transparent)
+            : touch.has-hover ? Theme.dock-hover
+            : e.attention ? #f973162e
+            : (p.is-highlight && e.running) ? (p.has-highlight-color ? p.highlight-color : Theme.accent-subtle)
+            : e.active ? Theme.dock-active
+            : transparent;
+        // Uygulama.
+        if e.kind == 0: Rectangle {
+            width: e.icon-size * e.scale * e.press-scale;
+            height: e.icon-size * e.scale * e.press-scale;
+            if e.has-icon: Image { width: 100%; height: 100%; source: e.icon; image-fit: contain; image-rendering: smooth; opacity: e.press-opacity; }
+            if !e.has-icon: Rectangle {
+                border-radius: 6px;
+                background: #ffffff33;
+                Rectangle { width: 40%; height: 40%; background: #cccccc; }
+            }
+        }
+        if e.kind == 0 && e.show-badge: Rectangle {
+            property <length> h: p.badge-dot-only ? 10px : 18px;
+            x: p.badge-right ? parent.width - self.width - 2px : 2px;
+            y: p.badge-top ? 2px : parent.height - self.height - 6px;
+            height: h;
+            width: p.badge-dot-only ? 10px : max(18px, badge-label.preferred-width + 8px);
+            border-radius: h / 2;
+            background: p.has-badge-color ? p.badge-color : Theme.accent;
+            badge-label := Text { text: p.badge-dot-only ? "" : e.badge-text; font-size: 11px; font-weight: 700; color: white; }
+        }
+        // Gösterge: pencere başına noktalar ya da tek nokta / çizgi.
+        if e.kind == 0 && p.draws-mark && e.indicator-count > 1: HorizontalLayout {
+            y: parent.height - 5px;
+            height: 3px;
+            alignment: center;
+            spacing: 2px;
+            for i in e.indicator-count: Rectangle {
+                width: 4px;
+                height: 3px;
+                border-radius: 1.5px;
+                background: p.has-indicator-color ? p.indicator-color : Theme.accent;
+            }
+        }
+        if e.kind == 0 && p.draws-mark && e.indicator-count <= 1 && (e.running || e.active || e.attention): Rectangle {
+            y: parent.height - 5px;
+            height: 3px;
+            width: (e.active || e.attention || p.use-line) ? 16px : 6px;
+            border-radius: 1.5px;
+            background: e.attention ? #f97316 : p.has-indicator-color ? p.indicator-color : e.active ? Theme.accent : Theme.dock-indicator;
+        }
+        if e.kind == 0 && (p.label-mode == 1 || (p.label-mode == 2 && touch.has-hover)): Text {
+            y: parent.height - self.height - 1px;
+            x: 2px;
+            width: parent.width - 4px;
+            text: e.title;
+            font-size: 9px;
+            font-weight: 600;
+            color: Theme.text-primary;
+            horizontal-alignment: center;
+            overflow: elide;
+        }
+        // Klasör: 2×2 mini ızgara ve çalışan göstergesi.
+        if e.kind == 1: Rectangle {
+            width: e.icon-size * e.scale * e.press-scale;
+            height: e.icon-size * e.scale * e.press-scale;
+            opacity: e.press-opacity;
+            for img[i] in e.preview-icons: Image {
+                x: mod(i, 2) * parent.width / 2 + 1px;
+                y: floor(i / 2) * parent.height / 2 + 1px;
+                width: parent.width / 2 - 2px;
+                height: parent.height / 2 - 2px;
+                source: img;
+                image-fit: contain;
+            }
+        }
+        if e.kind == 1 && e.running: Rectangle {
+            y: parent.height - 5px;
+            width: 6px;
+            height: 3px;
+            border-radius: 1.5px;
+            background: Theme.accent;
+        }
+        // Ek öğeler.
+        if e.kind == 2 && e.extra-kind == 0: Rectangle {
+            width: 1px;
+            height: parent.height - 16px;
+            background: Theme.dock-divider;
+        }
+        if e.kind == 2 && (e.extra-kind == 3 || e.extra-kind == 4): Text {
+            text: e.glyph;
+            font-family: "Segoe Fluent Icons";
+            font-size: e.icon-size * 0.75 * e.scale;
+            color: Theme.dock-glyph;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+        if e.kind == 2 && e.extra-kind == 2: VerticalLayout {
+            alignment: center;
+            Text { text: e.time-text; font-size: 13px; font-weight: 600; color: Theme.dock-clock-text; horizontal-alignment: center; }
+            Text { text: e.date-text; font-size: 10px; color: Theme.dock-clock-subtext; horizontal-alignment: center; }
+        }
+        touch := TouchArea {
+            mouse-cursor: (e.kind == 2 && e.extra-kind < 2) ? MouseCursor.default : MouseCursor.pointer;
+            changed has-hover => {
+                if self.has-hover { root.entered(root.index); } else { root.left(root.index); }
+            }
+            pointer-event(ev) => {
+                let b = ev.button == PointerEventButton.left ? 0 : ev.button == PointerEventButton.middle ? 1 : 2;
+                if ev.kind == PointerEventKind.down {
+                    root.pointer(root.index, 0, b, root.x + self.mouse-x, root.y + self.mouse-y, root.slot);
+                }
+                if ev.kind == PointerEventKind.up {
+                    root.pointer(root.index, 2, b, root.x + self.mouse-x, root.y + self.mouse-y, root.slot);
+                }
+            }
+            moved => {
+                root.pointer(root.index, 1, 0, root.x + self.mouse-x, root.y + self.mouse-y, root.slot);
+            }
+        }
+    }
+}
+
+// Uygulama şeridi (yatay ya da dikey).
+export component DockStrip inherits Rectangle {
+    in property <[DockEntryData]> entries;
+    in property <DockPresentationData> p;
+    in property <bool> vertical;
+    in property <length> spacing;
+    in property <length> max-length;
+    in property <bool> clipped;
+    callback pointer(int, int, int, length, length, length);
+    callback entered(int);
+    callback left(int);
+    clip: clipped;
+    if !vertical: HorizontalLayout {
+        spacing: root.spacing;
+        for en[i] in entries: DockEntryView {
+            e: en;
+            p: root.p;
+            index: i;
+            vertical: false;
+            spacing: root.spacing;
+            pointer(a, b, c, x, y, s) => { root.pointer(a, b, c, x, y, s); }
+            entered(i) => { root.entered(i); }
+            left(i) => { root.left(i); }
+        }
+    }
+    if vertical: VerticalLayout {
+        spacing: root.spacing;
+        for en[i] in entries: DockEntryView {
+            e: en;
+            p: root.p;
+            index: i;
+            vertical: true;
+            spacing: root.spacing;
+            pointer(a, b, c, x, y, s) => { root.pointer(a, b, c, x, y, s); }
+            entered(i) => { root.entered(i); }
+            left(i) => { root.left(i); }
+        }
+    }
+}
+
+// Sağ bölümdeki düğmeler (indirilenler, son kullanılanlar, tepsi) ve Koy menüsü — kapsül ve tam genişlik paylaşır.
+component RightSection inherits Rectangle {
+    in property <DockData> d;
+    in property <bool> vertical;
+    in property <length> size;
+    callback open-downloads();
+    callback toggle-recents();
+    callback toggle-tray();
+    callback open-koy-menu();
+    callback koy-menu-right();
+    if !vertical: HorizontalLayout {
+        spacing: d.slot-spacing;
+        if d.show-folders: FlatButton { width: size; height: size; tip: DockText.downloads; clicked => { root.open-downloads(); } DownloadsGlyph { } }
+        if d.show-recents: FlatButton {
+            width: size;
+            height: size;
+            tip: DockText.recent-files;
+            active: d.recents-open;
+            clicked => { root.toggle-recents(); }
+            KoyIcon { data: Icons.layers; size: 16px; stroke-units: 2; color: Theme.notch-text-secondary; }
+        }
+        if d.show-full-tray: FlatButton {
+            width: size;
+            height: size;
+            tip: DockText.system-tray;
+            active: d.tray-open;
+            clicked => { root.toggle-tray(); }
+            KoyIcon { data: Icons.chevron-up; size: 16px; stroke-units: 2.2; color: Theme.notch-text-secondary; }
+        }
+        if d.show-right-section: VerticalLayout {
+            alignment: center;
+            padding-left: 4px;
+            padding-right: 4px;
+            Rectangle { width: 1px; height: 24px; background: Theme.dock-separator; }
+        }
+        FlatButton {
+            width: size;
+            height: size;
+            tip: DockText.koy-menu;
+            clicked => { root.open-koy-menu(); }
+            KoyLogo { width: 18px; height: 18px; color: Theme.accent; }
+        }
+        if d.show-small-tray: FlatButton {
+            width: d.small-tray-width;
+            height: size;
+            radius: 6px;
+            tip: DockText.system-tray;
+            active: d.tray-open;
+            clicked => { root.toggle-tray(); }
+            KoyIcon { data: Icons.chevron-up; size: 12px; stroke-units: 2.2; color: Theme.notch-text-secondary; }
+        }
+    }
+    if vertical: VerticalLayout {
+        spacing: d.slot-spacing;
+        if d.show-folders: FlatButton { width: size; height: size; tip: DockText.downloads; clicked => { root.open-downloads(); } DownloadsGlyph { } }
+        if d.show-recents: FlatButton {
+            width: size;
+            height: size;
+            tip: DockText.recent-files;
+            active: d.recents-open;
+            clicked => { root.toggle-recents(); }
+            KoyIcon { data: Icons.layers; size: 16px; stroke-units: 2; color: Theme.notch-text-secondary; }
+        }
+        if d.show-full-tray: FlatButton {
+            width: size;
+            height: size;
+            tip: DockText.system-tray;
+            active: d.tray-open;
+            clicked => { root.toggle-tray(); }
+            KoyIcon { data: Icons.chevron-up; size: 16px; stroke-units: 2.2; color: Theme.notch-text-secondary; }
+        }
+        if d.show-right-section: HorizontalLayout {
+            alignment: center;
+            padding-top: 4px;
+            padding-bottom: 4px;
+            Rectangle { width: 24px; height: 1px; background: Theme.dock-separator; }
+        }
+        FlatButton {
+            width: size;
+            height: size;
+            tip: DockText.koy-menu;
+            clicked => { root.open-koy-menu(); }
+            KoyLogo { width: 18px; height: 18px; color: Theme.accent; }
+        }
+        if d.show-small-tray: FlatButton {
+            width: size;
+            height: d.small-tray-width;
+            radius: 6px;
+            tip: DockText.system-tray;
+            active: d.tray-open;
+            clicked => { root.toggle-tray(); }
+            KoyIcon { data: Icons.chevron-up; size: 12px; stroke-units: 2.2; color: Theme.notch-text-secondary; }
+        }
+    }
+}
+
+// Dock penceresi. Kapsülde pencere içeriğe göre boyutlanır (kenar boşlukları dahil); tam genişlikte boyutu Rust verir.
+export component DockWindow inherits Window {
+    in property <DockData> d;
+    in property <DockPresentationData> p;
+    in property <[DockEntryData]> entries;
+    // Tam genişlikte pencere boyutu (kapsülde 0: içeriğe göre).
+    in property <length> bar-width;
+    in property <length> bar-height;
+    callback start-menu();
+    callback start-right();
+    callback open-downloads();
+    callback toggle-recents();
+    callback toggle-tray();
+    callback open-koy-menu();
+    callback now-playing-clicked();
+    callback entry-pointer(int, int, int, length, length, length);
+    callback entry-entered(int);
+    callback entry-left(int);
+    callback mouse-over(bool);
+    callback handle-hover(bool);
+    callback window-right-click();
+    callback center-length(length);
+    callback escape();
+    title: "Koy Dock";
+    no-frame: true;
+    always-on-top: true;
+    background: d.full-width ? d.full-surface : d.capsule-surface;
+    default-font-family: Theme.notch-font;
+    property <length> start-size: d.full-width ? 34px : d.item-size;
+
+    FocusScope {
+        key-pressed(e) => {
+            if e.text == Key.Escape { root.escape(); return accept; }
+            reject
+        }
+        TouchArea {
+            changed has-hover => { root.mouse-over(self.has-hover); }
+            pointer-event(e) => {
+                if e.button == PointerEventButton.right && e.kind == PointerEventKind.up { root.window-right-click(); }
+            }
+            body := Rectangle {
+                x: d.translate-x;
+                y: d.translate-y;
+                width: parent.width;
+                height: parent.height;
+                opacity: d.opacity;
+                // ---- Yüzen kapsül ----
+                if !d.full-width: Rectangle {
+                    x: d.margin-left;
+                    y: d.margin-top;
+                    width: parent.width - d.margin-left - d.margin-right;
+                    height: parent.height - d.margin-top - d.margin-bottom;
+                    border-top-left-radius: d.radius-tl;
+                    border-top-right-radius: d.radius-tr;
+                    border-bottom-right-radius: d.radius-br;
+                    border-bottom-left-radius: d.radius-bl;
+                    border-width: 1px;
+                    border-color: Theme.dock-capsule-border;
+                    background: d.capsule-surface;
+                    capsule := Rectangle {
+                        if !d.vertical: HorizontalLayout {
+                            padding: d.inner-padding;
+                            alignment: center;
+                            spacing: d.slot-spacing;
+                            if d.show-start: VerticalLayout {
+                                alignment: center;
+                                FlatButton {
+                                    width: root.start-size;
+                                    height: root.start-size;
+                                    tip: DockText.start-menu;
+                                    clicked => { root.start-menu(); }
+                                    right-clicked => { root.start-right(); }
+                                    StartGlyph { kind: d.start-kind; custom: d.start-image; }
+                                }
+                            }
+                            VerticalLayout {
+                                alignment: center;
+                                DockStrip {
+                                    entries: root.entries;
+                                    p: root.p;
+                                    vertical: false;
+                                    spacing: d.slot-spacing;
+                                    clipped: d.strip-clipped;
+                                    max-width: d.items-max-length;
+                                    pointer(a, b, c, x, y, s) => { root.entry-pointer(a, b, c, x, y, s); }
+                                    entered(i) => { root.entry-entered(i); }
+                                    left(i) => { root.entry-left(i); }
+                                }
+                            }
+                            if d.show-right-section: VerticalLayout {
+                                alignment: center;
+                                padding-left: 4px;
+                                padding-right: 4px;
+                                Rectangle { width: 1px; height: 24px; background: Theme.dock-separator; }
+                            }
+                            VerticalLayout {
+                                alignment: center;
+                                RightSection {
+                                    d: d;
+                                    vertical: false;
+                                    size: d.item-size;
+                                    open-downloads => { root.open-downloads(); }
+                                    toggle-recents => { root.toggle-recents(); }
+                                    toggle-tray => { root.toggle-tray(); }
+                                    open-koy-menu => { root.open-koy-menu(); }
+                                }
+                            }
+                        }
+                        if d.vertical: VerticalLayout {
+                            padding: d.inner-padding;
+                            alignment: center;
+                            spacing: d.slot-spacing;
+                            if d.show-start: HorizontalLayout {
+                                alignment: center;
+                                FlatButton {
+                                    width: root.start-size;
+                                    height: root.start-size;
+                                    tip: DockText.start-menu;
+                                    clicked => { root.start-menu(); }
+                                    right-clicked => { root.start-right(); }
+                                    StartGlyph { kind: d.start-kind; custom: d.start-image; }
+                                }
+                            }
+                            HorizontalLayout {
+                                alignment: center;
+                                DockStrip {
+                                    entries: root.entries;
+                                    p: root.p;
+                                    vertical: true;
+                                    spacing: d.slot-spacing;
+                                    clipped: d.strip-clipped;
+                                    max-height: d.items-max-length;
+                                    pointer(a, b, c, x, y, s) => { root.entry-pointer(a, b, c, x, y, s); }
+                                    entered(i) => { root.entry-entered(i); }
+                                    left(i) => { root.entry-left(i); }
+                                }
+                            }
+                            if d.show-right-section: HorizontalLayout {
+                                alignment: center;
+                                padding-top: 4px;
+                                padding-bottom: 4px;
+                                Rectangle { width: 24px; height: 1px; background: Theme.dock-separator; }
+                            }
+                            HorizontalLayout {
+                                alignment: center;
+                                RightSection {
+                                    d: d;
+                                    vertical: true;
+                                    size: d.item-size;
+                                    open-downloads => { root.open-downloads(); }
+                                    toggle-recents => { root.toggle-recents(); }
+                                    toggle-tray => { root.toggle-tray(); }
+                                    open-koy-menu => { root.open-koy-menu(); }
+                                }
+                            }
+                        }
+                    }
+                }
+                // ---- Tam genişlik ----
+                if d.full-width: Rectangle {
+                    background: d.full-surface;
+                    Rectangle { x: 0px; width: d.full-border-left; background: Theme.dock-border; }
+                    Rectangle { x: parent.width - d.full-border-right; width: d.full-border-right; background: Theme.dock-border; }
+                    Rectangle { y: 0px; height: d.full-border-top; background: Theme.dock-border; }
+                    Rectangle { y: parent.height - d.full-border-bottom; height: d.full-border-bottom; background: Theme.dock-border; }
+                    if !d.vertical: HorizontalLayout {
+                        padding-left: 12px;
+                        padding-right: 12px;
+                        spacing: 6px;
+                        // Sol: Başlat ve çalan müzik hapı.
+                        left := HorizontalLayout {
+                            spacing: 6px;
+                            if d.show-start: VerticalLayout {
+                                alignment: center;
+                                FlatButton {
+                                    width: 36px;
+                                    height: 34px;
+                                    tip: DockText.start-menu;
+                                    clicked => { root.start-menu(); }
+                                    right-clicked => { root.start-right(); }
+                                    StartGlyph { kind: d.start-kind; custom: d.start-image; size: 16px; }
+                                }
+                            }
+                            if d.has-now-playing: VerticalLayout {
+                                alignment: center;
+                                Rectangle {
+                                    border-radius: 8px;
+                                    background: Theme.dock-pill;
+                                    width: pill.preferred-width + 12px;
+                                    height: pill.preferred-height + 8px;
+                                    pill := HorizontalLayout {
+                                        spacing: 8px;
+                                        Rectangle {
+                                            width: 24px;
+                                            height: 24px;
+                                            border-radius: 5px;
+                                            background: Theme.dock-cover;
+                                            clip: true;
+                                            if d.has-cover: Image { width: 100%; height: 100%; source: d.now-playing-cover; image-fit: cover; }
+                                        }
+                                        VerticalLayout {
+                                            alignment: center;
+                                            Text { text: d.now-playing-title; font-size: 11.5px; font-weight: 600; color: Theme.dock-text; overflow: elide; max-width: 170px; }
+                                            Text { text: d.now-playing-artist; font-size: 10px; color: Theme.dock-text-secondary; overflow: elide; max-width: 170px; }
+                                        }
+                                    }
+                                    TouchArea { mouse-cursor: pointer; clicked => { root.now-playing-clicked(); } }
+                                }
+                            }
+                        }
+                        // Orta: şerit (ortada hizada yan bölümler eşit genişlik alır, simgeler ekranın tam ortasında kalır).
+                        center-area := Rectangle {
+                            horizontal-stretch: 1;
+                            changed width => { root.center-length(self.width); }
+                            DockStrip {
+                                x: d.strip-alignment == 1 ? 0px : d.strip-alignment == 2 ? parent.width - self.width : (parent.width - self.width) / 2;
+                                width: min(self.preferred-width, parent.width);
+                                entries: root.entries;
+                                p: root.p;
+                                vertical: false;
+                                spacing: d.slot-spacing;
+                                clipped: d.strip-clipped;
+                                pointer(a, b, c, x, y, s) => { root.entry-pointer(a, b, c, x, y, s); }
+                                entered(i) => { root.entry-entered(i); }
+                                left(i) => { root.entry-left(i); }
+                            }
+                        }
+                        VerticalLayout {
+                            alignment: center;
+                            RightSection {
+                                d: d;
+                                vertical: false;
+                                size: 34px;
+                                open-downloads => { root.open-downloads(); }
+                                toggle-recents => { root.toggle-recents(); }
+                                toggle-tray => { root.toggle-tray(); }
+                                open-koy-menu => { root.open-koy-menu(); }
+                            }
+                        }
+                    }
+                    if d.vertical: VerticalLayout {
+                        padding-top: 12px;
+                        padding-bottom: 12px;
+                        spacing: 6px;
+                        VerticalLayout {
+                            spacing: 6px;
+                            if d.show-start: HorizontalLayout {
+                                alignment: center;
+                                FlatButton {
+                                    width: 34px;
+                                    height: 36px;
+                                    tip: DockText.start-menu;
+                                    clicked => { root.start-menu(); }
+                                    right-clicked => { root.start-right(); }
+                                    StartGlyph { kind: d.start-kind; custom: d.start-image; size: 16px; }
+                                }
+                            }
+                            if d.has-now-playing: HorizontalLayout {
+                                alignment: center;
+                                Rectangle {
+                                    width: 32px;
+                                    height: 32px;
+                                    border-radius: 6px;
+                                    background: Theme.dock-pill;
+                                    Rectangle {
+                                        width: 24px;
+                                        height: 24px;
+                                        border-radius: 4px;
+                                        background: Theme.dock-cover;
+                                        clip: true;
+                                        if d.has-cover: Image { width: 100%; height: 100%; source: d.now-playing-cover; image-fit: cover; }
+                                    }
+                                    TouchArea { mouse-cursor: pointer; clicked => { root.now-playing-clicked(); } }
+                                }
+                            }
+                        }
+                        Rectangle {
+                            vertical-stretch: 1;
+                            changed height => { root.center-length(self.height); }
+                            DockStrip {
+                                y: d.strip-alignment == 1 ? 0px : d.strip-alignment == 2 ? parent.height - self.height : (parent.height - self.height) / 2;
+                                height: min(self.preferred-height, parent.height);
+                                entries: root.entries;
+                                p: root.p;
+                                vertical: true;
+                                spacing: d.slot-spacing;
+                                clipped: d.strip-clipped;
+                                pointer(a, b, c, x, y, s) => { root.entry-pointer(a, b, c, x, y, s); }
+                                entered(i) => { root.entry-entered(i); }
+                                left(i) => { root.entry-left(i); }
+                            }
+                        }
+                        HorizontalLayout {
+                            alignment: center;
+                            RightSection {
+                                d: d;
+                                vertical: true;
+                                size: 34px;
+                                open-downloads => { root.open-downloads(); }
+                                toggle-recents => { root.toggle-recents(); }
+                                toggle-tray => { root.toggle-tray(); }
+                                open-koy-menu => { root.open-koy-menu(); }
+                            }
+                        }
+                    }
+                }
+            }
+            // Çekil tutamağı.
+            if d.handle-visible: Rectangle {
+                width: d.handle-width;
+                height: d.handle-height;
+                x: d.edge == 2 ? 4px : d.edge == 3 ? parent.width - self.width - 4px : (parent.width - self.width) / 2;
+                y: d.edge == 1 ? 4px : d.edge == 0 ? parent.height - self.height - 4px : (parent.height - self.height) / 2;
+                border-radius: 2px;
+                background: #18181b59;
+                TouchArea {
+                    mouse-cursor: pointer;
+                    changed has-hover => { root.handle-hover(self.has-hover); }
+                }
+            }
+            // Gizli dock kenar çizgisi.
+            if d.edge-line-visible: Rectangle {
+                width: 160px;
+                height: 2px;
+                y: parent.height - 2px;
+                border-radius: 1px;
+                background: Theme.accent;
+                opacity: 0.7;
+            }
+        }
+    }
+}
