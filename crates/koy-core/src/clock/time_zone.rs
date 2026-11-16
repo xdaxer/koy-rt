@@ -133,6 +133,13 @@ impl TimeZoneInfo {
         SYSTEM_ZONES.iter().find(|z| z.id.eq_ignore_ascii_case(id)).map(ZoneEntry::build)
     }
 
+    /// `GetSystemTimeZones`: (kimlik, görünen ad) çiftleri, UTC farkına göre sıralı.
+    pub fn system_time_zones() -> Vec<(&'static str, &'static str)> {
+        let mut zones: Vec<&ZoneEntry> = SYSTEM_ZONES.iter().collect();
+        zones.sort_by_key(|z| z.base_minutes);
+        zones.into_iter().map(|z| (z.id, z.display)).collect()
+    }
+
     /// Verilen UTC anındaki UTC farkı (`GetUtcOffset`).
     pub fn get_utc_offset(&self, utc: DateTime<Utc>) -> TimeSpan {
         match self.kind {

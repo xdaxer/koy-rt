@@ -191,6 +191,26 @@ fn dev_snapshot(view: &str, path: String) -> Result<(), slint::PlatformError> {
             });
             v.run()
         }
+        v if v.starts_with("settings") => {
+            // "settings:SAYFA:ALTSEKME" (ör. settings:2:1). Ayarlar geçici bir dosyadan okunur, diske yazılmaz.
+            let parts: Vec<i32> = v.split(':').skip(1).filter_map(|p| p.parse().ok()).collect();
+            let store = koy_core::settings::SettingsStore::new(std::env::temp_dir().join("koy-snapshot-settings.json"));
+            let vm = features::settings::settings_view_model::SettingsViewModel::new(store);
+            ThemeManager::apply(&vm.settings());
+            let host = features::settings::koy_window::KoyWindowHost::new(vm.clone())?;
+            vm.select_page(parts.first().copied().unwrap_or(0));
+            if let Some(sub) = parts.get(1) {
+                vm.select_sub_tab(parts[0], *sub);
+            }
+            let w = host.window().as_weak();
+            let _t = infra::dispatch::delay(std::time::Duration::from_millis(900), move || {
+                if let Some(v) = w.upgrade() {
+                    infra::snapshot::save(v.window(), &path);
+                }
+                let _ = slint::quit_event_loop();
+            });
+            host.window().run()
+        }
         "dock" | "dock-full" => {
             use slint::{ModelRc, VecModel};
             let v = DockWindow::new()?;

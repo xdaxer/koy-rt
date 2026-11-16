@@ -1,0 +1,596 @@
+// Koy penceresi ayar sayfaları. Karşılıkları: koy/src/App/Features/Settings/Pages/*.xaml ve SubPages/*.xaml.
+// Satırlar XAML'dan çevirme betiğiyle çıkarıldı, karmaşık satırlar elle yazıldı. Arama dizini (settings_index.rs) bu
+// dosyadan üretilir: sayfa bileşeni → (sayfa, alt sekme), SectionHeader → bölüm, satır başlığı/açıklaması/anahtarı.
+
+import { Theme } from "theme.slint";
+import { SectionHeader, PageTitle, PageSubtitle, SettingRow, SettingText, SettingTitle, SettingDesc, InfoNotice,
+    ToggleSwitch, KoyButton, ButtonKind, ColorSwatch, LinkButton, KoyTextBox, Segmented, KoyLogo } from "controls.slint";
+import { Icons, KoyIcon } from "icons.slint";
+import { Tr, S, BoolRow, SegRow, SegStackRow, ComboRow, ListRow, SliderRow, TextRow, ButtonRow, RowButton } from "settings_kit.slint";
+
+export struct ToggleItem {
+    title: string,
+    on: bool,
+}
+
+export struct OrderItem {
+    title: string,
+    on: bool,
+    can-up: bool,
+    can-down: bool,
+}
+
+// Görünüm modelindeki listeler (tepsi uygulamaları, arama kaynakları, ana sayfa kartları, sekme sırası).
+export global SL {
+    in property <[ToggleItem]> tray-apps;
+    in property <[ToggleItem]> search-sources;
+    in property <[OrderItem]> home-cards;
+    in property <[OrderItem]> tab-order;
+    callback tray-app-toggled(int, bool);
+    callback search-source-toggled(int, bool);
+    callback home-card-toggled(int, bool);
+    callback home-card-move(int, int);
+    callback tab-move(int, int);
+}
+
+component ToggleListRow inherits SettingRow {
+    in property <string> title;
+    in property <bool> on;
+    callback toggled(bool);
+    filtered-out: S.changed-only;
+    SettingText { title: root.title; }
+    VerticalLayout {
+        alignment: center;
+        sw := ToggleSwitch {
+            checked: root.on;
+            toggled(v) => {
+                root.toggled(v);
+            }
+        }
+    }
+    changed on => {
+        sw.checked = self.on;
+    }
+}
+
+component MoveButton inherits Rectangle {
+    in property <string> glyph;
+    in property <bool> enabled: true;
+    callback clicked;
+    width: 28px;
+    height: 28px;
+    border-radius: Theme.radius-small;
+    background: ta.has-hover && enabled ? Theme.bg-hover : transparent;
+    opacity: enabled ? 1 : 0.35;
+    KoyIcon { data: root.glyph; size: 14px; color: Theme.text-secondary; }
+    ta := TouchArea {
+        enabled: root.enabled;
+        mouse-cursor: pointer;
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+component OrderRow inherits SettingRow {
+    in property <string> title;
+    in property <bool> on;
+    in property <bool> show-toggle;
+    in property <bool> can-up;
+    in property <bool> can-down;
+    callback toggled(bool);
+    callback move(int);
+    filtered-out: S.changed-only;
+    SettingText { title: root.title; }
+    HorizontalLayout {
+        alignment: end;
+        spacing: 4px;
+        VerticalLayout {
+            alignment: center;
+            MoveButton { glyph: Icons.chevron-up; enabled: root.can-up; clicked => { root.move(-1); } }
+        }
+        VerticalLayout {
+            alignment: center;
+            MoveButton { glyph: Icons.chevron-down; enabled: root.can-down; clicked => { root.move(1); } }
+        }
+        if root.show-toggle: VerticalLayout {
+            alignment: center;
+            padding-left: 8px;
+            ToggleSwitch {
+                checked: root.on;
+                toggled(v) => {
+                    root.toggled(v);
+                }
+            }
+        }
+    }
+}
+
+// Renk kaynağı satırı (gösterge / rozet): vurgu, nötr, özel; özelde onaltılık kutu.
+component ColorSourceRow inherits SettingRow {
+    in property <string> key;
+    in property <string> custom-key;
+    in property <string> title;
+    changed: S.is-changed(key) || S.is-changed(custom-key);
+    filtered-out: S.changed-only && !self.changed;
+    highlighted: S.highlight != "" && S.highlight == title;
+    property <[string]> values: ["Accent", "Neutral", "Custom"];
+    property <int> model-index: S.index(root.key, root.values);
+    changed model-index => {
+        seg.selected = self.model-index;
+    }
+    SettingText { title: root.title; }
+    HorizontalLayout {
+        alignment: end;
+        spacing: 8px;
+        if root.model-index == 2: VerticalLayout {
+            alignment: center;
+            KoyTextBox {
+                width: 96px;
+                text: S.get(root.custom-key);
+                placeholder: "#RRGGBB";
+                edited(t) => {
+                    S.set(root.custom-key, t);
+                }
+            }
+        }
+        VerticalLayout {
+            alignment: center;
+            seg := Segmented {
+                items: [Tr.t("ColorAccent"), Tr.t("ColorNeutral"), Tr.t("ColorCustom")];
+                selected: root.model-index;
+                changed(i) => {
+                    S.set(root.key, root.values[i]);
+                }
+            }
+        }
+    }
+}
+
+// Seçenek + "Seç…" düğmesi + dosya adı (başlat simgesi, simge paketi).
+component PickerRow inherits SettingRow {
+    in property <string> key;
+    in property <string> title;
+    in property <string> file-text;
+    in property <[string]> values;
+    in property <[string]> labels;
+    in property <string> pick-text;
+    in property <string> pick-action;
+    in property <string> pick-value;
+    changed: S.is-changed(key);
+    filtered-out: S.changed-only && !self.changed;
+    highlighted: S.highlight != "" && S.highlight == title;
+    property <int> model-index: S.index(root.key, root.values);
+    changed model-index => {
+        seg.selected = self.model-index;
+    }
+    SettingText { title: root.title; description: S.get(root.key) == root.pick-value ? root.file-text : ""; }
+    HorizontalLayout {
+        alignment: end;
+        spacing: 8px;
+        if S.get(root.key) == root.pick-value: VerticalLayout {
+            alignment: center;
+            KoyButton {
+                text: root.pick-text;
+                clicked => {
+                    S.action(root.pick-action);
+                }
+            }
+        }
+        VerticalLayout {
+            alignment: center;
+            seg := Segmented {
+                items: root.labels;
+                selected: root.model-index;
+                changed(i) => {
+                    if (root.values[i] == root.pick-value && root.file-text == "") {
+                        S.action(root.pick-action);
+                    } else {
+                        S.set(root.key, root.values[i]);
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------- Genel
+
+// Karşılığı: SubPages/GenelSystemSubPage.xaml
+export component GeneralSystemPage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("StartupHeader"); }
+    BoolRow { key: "Ui.RunAtStartup"; title: Tr.t("RunAtStartupTitle"); description: ""; }
+    BoolRow { key: "Dock.HideWindowsTaskbar"; title: Tr.t("HideWindowsTaskbarTitle"); description: Tr.t("HideWindowsTaskbarDesc"); }
+    SectionHeader { text: Tr.t("LanguageHeader"); }
+    ComboRow { key: "General.Language"; title: Tr.t("InterfaceLanguageTitle"); description: ""; values: ["tr", "en"]; labels: ["Türkçe (TR)", "English (EN)"]; }
+    SectionHeader { text: Tr.t("UpdatesHeader"); }
+    BoolRow { key: "General.AutoCheckUpdates"; title: Tr.t("AutoCheckUpdatesTitle"); description: ""; }
+    SegRow { key: "General.UpdateChannel"; title: Tr.t("ChannelTitle"); description: ""; values: ["Stable", "Preview"]; labels: [Tr.t("ChannelStable"), Tr.t("ChannelPreview")]; }
+    ButtonRow { title: Tr.t("LastCheckTitle"); description: S.text("LastCheckText"); buttons: [{ text: S.text("CheckButtonText"), action: "CheckUpdatesCommand", primary: false, danger: false, enabled: true }]; }
+    SectionHeader { text: Tr.t("UnitsHeader"); }
+    SegRow { key: "General.TemperatureUnit"; title: Tr.t("UnitTemperatureTitle"); description: ""; values: ["Celsius", "Fahrenheit"]; labels: [Tr.t("UnitCelsius"), Tr.t("UnitFahrenheit")]; }
+    SegRow { key: "General.NetworkSpeedUnit"; title: Tr.t("UnitNetworkSpeedTitle"); description: ""; values: ["Bytes", "Bits"]; labels: [Tr.t("UnitBytes"), Tr.t("UnitBits")]; }
+    InfoNotice { text: Tr.t("WindowCloseNotice"); }
+}
+
+// ---------------------------------------------------------------- Çentik
+
+// Karşılığı: SubPages/CentikBehaviorSubPage.xaml
+export component NotchBehaviorPage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("NotchHeader"); }
+    SegRow { key: "Notch.Visibility"; title: Tr.t("VisibilityTitle"); description: Tr.t("VisibilityDesc"); values: ["Fixed", "Smart", "Peek"]; labels: [Tr.t("VisFixed"), Tr.t("VisSmart"), Tr.t("VisPeek")]; }
+    SegRow { key: "Notch.Style"; title: Tr.t("NotchStyleTitle"); description: ""; values: ["Pinned", "Floating"]; labels: [Tr.t("NotchStylePinned"), Tr.t("NotchStyleFloating")]; }
+    BoolRow { key: "Notch.EdgeLine"; title: Tr.t("NotchEdgeLineTitle"); description: Tr.t("NotchEdgeLineDesc"); }
+    SegRow { key: "Notch.EdgeLineColor"; title: Tr.t("NotchEdgeLineColorTitle"); description: ""; values: ["NotchSurface", "Accent"]; labels: [Tr.t("NotchEdgeLineColorNotch"), Tr.t("NotchEdgeLineColorAccent")]; enabled: S.on("Notch.EdgeLine"); }
+    TextRow { key: "Notch.EdgeLineThickness"; title: Tr.t("NotchEdgeLineThicknessTitle"); description: Tr.t("NotchEdgeLineThicknessDesc"); box-width: 64px; enabled: S.on("Notch.EdgeLine"); }
+    BoolRow { key: "Notch.HideInFullscreen"; title: Tr.t("HideInFullscreenTitle"); description: ""; }
+    SectionHeader { text: Tr.t("OpenBehaviorTitle"); }
+    SegRow { key: "Notch.OpenBehavior"; title: Tr.t("OpenBehaviorRowTitle"); description: ""; values: ["Hover", "Click", "DragOver"]; labels: [Tr.t("OpenOnHover"), Tr.t("OpenOnClick"), Tr.t("OpenOnDragOver")]; }
+    SectionHeader { text: Tr.t("IdleDisplayTitle"); }
+    SegRow { key: "Notch.IdleDisplay"; title: Tr.t("IdleDisplayRowTitle"); description: ""; values: ["ClockAndBattery", "ClockOnly", "RingClockDay", "Nothing"]; labels: [Tr.t("IdleClockBattery"), Tr.t("IdleClockOnly"), Tr.t("IdleRingClockDay"), Tr.t("IdleNone")]; }
+    SectionHeader { text: Tr.t("IndicatorsHeader"); }
+    BoolRow { key: "Notch.ShowVolumeOsd"; title: Tr.t("VolumeOsdTitle"); description: ""; }
+    BoolRow { key: "Notch.ShowBrightnessOsd"; title: Tr.t("BrightnessOsdTitle"); description: ""; }
+    BoolRow { key: "Notch.ShowPrivacyIndicator"; title: Tr.t("PrivacyIndicatorTitle"); description: ""; }
+    BoolRow { key: "Notch.ShowNotifications"; title: Tr.t("NotificationsTitle"); description: Tr.t("NotificationsDesc"); }
+    if S.flag("NotificationsPermissionMissing"): SettingDesc { text: Tr.t("NotificationsPermissionMissing"); color: Theme.danger-text; }
+    SectionHeader { text: Tr.t("NavAdvanced"); }
+    ListRow { key: "Notch.OpenDelayMs"; title: Tr.t("NotchOpenDelayTitle"); description: ""; list: "NotchDelayOptions"; suffix: "ms"; }
+    ListRow { key: "Notch.CloseDelayMs"; title: Tr.t("NotchCloseDelayTitle"); description: ""; list: "NotchDelayOptions"; suffix: "ms"; }
+    BoolRow { key: "Notch.NotificationsHideBody"; title: Tr.t("NotificationsHideBodyTitle"); description: ""; }
+}
+
+// Karşılığı: SubPages/CentikVisualsSubPage.xaml
+export component NotchVisualsPage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("LiveBgHeader"); }
+    SegRow { key: "Notch.LiveBackgroundTarget"; title: Tr.t("LiveBgTargetTitle"); description: Tr.t("LiveBgTargetDesc"); values: ["None", "Notch", "MusicCard", "Both"]; labels: [Tr.t("LiveBgTargetNone"), Tr.t("LiveBgTargetNotch"), Tr.t("LiveBgTargetMusicCard"), Tr.t("LiveBgTargetBoth")]; }
+    SegRow { key: "Notch.LiveBackgroundSource"; title: Tr.t("LiveBgSourceTitle"); description: ""; values: ["BuiltInAmbient", "LocalFile"]; labels: [Tr.t("LiveBgSourceAmbient"), Tr.t("LiveBgSourceFile")]; enabled: S.flag("IsLiveBackgroundEnabled"); }
+    if S.flag("IsLiveBackgroundAmbientSource"): ListRow { key: "Notch.LiveBackgroundPreset"; title: Tr.t("LiveBgPresetTitle"); description: ""; list: "LiveBackgroundPresetOptions"; suffix: ""; enabled: S.flag("IsLiveBackgroundEnabled"); }
+    if S.flag("IsLiveBackgroundFileSource"): ButtonRow { title: Tr.t("LiveBgFileTitle"); description: S.text("LiveBackgroundFileName"); buttons: [{ text: Tr.t("LiveBgFileChoose"), action: "PickLiveBackgroundFileCommand", primary: false, danger: false, enabled: true }]; enabled: S.flag("IsLiveBackgroundEnabled"); }
+    ListRow { key: "Notch.LiveBackgroundScrimPercent"; title: Tr.t("LiveBgScrimTitle"); description: ""; list: "LiveBackgroundScrimOptions"; suffix: "%"; enabled: S.flag("IsLiveBackgroundEnabled"); }
+    HorizontalLayout {
+        alignment: start;
+        padding-left: 2px;
+        LinkButton { text: Tr.t("ExtGetMore"); clicked => { S.action("OpenStoreCommand:Background"); } }
+    }
+    BoolRow { key: "Music.ShowWaveform"; title: Tr.t("MusicWaveformTitle"); description: ""; }
+    SegRow { key: "Music.CardStyle"; title: Tr.t("MusicCardStyleTitle"); description: ""; values: ["Neutral", "Tinted", "Artwork"]; labels: [Tr.t("MusicCardStyleNeutral"), Tr.t("MusicCardStyleTinted"), Tr.t("MusicCardStyleArtwork")]; }
+    BoolRow { key: "Music.LyricsEnabled"; title: Tr.t("LyricsSettingTitle"); description: ""; }
+    SegRow { key: "Music.VisualizerStyle"; title: Tr.t("VisualizerStyleTitle"); description: ""; values: ["Bars", "Wave", "Dots"]; labels: [Tr.t("VisualizerStyleBars"), Tr.t("VisualizerStyleWave"), Tr.t("VisualizerStyleDots")]; }
+    SegRow { key: "Music.VisualizerColorSource"; title: Tr.t("VisualizerColorSourceTitle"); description: ""; values: ["Accent", "Artwork"]; labels: [Tr.t("VisualizerColorSourceAccent"), Tr.t("VisualizerColorSourceArtwork")]; }
+    SliderRow { key: "Music.VisualizerBarCount"; title: Tr.t("VisualizerBarCountTitle"); description: ""; minimum: 3; maximum: 16; step: 1; suffix: ""; }
+    SectionHeader { text: Tr.t("ClockHeader"); }
+    SegRow { key: "Notch.ClockHourFormat"; title: Tr.t("ClockHourFormatTitle"); description: ""; values: ["Auto", "Hour12", "Hour24"]; labels: [Tr.t("ClockFormatAuto"), Tr.t("ClockFormat12"), Tr.t("ClockFormat24")]; }
+    BoolRow { key: "Notch.ClockShowSeconds"; title: Tr.t("ClockShowSecondsTitle"); description: ""; }
+    BoolRow { key: "Notch.ClockShowDate"; title: Tr.t("ClockShowDateTitle"); description: ""; }
+    ListRow { key: "Notch.ClockSecondTimeZoneId"; title: Tr.t("ClockSecondTimeZoneTitle"); description: ""; list: "SecondTimeZoneOptions"; suffix: ""; }
+    SegRow { key: "Notch.ClockFirstDayOfWeek"; title: Tr.t("ClockFirstDayTitle"); description: ""; values: ["System", "Monday", "Sunday", "Saturday"]; labels: [Tr.t("ClockFormatAuto"), Tr.t("ClockFirstDayMonday"), Tr.t("ClockFirstDaySunday"), Tr.t("ClockFirstDaySaturday")]; }
+    BoolRow { key: "Notch.ClockShowWeekNumber"; title: Tr.t("ClockShowWeekNumberTitle"); description: ""; }
+    TextRow { key: "Notch.ClockCustomDateFormat"; title: Tr.t("ClockCustomDateTitle"); description: Tr.t("ClockCustomDateDesc"); placeholder: "dd MMM ddd"; box-width: 160px; }
+    if S.flag("ClockCustomDateFormatInvalid"): SettingDesc { text: Tr.t("ClockCustomDateInvalid"); color: Theme.danger-text; }
+}
+
+// Karşılığı: SubPages/CentikPanelsSubPage.xaml (hava durumu konumu ve takvim hesapları NotchPanelsAccounts'ta)
+export component NotchPanelsPage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("PanelsHeader"); }
+    BoolRow { key: "Ui.PanelFocus"; title: Tr.t("PanelFocusTitle"); description: ""; }
+    BoolRow { key: "Ui.PanelShelf"; title: Tr.t("PanelShelfTitle"); description: ""; }
+    BoolRow { key: "Ui.PanelControlCenter"; title: Tr.t("PanelControlCenterTitle"); description: ""; }
+    BoolRow { key: "Ui.PanelCalendar"; title: Tr.t("PanelCalendarTitle"); description: ""; }
+    BoolRow { key: "Ui.PanelClipboard"; title: Tr.t("PanelClipboardTitle"); description: Tr.t("PanelClipboardDesc"); }
+    BoolRow { key: "Clipboard.HistoryEnabled"; title: Tr.t("ClipboardHistoryTitle"); description: Tr.t("ClipboardHistoryDesc"); }
+    BoolRow { key: "Ui.PanelSystem"; title: Tr.t("PanelSystemTitle"); description: ""; }
+    @children
+    SectionHeader { text: Tr.t("PomodoroHeader"); }
+    ListRow { key: "Focus.PomodoroWorkMinutes"; title: Tr.t("PomodoroWorkTitle"); description: ""; list: "PomodoroWorkOptions"; suffix: ""; }
+    ListRow { key: "Focus.PomodoroShortBreakMinutes"; title: Tr.t("PomodoroShortBreakTitle"); description: ""; list: "PomodoroShortBreakOptions"; suffix: ""; }
+    ListRow { key: "Focus.PomodoroLongBreakMinutes"; title: Tr.t("PomodoroLongBreakTitle"); description: ""; list: "PomodoroLongBreakOptions"; suffix: ""; }
+    SectionHeader { text: Tr.t("NavAdvanced"); }
+    SegRow { key: "Notch.TabBarStyle"; title: Tr.t("NotchTabBarTitle"); description: Tr.t("NotchTabBarDesc"); values: ["IconAndLabel", "IconOnly", "Hidden"]; labels: [Tr.t("NotchTabBarIconLabel"), Tr.t("NotchTabBarIcon"), Tr.t("NotchTabBarHidden")]; }
+    SectionHeader { text: Tr.t("NotchTabOrderTitle"); filtered-out: S.changed-only; }
+    for item[i] in SL.tab-order: OrderRow {
+        title: item.title;
+        can-up: item.can-up;
+        can-down: item.can-down;
+        move(step) => {
+            SL.tab-move(i, step);
+        }
+    }
+    SectionHeader { text: Tr.t("HomeCardSectionTitle"); filtered-out: S.changed-only; }
+    for item[i] in SL.home-cards: OrderRow {
+        title: item.title;
+        on: item.on;
+        show-toggle: true;
+        can-up: item.can-up;
+        can-down: item.can-down;
+        toggled(v) => {
+            SL.home-card-toggled(i, v);
+        }
+        move(step) => {
+            SL.home-card-move(i, step);
+        }
+    }
+}
+
+// Karşılığı: SubPages/CentikSearchSubPage.xaml
+export component NotchSearchPage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("SearchSourcesHeader"); filtered-out: S.changed-only; }
+    for item[i] in SL.search-sources: ToggleListRow {
+        title: item.title;
+        on: item.on;
+        toggled(v) => {
+            SL.search-source-toggled(i, v);
+        }
+    }
+    SectionHeader { text: Tr.t("SearchSettingsHeader"); }
+    SegRow { key: "Search.HistoryMode"; title: Tr.t("SearchHistoryTitle"); description: ""; values: ["Disabled", "Suggestion", "ImmediateCompletion"]; labels: [Tr.t("SearchHistoryOff"), Tr.t("SearchHistorySuggest"), Tr.t("SearchHistoryComplete")]; }
+    BoolRow { key: "Search.RetainPrior"; title: Tr.t("SearchRetainTitle"); description: ""; }
+    ButtonRow { title: Tr.t("SearchClearHistoryTitle"); description: ""; buttons: [{ text: Tr.t("SearchClearHistoryButton"), action: "ClearSearchHistoryCommand", primary: false, danger: false, enabled: true }]; }
+}
+
+// ---------------------------------------------------------------- Dock
+
+// Karşılığı: SubPages/DockBehaviorSubPage.xaml
+export component DockBehaviorPage inherits VerticalLayout {
+    spacing: 6px;
+    SegRow { key: "Dock.Edge"; title: Tr.t("DockEdgeTitle"); description: ""; values: ["Bottom", "Top", "Left", "Right"]; labels: [Tr.t("DockEdgeBottom"), Tr.t("DockEdgeTop"), Tr.t("DockEdgeLeft"), Tr.t("DockEdgeRight")]; }
+    SegRow { key: "Dock.Style"; title: Tr.t("DockStyleTitle"); description: ""; values: ["FloatingCapsule", "FullWidth"]; labels: [Tr.t("StyleCapsule"), Tr.t("StyleFullWidth")]; }
+    SliderRow { key: "Dock.LengthPercent"; title: Tr.t("DockLengthTitle"); description: ""; minimum: 10; maximum: 100; step: 5; suffix: "%"; }
+    SliderRow { key: "Dock.EdgeOffsetDip"; title: Tr.t("DockEdgeOffsetTitle"); description: ""; minimum: 0; maximum: 96; step: 2; suffix: "px"; }
+    SliderRow { key: "Dock.InnerPaddingDip"; title: Tr.t("DockInnerPaddingTitle"); description: ""; minimum: 0; maximum: 24; step: 2; suffix: "px"; }
+    if S.get("Dock.Style") == "FullWidth": SegRow { key: "Dock.IconAlignment"; title: Tr.t("DockIconAlignmentTitle"); description: ""; values: ["Left", "Center", "Right"]; labels: [Tr.t("DockIconAlignLeft"), Tr.t("DockIconAlignCenter"), Tr.t("DockIconAlignRight")]; }
+    SectionHeader { text: Tr.t("DockProximityTitle"); }
+    // Satır başlığı yok: üstteki bölüm başlığı aynı metin. Tam genişlikte yalnız görev çubuğunun iki hâli sunulur.
+    if S.get("Dock.Style") == "FullWidth": SegStackRow {
+        key: "Dock.Proximity";
+        title: "";
+        values: ["ReserveSpace", "AlwaysHidden"];
+        labels: [Tr.t("ProxFullAlwaysShow"), Tr.t("ProxFullAutoHide")];
+        description: S.get("Dock.Proximity") == "AlwaysHidden" ? Tr.t("ProxFullAutoHideDesc") : Tr.t("ProxFullAlwaysShowDesc");
+    }
+    if S.get("Dock.Style") != "FullWidth": SegStackRow {
+        key: "Dock.Proximity";
+        title: "";
+        values: ["ReserveSpace", "DockDown", "Dodge", "AlwaysHidden", "AlwaysFloating"];
+        labels: [Tr.t("ProxReserve"), Tr.t("ProxDockDown"), Tr.t("ProxDodge"), Tr.t("ProxAlwaysHidden"), Tr.t("ProxAlwaysFloating")];
+        description: S.get("Dock.Proximity") == "DockDown" ? Tr.t("ProxDockDownDesc")
+            : S.get("Dock.Proximity") == "Dodge" ? Tr.t("ProxDodgeDesc")
+            : S.get("Dock.Proximity") == "AlwaysHidden" ? Tr.t("ProxAlwaysHiddenDesc")
+            : S.get("Dock.Proximity") == "AlwaysFloating" ? Tr.t("ProxAlwaysFloatingDesc")
+            : Tr.t("ProxReserveDesc");
+    }
+    BoolRow { key: "Dock.HideInFullscreen"; title: Tr.t("HideInFullscreenTitle"); description: ""; }
+    BoolRow { key: "Dock.EdgeReveal"; title: Tr.t("DockEdgeRevealTitle"); description: Tr.t("DockEdgeRevealDesc"); }
+    SegRow { key: "Dock.RevealTrigger"; title: Tr.t("RevealTriggerTitle"); description: ""; values: ["EdgeTouch", "EdgeHold"]; labels: [Tr.t("RevealEdgeTouch"), Tr.t("RevealEdgeHold")]; }
+    if S.get("Dock.RevealTrigger") == "EdgeHold": SegRow { key: "Dock.RevealDelayMs"; title: Tr.t("RevealDelayTitle"); description: ""; values: ["150", "300", "600"]; labels: [Tr.t("RevealDelayShort"), Tr.t("RevealDelayNormal"), Tr.t("RevealDelayLong")]; }
+    BoolRow { key: "Dock.HiddenEdgeLine"; title: Tr.t("HiddenEdgeLineTitle"); description: Tr.t("HiddenEdgeLineDesc"); }
+    SectionHeader { text: Tr.t("DockWindowBehaviorHeader"); }
+    SegRow { key: "Dock.LeftClickAction"; title: Tr.t("DockLeftClickTitle"); description: ""; values: ["MinimizeIfActive", "BringToFront", "CycleWindows", "ShowThumbnails"]; labels: [Tr.t("DockLeftClickMinimize"), Tr.t("DockLeftClickFront"), Tr.t("DockLeftClickCycle"), Tr.t("DockLeftClickThumbnails")]; }
+    SegRow { key: "Dock.WindowMonitorScope"; title: Tr.t("DockMonitorScopeTitle"); description: Tr.t("DockMonitorScopeDesc"); values: ["AllMonitors", "CurrentMonitor"]; labels: [Tr.t("DockMonitorScopeAll"), Tr.t("DockMonitorScopeCurrent")]; }
+    SegRow { key: "Dock.GroupingMode"; title: Tr.t("DockGroupingModeTitle"); description: ""; values: ["Never", "Always", "WhenSpaceRunsOut"]; labels: [Tr.t("DockGroupingModeNever"), Tr.t("DockGroupingModeAlways"), Tr.t("DockGroupingModeWhenSpaceRunsOut")]; }
+    SegRow { key: "Dock.LabelMode"; title: Tr.t("DockLabelModeTitle"); description: ""; values: ["Never", "Always", "OnHover"]; labels: [Tr.t("DockLabelModeNever"), Tr.t("DockLabelModeAlways"), Tr.t("DockLabelModeOnHover")]; }
+}
+
+// Karşılığı: SubPages/DockAppearanceSubPage.xaml
+export component DockAppearancePage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("DockSizeHeader"); }
+    SegRow { key: "Dock.IconSize"; title: Tr.t("DockIconSizeTitle"); description: ""; values: ["24", "28", "34"]; labels: [Tr.t("SizeSmall"), Tr.t("SizeMedium"), Tr.t("SizeLarge")]; }
+    BoolRow { key: "Dock.HoverMagnify"; title: Tr.t("HoverMagnifyTitle"); description: ""; }
+    SliderRow { key: "Dock.IconSpacingDip"; title: Tr.t("DockIconSpacingTitle"); description: ""; minimum: 0; maximum: 16; step: 1; suffix: "px"; }
+    SegRow { key: "Dock.IndicatorStyle"; title: Tr.t("IndicatorStyleTitle"); description: ""; values: ["Dot", "Line", "Highlight"]; labels: [Tr.t("IndicatorDot"), Tr.t("IndicatorLine"), Tr.t("IndicatorHighlight")]; }
+    ColorSourceRow { key: "Dock.IndicatorColor"; custom-key: "Dock.IndicatorCustomColor"; title: Tr.t("IndicatorColorTitle"); }
+    BoolRow { key: "Dock.IndicatorOnePerWindow"; title: Tr.t("IndicatorOnePerWindowTitle"); description: Tr.t("IndicatorOnePerWindowDesc"); }
+    SectionHeader { text: Tr.t("DockBadgesHeader"); }
+    BoolRow { key: "Dock.ShowBadges"; title: Tr.t("DockShowBadgesTitle"); description: ""; }
+    if S.on("Dock.ShowBadges"): SegRow { key: "Dock.BadgeStyle"; title: Tr.t("BadgeStyleTitle"); description: ""; values: ["Number", "DotOnly"]; labels: [Tr.t("BadgeNumber"), Tr.t("BadgeDotOnly")]; }
+    if S.on("Dock.ShowBadges"): SegRow { key: "Dock.BadgeCorner"; title: Tr.t("BadgeCornerTitle"); description: ""; values: ["TopLeft", "TopRight", "BottomLeft", "BottomRight"]; labels: [Tr.t("CornerTopLeft"), Tr.t("CornerTopRight"), Tr.t("CornerBottomLeft"), Tr.t("CornerBottomRight")]; }
+    if S.on("Dock.ShowBadges"): ColorSourceRow { key: "Dock.BadgeColor"; custom-key: "Dock.BadgeCustomColor"; title: Tr.t("BadgeColorTitle"); }
+}
+
+// Karşılığı: SubPages/DockSectionsSubPage.xaml
+export component DockSectionsPage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("SectionsHeader"); }
+    BoolRow { key: "Dock.ShowStartButton"; title: Tr.t("StartButtonTitle"); description: ""; }
+    if S.on("Dock.ShowStartButton"): PickerRow {
+        key: "Dock.StartIcon";
+        title: Tr.t("DockStartIconTitle");
+        values: ["Koy", "Windows", "Custom"];
+        labels: [Tr.t("DockStartIconKoy"), Tr.t("DockStartIconWindows"), Tr.t("DockStartIconCustom")];
+        pick-value: "Custom";
+        pick-text: Tr.t("DockStartIconChoose");
+        pick-action: "PickStartIconCommand";
+        file-text: S.get("Dock.StartIconPath") == "" ? "" : S.text("StartIconFileName");
+    }
+    BoolRow { key: "Dock.ShowFolders"; title: Tr.t("FoldersSectionTitle"); description: ""; }
+    BoolRow { key: "Dock.ShowRecents"; title: Tr.t("DockShowRecentsTitle"); description: ""; }
+    BoolRow { key: "Dock.ShowTray"; title: Tr.t("DockShowTrayTitle"); description: Tr.t("DockShowTrayDesc"); }
+    BoolRow { key: "Dock.SmallTray"; title: Tr.t("DockSmallTrayTitle"); description: Tr.t("DockSmallTrayDesc"); }
+    SegRow { key: "Dock.NewTrayIconVisibility"; title: Tr.t("DockNewTrayIconTitle"); description: Tr.t("DockNewTrayIconDesc"); values: ["Overflow", "Hidden"]; labels: [Tr.t("TrayIconShow"), Tr.t("TrayIconHide")]; }
+    SectionHeader { text: Tr.t("TrayAppsHeader"); filtered-out: S.changed-only; }
+    if S.flag("HasTrayAppRows=False") && !S.changed-only: SettingDesc { text: Tr.t("TrayAppsEmpty"); }
+    for item[i] in SL.tray-apps: ToggleListRow {
+        title: item.title;
+        on: item.on;
+        toggled(v) => {
+            SL.tray-app-toggled(i, v);
+        }
+    }
+}
+
+// ---------------------------------------------------------------- Görünüm
+
+// Karşılığı: SubPages/GorunumThemeSubPage.xaml
+export component AppearanceThemePage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("ThemeHeader"); }
+    SegRow { key: "Appearance.Theme"; title: Tr.t("ThemeTitle"); description: ""; values: ["System", "Dark", "Light"]; labels: [Tr.t("ThemeSystem"), Tr.t("ThemeDark"), Tr.t("ThemeLight")]; }
+    SettingRow {
+        changed: S.is-changed("Appearance.AccentColor");
+        filtered-out: S.changed-only && !self.changed;
+        highlighted: S.highlight != "" && S.highlight == Tr.t("AccentColorTitle");
+        opacity: S.on("Appearance.UseWindowsAccent") ? 0.5 : 1;
+        SettingText { title: Tr.t("AccentColorTitle"); }
+        HorizontalLayout {
+            alignment: end;
+            spacing: 8px;
+            for sw in [
+                { hex: "#3B82F6", c: #3B82F6, name: Tr.t("AccentBlue") },
+                { hex: "#8B5CF6", c: #8B5CF6, name: Tr.t("AccentPurple") },
+                { hex: "#EC4899", c: #EC4899, name: Tr.t("AccentPink") },
+                { hex: "#F97316", c: #F97316, name: Tr.t("AccentOrange") },
+                { hex: "#22C55E", c: #22C55E, name: Tr.t("AccentGreen") },
+                { hex: "#14B8A6", c: #14B8A6, name: Tr.t("AccentTeal") },
+            ]: VerticalLayout {
+                alignment: center;
+                ColorSwatch {
+                    swatch: sw.c;
+                    label: sw.name;
+                    checked: S.get("Appearance.AccentColor") == sw.hex;
+                    clicked => {
+                        if (!S.on("Appearance.UseWindowsAccent")) {
+                            S.set("Appearance.AccentColor", sw.hex);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    BoolRow { key: "Appearance.UseWindowsAccent"; title: Tr.t("UseWindowsAccentTitle"); description: ""; }
+    SectionHeader { text: Tr.t("SurfaceHeader"); }
+    SegRow { key: "Appearance.Material"; title: Tr.t("MaterialTitle"); description: ""; values: ["Solid", "Frosted", "Glass"]; labels: [Tr.t("MaterialSolid"), Tr.t("MaterialFrosted"), Tr.t("MaterialGlass")]; }
+    SegRow { key: "Appearance.CornerRadius"; title: Tr.t("CornerRadiusTitle"); description: ""; values: ["6", "12", "18"]; labels: [Tr.t("CornerSharp"), Tr.t("CornerStandard"), Tr.t("CornerRound")]; }
+    BoolRow { key: "Notch.FollowsMaterial"; title: Tr.t("NotchFollowsMaterialTitle"); description: Tr.t("NotchFollowsMaterialDesc"); }
+    BoolRow { key: "Appearance.MaterialReadabilityGuard"; title: Tr.t("ReadabilityGuardTitle"); description: ""; }
+}
+
+// Karşılığı: SubPages/GorunumScaleMotionSubPage.xaml
+export component AppearanceScalePage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("FontSectionTitle"); }
+    ListRow { key: "Appearance.UiScalePercent"; title: Tr.t("UiScaleLabel"); description: Tr.t("UiScaleDesc"); list: "UiScaleOptions"; suffix: "%"; }
+    ListRow { key: "Appearance.FontFamily"; title: Tr.t("FontFamilyLabel"); description: ""; list: "FontOptions"; suffix: ""; }
+    ListRow { key: "Appearance.BaseFontSize"; title: Tr.t("FontSizeLabel"); description: ""; list: "BaseFontSizeOptions"; suffix: ""; }
+    PickerRow {
+        key: "Appearance.IconPack";
+        title: Tr.t("IconPackTitle");
+        values: ["Builtin", "Folder"];
+        labels: [Tr.t("IconPackBuiltin"), Tr.t("IconPackFolder")];
+        pick-value: "Folder";
+        pick-text: Tr.t("IconPackFolderChoose");
+        pick-action: "PickIconPackFolderCommand";
+        file-text: S.get("Appearance.IconPackFolder") == "" ? "" : S.text("IconPackFolderName");
+    }
+    HorizontalLayout {
+        alignment: start;
+        padding-left: 2px;
+        LinkButton { text: Tr.t("ExtGetMore"); clicked => { S.action("OpenStoreCommand:IconPack"); } }
+    }
+    SegRow { key: "Appearance.FontWeight"; title: Tr.t("FontWeightLabel"); description: ""; values: ["400", "500", "600"]; labels: [Tr.t("FontWeightNormal"), Tr.t("FontWeightMedium"), Tr.t("FontWeightBold")]; }
+    ListRow { key: "Appearance.ClockFontFamily"; title: Tr.t("ClockFontLabel"); description: ""; list: "FontOptions"; suffix: ""; }
+    SectionHeader { text: Tr.t("MotionHeader"); }
+    SegRow { key: "Appearance.AnimationSpeed"; title: Tr.t("AnimationTitle"); description: ""; values: ["Calm", "Normal", "Fast", "Off"]; labels: [Tr.t("AnimGentle"), Tr.t("AnimNormal"), Tr.t("AnimFast"), Tr.t("AnimOff")]; }
+    BoolRow { key: "Appearance.RespectReduceMotion"; title: Tr.t("ReduceMotionTitle"); description: ""; }
+    SectionHeader { text: Tr.t("MotionTogglesTitle"); }
+    if S.flag("MotionTogglesInactive"): SettingDesc { text: Tr.t("MotionTogglesDisabledHint"); }
+    BoolRow { key: "Motion.NotchOpenClose"; title: Tr.t("MotionNotchOpenClose"); description: ""; enabled: S.flag("MotionTogglesActive"); }
+    BoolRow { key: "Motion.TabTransitions"; title: Tr.t("MotionTabTransitions"); description: ""; enabled: S.flag("MotionTogglesActive"); }
+    BoolRow { key: "Motion.Osd"; title: Tr.t("MotionOsd"); description: ""; enabled: S.flag("MotionTogglesActive"); }
+    BoolRow { key: "Motion.DockMagnify"; title: Tr.t("MotionDockMagnify"); description: ""; enabled: S.flag("MotionTogglesActive"); }
+    BoolRow { key: "Motion.FolderPanel"; title: Tr.t("MotionFolderPanel"); description: ""; enabled: S.flag("MotionTogglesActive"); }
+    SectionHeader { text: Tr.t("UserStyleHeader"); }
+    BoolRow { key: "Appearance.UserStyleOverridesEnabled"; title: Tr.t("UserStyleTitle"); description: ""; }
+    ButtonRow { title: ""; description: S.text("UserStyleStatusText"); buttons: [{ text: Tr.t("ExtGetMore"), action: "OpenStoreCommand:Theme", primary: false, danger: false, enabled: true }, { text: Tr.t("UserStyleOpenFolder"), action: "OpenUserStyleFolderCommand", primary: false, danger: false, enabled: true }, { text: Tr.t("UserStyleReload"), action: "ReloadUserStyleCommand", primary: false, danger: false, enabled: true }]; }
+}
+
+// ---------------------------------------------------------------- Dikte, Performans, Hakkında
+
+// Karşılığı: DiktePage.xaml
+export component DictationPage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("VoiceHeader"); }
+    SegRow { key: "Voice.Harness"; title: Tr.t("VoiceHarnessTitle"); description: Tr.t("VoiceHarnessDesc"); values: ["Claude", "Codex", "Agy", "Custom"]; labels: ["Claude", "Codex", "Antigravity", Tr.t("VoiceHarnessCustom")]; }
+    if S.get("Voice.Harness") == "Claude": SegRow { key: "Voice.ClaudePermission"; title: Tr.t("VoicePermissionTitle"); description: Tr.t("VoicePermissionDesc"); values: ["Default", "AcceptEdits", "Auto"]; labels: [Tr.t("VoicePermissionReadOnly"), Tr.t("VoicePermissionAcceptEdits"), Tr.t("VoicePermissionAuto")]; }
+    if S.get("Voice.Harness") == "Claude": ComboRow { key: "Voice.Model"; title: Tr.t("VoiceModelTitle"); description: Tr.t("VoiceModelDesc"); values: ["default", "fable", "opus", "sonnet", "haiku"]; labels: [Tr.t("VoiceModelDefault"), "Fable", "Opus", "Sonnet", "Haiku"]; }
+    if S.get("Voice.Harness") == "Custom": TextRow { key: "Voice.CustomCommand"; title: Tr.t("VoiceCustomCommandTitle"); description: Tr.t("VoiceCustomCommandDesc"); box-width: 260px; }
+    TextRow { key: "Voice.WorkingDirectory"; title: Tr.t("VoiceWorkingDirTitle"); description: Tr.t("VoiceWorkingDirDesc"); box-width: 260px; }
+}
+
+// Karşılığı: PerformansPage.xaml
+export component PerformancePage inherits VerticalLayout {
+    spacing: 6px;
+    in property <float> memory-pct;
+    in property <int> memory-level;
+    SettingRow {
+        filtered-out: S.changed-only;
+        VerticalLayout {
+            horizontal-stretch: 1;
+            spacing: 8px;
+            HorizontalLayout {
+                SettingText { title: Tr.t("MemoryUsageTitle"); description: Tr.t("BudgetDesc"); }
+                Text {
+                    text: S.text("MemoryUsageText");
+                    color: Theme.text-primary;
+                    font-size: Theme.font-row-title;
+                    font-family: Theme.font;
+                    vertical-alignment: center;
+                }
+            }
+            Rectangle {
+                height: 6px;
+                border-radius: 3px;
+                background: Theme.toggle-track-off;
+                Rectangle {
+                    x: 0;
+                    width: parent.width * clamp(root.memory-pct / 100, 0, 1);
+                    border-radius: 3px;
+                    background: root.memory-level == 2 ? Theme.danger-text : root.memory-level == 1 ? Theme.status-warn : Theme.status-ok;
+                }
+            }
+        }
+    }
+    SectionHeader { text: Tr.t("BatteryHeader"); }
+    BoolRow { key: "Appearance.BatterySaverReduceMotion"; title: Tr.t("BatteryReduceMotion"); description: ""; }
+    SectionHeader { text: Tr.t("DataHeader"); }
+    ComboRow { key: "Weather.RefreshInterval"; title: Tr.t("WeatherRefreshTitle"); description: ""; values: ["Every30Minutes", "Hourly", "OnStartup"]; labels: [Tr.t("Interval30m"), Tr.t("Interval1h"), Tr.t("IntervalStartupOnly")]; }
+    InfoNotice { text: Tr.t("IdleNotice"); }
+}
+
+// Karşılığı: HakkindaPage.xaml
+export component AboutPage inherits VerticalLayout {
+    spacing: 6px;
+    SettingRow {
+        filtered-out: S.changed-only;
+        HorizontalLayout {
+            spacing: 14px;
+            VerticalLayout {
+                alignment: center;
+                KoyLogo { width: 36px; height: 36px; }
+            }
+            VerticalLayout {
+                alignment: center;
+                horizontal-stretch: 1;
+                SettingTitle { text: "Koy " + S.text("AppVersion"); font-weight: 600; }
+                SettingDesc { text: S.text("AboutStatusText"); }
+            }
+        }
+    }
+    SectionHeader { text: Tr.t("TroubleshootingHeader"); }
+    ButtonRow { title: Tr.t("DiagnosticInfoTitle"); description: ""; buttons: [{ text: Tr.t("CopyDiagnosticsAction"), action: "CopyDiagnosticsCommand", primary: false, danger: false, enabled: true }]; }
+    ButtonRow { title: Tr.t("RestoreTaskbarTitle"); description: Tr.t("RestoreTaskbarDesc2"); buttons: [{ text: Tr.t("RestoreButton"), action: "RestoreTaskbarCommand", primary: false, danger: false, enabled: true }]; }
+    if !S.flag("IsResetConfirming"): ButtonRow { title: Tr.t("ResetSettingsTitle"); description: Tr.t("ResetSettingsDesc"); buttons: [{ text: Tr.t("ResetButton"), action: "RequestResetCommand", primary: false, danger: true, enabled: true }]; }
+    if S.flag("IsResetConfirming"): ButtonRow { title: Tr.t("ResetSettingsTitle"); description: Tr.t("ResetSettingsDesc"); buttons: [{ text: Tr.t("Cancel"), action: "CancelResetCommand", primary: false, danger: false, enabled: true }, { text: Tr.t("ResetConfirmButton"), action: "ResetSettingsCommand", primary: false, danger: true, enabled: true }]; }
+    BoolRow { key: "General.DeveloperMode"; title: Tr.t("DeveloperModeTitle"); description: Tr.t("DeveloperModeDesc"); }
+    SectionHeader { text: Tr.t("LinksHeader"); }
+    ButtonRow { title: Tr.t("SourceCodeTitle"); description: ""; buttons: [{ text: Tr.t("OpenGitHubAction"), action: "OpenGitHubCommand", primary: false, danger: false, enabled: true }]; }
+    ButtonRow { title: Tr.t("AboutSiteTitle"); description: Tr.t("AboutSiteDesc"); buttons: [{ text: Tr.t("OpenWebsiteAction"), action: "OpenWebsiteCommand", primary: false, danger: false, enabled: true }]; }
+    ButtonRow { title: Tr.t("AboutWeatherTitle"); description: Tr.t("AboutWeatherLicense"); buttons: [{ text: Tr.t("AboutWeatherLink"), action: "OpenOpenMeteoCommand", primary: false, danger: false, enabled: true }]; }
+    ButtonRow { title: Tr.t("AboutPlaceTitle"); description: Tr.t("AboutPlaceLicense"); buttons: [{ text: Tr.t("AboutPlaceLink"), action: "OpenOpenStreetMapCommand", primary: false, danger: false, enabled: true }]; }
+    ButtonRow { title: Tr.t("UninstallTitle"); description: S.text("UninstallRowDescription"); buttons: [{ text: Tr.t("UninstallAction"), action: "RequestUninstallCommand", primary: false, danger: true, enabled: S.flag("CanUninstall") }]; }
+}

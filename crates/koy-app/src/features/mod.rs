@@ -11,6 +11,7 @@ pub mod menu;
 pub mod music;
 pub mod notch;
 pub mod search;
+pub mod settings;
 pub mod shelf;
 pub mod shortcuts;
 pub mod status;

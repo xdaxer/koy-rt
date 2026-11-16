@@ -23,7 +23,7 @@ fn power_line_offline() -> bool {
     unsafe { GetSystemPowerStatus(&mut status) }.is_ok() && status.ACLineStatus == 0
 }
 
-fn client_area_animation() -> bool {
+pub fn client_area_animation() -> bool {
     let mut value = windows::core::BOOL(1);
     // SAFETY: çıktı BOOL'a yazılır.
     let ok = unsafe { SystemParametersInfoW(SPI_GETCLIENTAREAANIMATION, 0, Some(&mut value as *mut _ as *mut _), SYSTEM_PARAMETERS_INFO_UPDATE_FLAGS(0)) };

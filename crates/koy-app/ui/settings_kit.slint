@@ -1,0 +1,378 @@
+// Koy penceresi ayar satırları. WPF'te her satır KoyWindowViewModel'in bir özelliğine bağlıydı; burada satır ayarın
+// anahtarını ("Dock.ShowTray") taşır, değer Rust'taki SettingsViewModel'den metin olarak okunur ve yazılır
+// (AdvancedSettings.TrySet ile aynı biçim: bool true/false, enum adı, sayı değişmez kültürde).
+// Görünüm modelinin kendi durumları (başlangıçta çalış, sekme anahtarları, hareket anahtarları) "Ui." ve "Motion."
+// önekli sanal anahtarlardır. Satır dışı koşullar `S.flag("Ad=Değer")` ile sorulur.
+
+import { Theme } from "theme.slint";
+import { Motion, SettingRow, SettingText, SettingDesc, ToggleSwitch, Segmented, KoyComboBox, KoyTextBox, KoyButton,
+    ButtonKind, FocusRing } from "controls.slint";
+
+export global Tr {
+    in property <int> rev;
+    pure callback lookup(string, int) -> string;
+    pure callback format1(string, string, int) -> string;
+    pure public function t(k: string) -> string {
+        return self.lookup(k, self.rev);
+    }
+    pure public function f(k: string, a: string) -> string {
+        return self.format1(k, a, self.rev);
+    }
+}
+
+export global S {
+    in property <int> rev;
+    // "Yalnız değişenler" süzgeci: açıkken değişmemiş satırlar gizlenir.
+    in property <bool> changed-only;
+    // Aramadan gidilen satırın başlığı (vurgu kenarlığı).
+    in property <string> highlight;
+    pure callback value(string, int) -> string;
+    pure callback is-changed-of(string, int) -> bool;
+    pure callback flag-of(string, int) -> bool;
+    pure callback list-of(string, int) -> [string];
+    pure callback choice-index(string, [string], int) -> int;
+    pure callback text-of(string, int) -> string;
+    callback set(string, string);
+    callback action(string);
+    pure public function get(k: string) -> string {
+        return self.value(k, self.rev);
+    }
+    pure public function on(k: string) -> bool {
+        return self.value(k, self.rev) == "true";
+    }
+    pure public function flag(k: string) -> bool {
+        return self.flag-of(k, self.rev);
+    }
+    pure public function is-changed(k: string) -> bool {
+        return self.is-changed-of(k, self.rev);
+    }
+    pure public function list(k: string) -> [string] {
+        return self.list-of(k, self.rev);
+    }
+    pure public function text(k: string) -> string {
+        return self.text-of(k, self.rev);
+    }
+    pure public function index(k: string, values: [string]) -> int {
+        return self.choice-index(k, values, self.rev);
+    }
+}
+
+// Ortak satır: değişmiş noktası, süzgeç ve arama vurgusu anahtardan gelir.
+component KeyedRow inherits SettingRow {
+    in property <string> key;
+    in property <string> title;
+    // WPF IsEnabled: soluk görünür (denetimler kendi `enabled` özelliğiyle kapanır).
+    in property <bool> enabled: true;
+    opacity: enabled ? 1 : 0.5;
+    changed: key != "" && S.is-changed(key);
+    filtered-out: S.changed-only && !self.changed;
+    highlighted: S.highlight != "" && S.highlight == title;
+}
+
+export component BoolRow inherits KeyedRow {
+    in property <string> description;
+    property <bool> model-value: S.on(root.key);
+    changed model-value => {
+        sw.checked = self.model-value;
+    }
+    SettingText { title: root.title; description: root.description; }
+    VerticalLayout {
+        alignment: center;
+        sw := ToggleSwitch {
+            checked: root.model-value;
+            enabled: root.enabled;
+            toggled(v) => {
+                S.set(root.key, v ? "true" : "false");
+            }
+        }
+    }
+}
+
+// Segmentli seçim (WPF SegRadioStyle grubu). Değerler ayarın metin karşılıkları, etiketler görünen metinler.
+export component SegRow inherits KeyedRow {
+    in property <string> description;
+    in property <[string]> values;
+    in property <[string]> labels;
+    property <int> model-index: S.index(root.key, root.values);
+    changed model-index => {
+        seg.selected = self.model-index;
+    }
+    SettingText { title: root.title; description: root.description; }
+    VerticalLayout {
+        alignment: center;
+        seg := Segmented {
+            items: root.labels;
+            selected: root.model-index;
+            changed(i) => {
+                if (root.enabled) {
+                    S.set(root.key, root.values[i]);
+                }
+            }
+        }
+    }
+}
+
+// Segment satır genişliğini istediğinde başlığın altına iner (dock yakınlık kipi gibi).
+export component SegStackRow inherits KeyedRow {
+    in property <string> description;
+    in property <[string]> values;
+    in property <[string]> labels;
+    property <int> model-index: S.index(root.key, root.values);
+    changed model-index => {
+        seg.selected = self.model-index;
+    }
+    VerticalLayout {
+        horizontal-stretch: 1;
+        spacing: 8px;
+        SettingText { title: root.title; }
+        HorizontalLayout {
+            alignment: start;
+            seg := Segmented {
+                items: root.labels;
+                selected: root.model-index;
+                changed(i) => {
+                    S.set(root.key, root.values[i]);
+                }
+            }
+        }
+        SettingDesc { text: root.description; }
+    }
+}
+
+export component ComboRow inherits KeyedRow {
+    in property <string> description;
+    in property <[string]> values;
+    in property <[string]> labels;
+    in property <length> combo-width: 180px;
+    property <int> model-index: S.index(root.key, root.values);
+    changed model-index => {
+        combo.selected = self.model-index;
+    }
+    SettingText { title: root.title; description: root.description; }
+    VerticalLayout {
+        alignment: center;
+        combo := KoyComboBox {
+            width: root.combo-width;
+            enabled: root.enabled;
+            items: root.labels;
+            selected: root.model-index;
+            changed(i) => {
+                S.set(root.key, root.values[i]);
+            }
+        }
+    }
+}
+
+// Seçenekleri görünüm modelinden gelen liste (NotchDelayOptions vb.); `list` adı Rust'ta çözülür, etiket değer + ek.
+export component ListRow inherits KeyedRow {
+    in property <string> description;
+    in property <string> list;
+    in property <string> suffix;
+    property <[string]> values: S.list(root.list);
+    property <[string]> labels: S.list(root.list + "#labels:" + root.suffix);
+    property <int> model-index: S.index(root.key, root.values);
+    changed model-index => {
+        combo.selected = self.model-index;
+    }
+    SettingText { title: root.title; description: root.description; }
+    VerticalLayout {
+        alignment: center;
+        combo := KoyComboBox {
+            width: 180px;
+            enabled: root.enabled;
+            items: root.labels;
+            selected: root.model-index;
+            changed(i) => {
+                S.set(root.key, root.values[i]);
+            }
+        }
+    }
+}
+
+// Kaydırıcı: iz + düğme, adım kadar yaslanır; bırakınca yazılır (sürükleme sırasında yalnız görünen değer değişir).
+export component KoySlider inherits Rectangle {
+    in property <float> minimum;
+    in property <float> maximum: 100;
+    in property <float> step: 1;
+    in-out property <float> value;
+    callback committed(float);
+    height: 22px;
+    property <float> span: max(0.0001, maximum - minimum);
+    property <float> ratio: clamp((value - minimum) / span, 0, 1);
+    accessible-role: slider;
+    accessible-value: value;
+    Rectangle {
+        y: (parent.height - 4px) / 2;
+        height: 4px;
+        border-radius: 2px;
+        background: Theme.toggle-track-off;
+    }
+    Rectangle {
+        x: 0;
+        y: (parent.height - 4px) / 2;
+        width: (parent.width - 16px) * ratio + 8px;
+        height: 4px;
+        border-radius: 2px;
+        background: Theme.accent;
+    }
+    Rectangle {
+        x: (parent.width - 16px) * ratio;
+        y: (parent.height - 16px) / 2;
+        width: 16px;
+        height: 16px;
+        border-radius: 8px;
+        background: Theme.toggle-knob-on;
+        border-width: 2px;
+        border-color: Theme.accent;
+    }
+    function value-at(px: length) -> float {
+        let r = clamp((px - 8px) / max(1px, root.width - 16px), 0, 1);
+        let raw = root.minimum + r * root.span;
+        return clamp(root.minimum + round((raw - root.minimum) / root.step) * root.step, root.minimum, root.maximum);
+    }
+    touch := TouchArea {
+        mouse-cursor: pointer;
+        pointer-event(e) => {
+            if (e.kind == PointerEventKind.down && e.button == PointerEventButton.left) {
+                root.value = root.value-at(self.mouse-x);
+            } else if (e.kind == PointerEventKind.up && e.button == PointerEventButton.left) {
+                root.committed(root.value);
+            }
+        }
+        moved => {
+            if (self.pressed) {
+                root.value = root.value-at(self.mouse-x);
+            }
+        }
+    }
+    focus := FocusScope {
+        key-pressed(e) => {
+            if (e.text == Key.LeftArrow || e.text == Key.DownArrow) {
+                root.value = max(root.minimum, root.value - root.step);
+                root.committed(root.value);
+                return accept;
+            }
+            if (e.text == Key.RightArrow || e.text == Key.UpArrow) {
+                root.value = min(root.maximum, root.value + root.step);
+                root.committed(root.value);
+                return accept;
+            }
+            reject
+        }
+    }
+}
+
+export component SliderRow inherits KeyedRow {
+    in property <string> description;
+    in property <float> minimum;
+    in property <float> maximum;
+    in property <float> step: 1;
+    in property <string> suffix;
+    property <float> model-value: S.get(root.key).to-float();
+    changed model-value => {
+        slider.value = self.model-value;
+    }
+    SettingText { title: root.title; description: root.description; }
+    HorizontalLayout {
+        alignment: end;
+        spacing: 10px;
+        VerticalLayout {
+            alignment: center;
+            slider := KoySlider {
+                width: 140px;
+                minimum: root.minimum;
+                maximum: root.maximum;
+                step: root.step;
+                value: root.model-value;
+                committed(v) => {
+                    S.set(root.key, round(v));
+                }
+            }
+        }
+        Text {
+            min-width: 44px;
+            text: round(slider.value) + (root.suffix == "" ? "" : root.suffix == "%" ? "%" : " " + root.suffix);
+            color: Theme.text-secondary;
+            font-size: Theme.font-caption;
+            font-family: Theme.font;
+            vertical-alignment: center;
+        }
+    }
+}
+
+// Metin kutusu: Enter ya da odak kaybıyla değil, her düzenlemede yazılır (WPF UpdateSourceTrigger=PropertyChanged).
+export component TextRow inherits KeyedRow {
+    in property <string> description;
+    in property <string> placeholder;
+    in property <length> box-width: 220px;
+    property <string> model-value: S.get(root.key);
+    changed model-value => {
+        if (!self.editing) {
+            box.text = self.model-value;
+        }
+    }
+    property <bool> editing;
+    SettingText { title: root.title; description: root.description; }
+    VerticalLayout {
+        alignment: center;
+        box := KoyTextBox {
+            width: root.box-width;
+            enabled: root.enabled;
+            text: root.model-value;
+            placeholder: root.placeholder;
+            edited(t) => {
+                root.editing = true;
+                S.set(root.key, t);
+                root.editing = false;
+            }
+        }
+    }
+}
+
+export struct RowButton {
+    text: string,
+    action: string,
+    primary: bool,
+    danger: bool,
+    enabled: bool,
+}
+
+// Düğmeli satır: eylem adı Rust'taki SettingsViewModel.action'a gider.
+export component ButtonRow inherits KeyedRow {
+    in property <string> description;
+    in property <[RowButton]> buttons;
+    SettingText { title: root.title; description: root.description; }
+    HorizontalLayout {
+        alignment: end;
+        spacing: 8px;
+        for b in root.buttons: VerticalLayout {
+            alignment: center;
+            KoyButton {
+                text: b.text;
+                kind: b.primary ? ButtonKind.primary : b.danger ? ButtonKind.danger : ButtonKind.standard;
+                enabled: b.enabled && root.enabled;
+                clicked => {
+                    S.action(b.action);
+                }
+            }
+        }
+    }
+}
+
+// Alt sekme çubuğu (sayfa başında); "yalnız değişenler" açıkken gizlenir, bütün alt sekmeler bir arada görünür.
+export component SubTabBar inherits HorizontalLayout {
+    in property <[string]> items;
+    in-out property <int> selected;
+    callback changed(int);
+    alignment: start;
+    visible: !S.changed-only;
+    height: S.changed-only ? 0 : self.preferred-height;
+    Segmented {
+        items: root.items;
+        selected: root.selected;
+        changed(i) => {
+            root.selected = i;
+            root.changed(i);
+        }
+    }
+}

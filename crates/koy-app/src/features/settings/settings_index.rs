@@ -1,0 +1,173 @@
+//! Ayar arama dizini: `ui/settings_pages.slint` satırlarından üretildi (scratch gen_index.py).
+//! C# `SettingsPageIndex` sayfaların mantıksal ağacını yürüyerek kuruyordu; Slint ağacı yürünemediği için tablo
+//! derleme öncesi çıkarılır. Metinler o anki dilde `Strings`ten okunur; puanlama Core'da (`SettingsSearch`).
+
+use koy_core::settings::{SettingSearchEntry, SettingsSearch};
+
+use crate::resources::strings::Strings;
+
+pub struct IndexRow {
+    pub page: i32,
+    pub sub_tab: i32,
+    pub title: &'static str,
+    pub description: &'static str,
+    pub section: &'static str,
+    pub key: &'static str,
+}
+
+pub static ROWS: &[IndexRow] = &[
+    IndexRow { page: 0, sub_tab: 0, title: "RunAtStartupTitle", description: "", section: "StartupHeader", key: "Ui.RunAtStartup" },
+    IndexRow { page: 0, sub_tab: 0, title: "HideWindowsTaskbarTitle", description: "HideWindowsTaskbarDesc", section: "StartupHeader", key: "Dock.HideWindowsTaskbar" },
+    IndexRow { page: 0, sub_tab: 0, title: "InterfaceLanguageTitle", description: "", section: "LanguageHeader", key: "General.Language" },
+    IndexRow { page: 0, sub_tab: 0, title: "AutoCheckUpdatesTitle", description: "", section: "UpdatesHeader", key: "General.AutoCheckUpdates" },
+    IndexRow { page: 0, sub_tab: 0, title: "ChannelTitle", description: "", section: "UpdatesHeader", key: "General.UpdateChannel" },
+    IndexRow { page: 0, sub_tab: 0, title: "LastCheckTitle", description: "", section: "UpdatesHeader", key: "" },
+    IndexRow { page: 0, sub_tab: 0, title: "UnitTemperatureTitle", description: "", section: "UnitsHeader", key: "General.TemperatureUnit" },
+    IndexRow { page: 0, sub_tab: 0, title: "UnitNetworkSpeedTitle", description: "", section: "UnitsHeader", key: "General.NetworkSpeedUnit" },
+    IndexRow { page: 1, sub_tab: 0, title: "VisibilityTitle", description: "VisibilityDesc", section: "NotchHeader", key: "Notch.Visibility" },
+    IndexRow { page: 1, sub_tab: 0, title: "NotchStyleTitle", description: "", section: "NotchHeader", key: "Notch.Style" },
+    IndexRow { page: 1, sub_tab: 0, title: "NotchEdgeLineTitle", description: "NotchEdgeLineDesc", section: "NotchHeader", key: "Notch.EdgeLine" },
+    IndexRow { page: 1, sub_tab: 0, title: "NotchEdgeLineColorTitle", description: "", section: "NotchHeader", key: "Notch.EdgeLineColor" },
+    IndexRow { page: 1, sub_tab: 0, title: "NotchEdgeLineThicknessTitle", description: "NotchEdgeLineThicknessDesc", section: "NotchHeader", key: "Notch.EdgeLineThickness" },
+    IndexRow { page: 1, sub_tab: 0, title: "HideInFullscreenTitle", description: "", section: "NotchHeader", key: "Notch.HideInFullscreen" },
+    IndexRow { page: 1, sub_tab: 0, title: "OpenBehaviorRowTitle", description: "", section: "OpenBehaviorTitle", key: "Notch.OpenBehavior" },
+    IndexRow { page: 1, sub_tab: 0, title: "IdleDisplayRowTitle", description: "", section: "IdleDisplayTitle", key: "Notch.IdleDisplay" },
+    IndexRow { page: 1, sub_tab: 0, title: "VolumeOsdTitle", description: "", section: "IndicatorsHeader", key: "Notch.ShowVolumeOsd" },
+    IndexRow { page: 1, sub_tab: 0, title: "BrightnessOsdTitle", description: "", section: "IndicatorsHeader", key: "Notch.ShowBrightnessOsd" },
+    IndexRow { page: 1, sub_tab: 0, title: "PrivacyIndicatorTitle", description: "", section: "IndicatorsHeader", key: "Notch.ShowPrivacyIndicator" },
+    IndexRow { page: 1, sub_tab: 0, title: "NotificationsTitle", description: "NotificationsDesc", section: "IndicatorsHeader", key: "Notch.ShowNotifications" },
+    IndexRow { page: 1, sub_tab: 0, title: "NotchOpenDelayTitle", description: "", section: "NavAdvanced", key: "Notch.OpenDelayMs" },
+    IndexRow { page: 1, sub_tab: 0, title: "NotchCloseDelayTitle", description: "", section: "NavAdvanced", key: "Notch.CloseDelayMs" },
+    IndexRow { page: 1, sub_tab: 0, title: "NotificationsHideBodyTitle", description: "", section: "NavAdvanced", key: "Notch.NotificationsHideBody" },
+    IndexRow { page: 1, sub_tab: 1, title: "LiveBgTargetTitle", description: "LiveBgTargetDesc", section: "LiveBgHeader", key: "Notch.LiveBackgroundTarget" },
+    IndexRow { page: 1, sub_tab: 1, title: "LiveBgSourceTitle", description: "", section: "LiveBgHeader", key: "Notch.LiveBackgroundSource" },
+    IndexRow { page: 1, sub_tab: 1, title: "LiveBgPresetTitle", description: "", section: "LiveBgHeader", key: "Notch.LiveBackgroundPreset" },
+    IndexRow { page: 1, sub_tab: 1, title: "LiveBgFileTitle", description: "", section: "LiveBgHeader", key: "" },
+    IndexRow { page: 1, sub_tab: 1, title: "LiveBgScrimTitle", description: "", section: "LiveBgHeader", key: "Notch.LiveBackgroundScrimPercent" },
+    IndexRow { page: 1, sub_tab: 1, title: "MusicWaveformTitle", description: "", section: "LiveBgHeader", key: "Music.ShowWaveform" },
+    IndexRow { page: 1, sub_tab: 1, title: "MusicCardStyleTitle", description: "", section: "LiveBgHeader", key: "Music.CardStyle" },
+    IndexRow { page: 1, sub_tab: 1, title: "LyricsSettingTitle", description: "", section: "LiveBgHeader", key: "Music.LyricsEnabled" },
+    IndexRow { page: 1, sub_tab: 1, title: "VisualizerStyleTitle", description: "", section: "LiveBgHeader", key: "Music.VisualizerStyle" },
+    IndexRow { page: 1, sub_tab: 1, title: "VisualizerColorSourceTitle", description: "", section: "LiveBgHeader", key: "Music.VisualizerColorSource" },
+    IndexRow { page: 1, sub_tab: 1, title: "VisualizerBarCountTitle", description: "", section: "LiveBgHeader", key: "Music.VisualizerBarCount" },
+    IndexRow { page: 1, sub_tab: 1, title: "ClockHourFormatTitle", description: "", section: "ClockHeader", key: "Notch.ClockHourFormat" },
+    IndexRow { page: 1, sub_tab: 1, title: "ClockShowSecondsTitle", description: "", section: "ClockHeader", key: "Notch.ClockShowSeconds" },
+    IndexRow { page: 1, sub_tab: 1, title: "ClockShowDateTitle", description: "", section: "ClockHeader", key: "Notch.ClockShowDate" },
+    IndexRow { page: 1, sub_tab: 1, title: "ClockSecondTimeZoneTitle", description: "", section: "ClockHeader", key: "Notch.ClockSecondTimeZoneId" },
+    IndexRow { page: 1, sub_tab: 1, title: "ClockFirstDayTitle", description: "", section: "ClockHeader", key: "Notch.ClockFirstDayOfWeek" },
+    IndexRow { page: 1, sub_tab: 1, title: "ClockShowWeekNumberTitle", description: "", section: "ClockHeader", key: "Notch.ClockShowWeekNumber" },
+    IndexRow { page: 1, sub_tab: 1, title: "ClockCustomDateTitle", description: "ClockCustomDateDesc", section: "ClockHeader", key: "Notch.ClockCustomDateFormat" },
+    IndexRow { page: 1, sub_tab: 2, title: "PanelFocusTitle", description: "", section: "PanelsHeader", key: "Ui.PanelFocus" },
+    IndexRow { page: 1, sub_tab: 2, title: "PanelShelfTitle", description: "", section: "PanelsHeader", key: "Ui.PanelShelf" },
+    IndexRow { page: 1, sub_tab: 2, title: "PanelControlCenterTitle", description: "", section: "PanelsHeader", key: "Ui.PanelControlCenter" },
+    IndexRow { page: 1, sub_tab: 2, title: "PanelCalendarTitle", description: "", section: "PanelsHeader", key: "Ui.PanelCalendar" },
+    IndexRow { page: 1, sub_tab: 2, title: "PanelClipboardTitle", description: "PanelClipboardDesc", section: "PanelsHeader", key: "Ui.PanelClipboard" },
+    IndexRow { page: 1, sub_tab: 2, title: "ClipboardHistoryTitle", description: "ClipboardHistoryDesc", section: "PanelsHeader", key: "Clipboard.HistoryEnabled" },
+    IndexRow { page: 1, sub_tab: 2, title: "PanelSystemTitle", description: "", section: "PanelsHeader", key: "Ui.PanelSystem" },
+    IndexRow { page: 1, sub_tab: 2, title: "PomodoroWorkTitle", description: "", section: "PomodoroHeader", key: "Focus.PomodoroWorkMinutes" },
+    IndexRow { page: 1, sub_tab: 2, title: "PomodoroShortBreakTitle", description: "", section: "PomodoroHeader", key: "Focus.PomodoroShortBreakMinutes" },
+    IndexRow { page: 1, sub_tab: 2, title: "PomodoroLongBreakTitle", description: "", section: "PomodoroHeader", key: "Focus.PomodoroLongBreakMinutes" },
+    IndexRow { page: 1, sub_tab: 2, title: "NotchTabBarTitle", description: "NotchTabBarDesc", section: "NavAdvanced", key: "Notch.TabBarStyle" },
+    IndexRow { page: 1, sub_tab: 3, title: "SearchHistoryTitle", description: "", section: "SearchSettingsHeader", key: "Search.HistoryMode" },
+    IndexRow { page: 1, sub_tab: 3, title: "SearchRetainTitle", description: "", section: "SearchSettingsHeader", key: "Search.RetainPrior" },
+    IndexRow { page: 1, sub_tab: 3, title: "SearchClearHistoryTitle", description: "", section: "SearchSettingsHeader", key: "" },
+    IndexRow { page: 2, sub_tab: 0, title: "DockEdgeTitle", description: "", section: "", key: "Dock.Edge" },
+    IndexRow { page: 2, sub_tab: 0, title: "DockStyleTitle", description: "", section: "", key: "Dock.Style" },
+    IndexRow { page: 2, sub_tab: 0, title: "DockLengthTitle", description: "", section: "", key: "Dock.LengthPercent" },
+    IndexRow { page: 2, sub_tab: 0, title: "DockEdgeOffsetTitle", description: "", section: "", key: "Dock.EdgeOffsetDip" },
+    IndexRow { page: 2, sub_tab: 0, title: "DockInnerPaddingTitle", description: "", section: "", key: "Dock.InnerPaddingDip" },
+    IndexRow { page: 2, sub_tab: 0, title: "DockIconAlignmentTitle", description: "", section: "", key: "Dock.IconAlignment" },
+    IndexRow { page: 2, sub_tab: 0, title: "HideInFullscreenTitle", description: "", section: "DockProximityTitle", key: "Dock.HideInFullscreen" },
+    IndexRow { page: 2, sub_tab: 0, title: "DockEdgeRevealTitle", description: "DockEdgeRevealDesc", section: "DockProximityTitle", key: "Dock.EdgeReveal" },
+    IndexRow { page: 2, sub_tab: 0, title: "RevealTriggerTitle", description: "", section: "DockProximityTitle", key: "Dock.RevealTrigger" },
+    IndexRow { page: 2, sub_tab: 0, title: "RevealDelayTitle", description: "", section: "DockProximityTitle", key: "Dock.RevealDelayMs" },
+    IndexRow { page: 2, sub_tab: 0, title: "HiddenEdgeLineTitle", description: "HiddenEdgeLineDesc", section: "DockProximityTitle", key: "Dock.HiddenEdgeLine" },
+    IndexRow { page: 2, sub_tab: 0, title: "DockLeftClickTitle", description: "", section: "DockWindowBehaviorHeader", key: "Dock.LeftClickAction" },
+    IndexRow { page: 2, sub_tab: 0, title: "DockMonitorScopeTitle", description: "DockMonitorScopeDesc", section: "DockWindowBehaviorHeader", key: "Dock.WindowMonitorScope" },
+    IndexRow { page: 2, sub_tab: 0, title: "DockGroupingModeTitle", description: "", section: "DockWindowBehaviorHeader", key: "Dock.GroupingMode" },
+    IndexRow { page: 2, sub_tab: 0, title: "DockLabelModeTitle", description: "", section: "DockWindowBehaviorHeader", key: "Dock.LabelMode" },
+    IndexRow { page: 2, sub_tab: 1, title: "DockIconSizeTitle", description: "", section: "DockSizeHeader", key: "Dock.IconSize" },
+    IndexRow { page: 2, sub_tab: 1, title: "HoverMagnifyTitle", description: "", section: "DockSizeHeader", key: "Dock.HoverMagnify" },
+    IndexRow { page: 2, sub_tab: 1, title: "DockIconSpacingTitle", description: "", section: "DockSizeHeader", key: "Dock.IconSpacingDip" },
+    IndexRow { page: 2, sub_tab: 1, title: "IndicatorStyleTitle", description: "", section: "DockSizeHeader", key: "Dock.IndicatorStyle" },
+    IndexRow { page: 2, sub_tab: 1, title: "IndicatorColorTitle", description: "", section: "DockSizeHeader", key: "Dock.IndicatorColor" },
+    IndexRow { page: 2, sub_tab: 1, title: "IndicatorOnePerWindowTitle", description: "IndicatorOnePerWindowDesc", section: "DockSizeHeader", key: "Dock.IndicatorOnePerWindow" },
+    IndexRow { page: 2, sub_tab: 1, title: "DockShowBadgesTitle", description: "", section: "DockBadgesHeader", key: "Dock.ShowBadges" },
+    IndexRow { page: 2, sub_tab: 1, title: "BadgeStyleTitle", description: "", section: "DockBadgesHeader", key: "Dock.BadgeStyle" },
+    IndexRow { page: 2, sub_tab: 1, title: "BadgeCornerTitle", description: "", section: "DockBadgesHeader", key: "Dock.BadgeCorner" },
+    IndexRow { page: 2, sub_tab: 1, title: "BadgeColorTitle", description: "", section: "DockBadgesHeader", key: "Dock.BadgeColor" },
+    IndexRow { page: 2, sub_tab: 2, title: "StartButtonTitle", description: "", section: "SectionsHeader", key: "Dock.ShowStartButton" },
+    IndexRow { page: 2, sub_tab: 2, title: "DockStartIconTitle", description: "", section: "SectionsHeader", key: "Dock.StartIcon" },
+    IndexRow { page: 2, sub_tab: 2, title: "FoldersSectionTitle", description: "", section: "SectionsHeader", key: "Dock.ShowFolders" },
+    IndexRow { page: 2, sub_tab: 2, title: "DockShowRecentsTitle", description: "", section: "SectionsHeader", key: "Dock.ShowRecents" },
+    IndexRow { page: 2, sub_tab: 2, title: "DockShowTrayTitle", description: "DockShowTrayDesc", section: "SectionsHeader", key: "Dock.ShowTray" },
+    IndexRow { page: 2, sub_tab: 2, title: "DockSmallTrayTitle", description: "DockSmallTrayDesc", section: "SectionsHeader", key: "Dock.SmallTray" },
+    IndexRow { page: 2, sub_tab: 2, title: "DockNewTrayIconTitle", description: "DockNewTrayIconDesc", section: "SectionsHeader", key: "Dock.NewTrayIconVisibility" },
+    IndexRow { page: 4, sub_tab: 0, title: "ThemeTitle", description: "", section: "ThemeHeader", key: "Appearance.Theme" },
+    IndexRow { page: 4, sub_tab: 0, title: "AccentColorTitle", description: "", section: "ThemeHeader", key: "" },
+    IndexRow { page: 4, sub_tab: 0, title: "UseWindowsAccentTitle", description: "", section: "ThemeHeader", key: "Appearance.UseWindowsAccent" },
+    IndexRow { page: 4, sub_tab: 0, title: "MaterialTitle", description: "", section: "SurfaceHeader", key: "Appearance.Material" },
+    IndexRow { page: 4, sub_tab: 0, title: "CornerRadiusTitle", description: "", section: "SurfaceHeader", key: "Appearance.CornerRadius" },
+    IndexRow { page: 4, sub_tab: 0, title: "NotchFollowsMaterialTitle", description: "NotchFollowsMaterialDesc", section: "SurfaceHeader", key: "Notch.FollowsMaterial" },
+    IndexRow { page: 4, sub_tab: 0, title: "ReadabilityGuardTitle", description: "", section: "SurfaceHeader", key: "Appearance.MaterialReadabilityGuard" },
+    IndexRow { page: 4, sub_tab: 1, title: "UiScaleLabel", description: "UiScaleDesc", section: "FontSectionTitle", key: "Appearance.UiScalePercent" },
+    IndexRow { page: 4, sub_tab: 1, title: "FontFamilyLabel", description: "", section: "FontSectionTitle", key: "Appearance.FontFamily" },
+    IndexRow { page: 4, sub_tab: 1, title: "FontSizeLabel", description: "", section: "FontSectionTitle", key: "Appearance.BaseFontSize" },
+    IndexRow { page: 4, sub_tab: 1, title: "IconPackTitle", description: "", section: "FontSectionTitle", key: "Appearance.IconPack" },
+    IndexRow { page: 4, sub_tab: 1, title: "FontWeightLabel", description: "", section: "FontSectionTitle", key: "Appearance.FontWeight" },
+    IndexRow { page: 4, sub_tab: 1, title: "ClockFontLabel", description: "", section: "FontSectionTitle", key: "Appearance.ClockFontFamily" },
+    IndexRow { page: 4, sub_tab: 1, title: "AnimationTitle", description: "", section: "MotionHeader", key: "Appearance.AnimationSpeed" },
+    IndexRow { page: 4, sub_tab: 1, title: "ReduceMotionTitle", description: "", section: "MotionHeader", key: "Appearance.RespectReduceMotion" },
+    IndexRow { page: 4, sub_tab: 1, title: "MotionNotchOpenClose", description: "", section: "MotionTogglesTitle", key: "Motion.NotchOpenClose" },
+    IndexRow { page: 4, sub_tab: 1, title: "MotionTabTransitions", description: "", section: "MotionTogglesTitle", key: "Motion.TabTransitions" },
+    IndexRow { page: 4, sub_tab: 1, title: "MotionOsd", description: "", section: "MotionTogglesTitle", key: "Motion.Osd" },
+    IndexRow { page: 4, sub_tab: 1, title: "MotionDockMagnify", description: "", section: "MotionTogglesTitle", key: "Motion.DockMagnify" },
+    IndexRow { page: 4, sub_tab: 1, title: "MotionFolderPanel", description: "", section: "MotionTogglesTitle", key: "Motion.FolderPanel" },
+    IndexRow { page: 4, sub_tab: 1, title: "UserStyleTitle", description: "", section: "UserStyleHeader", key: "Appearance.UserStyleOverridesEnabled" },
+    IndexRow { page: 6, sub_tab: 0, title: "VoiceHarnessTitle", description: "VoiceHarnessDesc", section: "VoiceHeader", key: "Voice.Harness" },
+    IndexRow { page: 6, sub_tab: 0, title: "VoicePermissionTitle", description: "VoicePermissionDesc", section: "VoiceHeader", key: "Voice.ClaudePermission" },
+    IndexRow { page: 6, sub_tab: 0, title: "VoiceModelTitle", description: "VoiceModelDesc", section: "VoiceHeader", key: "Voice.Model" },
+    IndexRow { page: 6, sub_tab: 0, title: "VoiceCustomCommandTitle", description: "VoiceCustomCommandDesc", section: "VoiceHeader", key: "Voice.CustomCommand" },
+    IndexRow { page: 6, sub_tab: 0, title: "VoiceWorkingDirTitle", description: "VoiceWorkingDirDesc", section: "VoiceHeader", key: "Voice.WorkingDirectory" },
+    IndexRow { page: 7, sub_tab: 0, title: "MemoryUsageTitle", description: "BudgetDesc", section: "", key: "" },
+    IndexRow { page: 7, sub_tab: 0, title: "BatteryReduceMotion", description: "", section: "BatteryHeader", key: "Appearance.BatterySaverReduceMotion" },
+    IndexRow { page: 7, sub_tab: 0, title: "WeatherRefreshTitle", description: "", section: "DataHeader", key: "Weather.RefreshInterval" },
+    IndexRow { page: 8, sub_tab: 0, title: "DiagnosticInfoTitle", description: "", section: "TroubleshootingHeader", key: "" },
+    IndexRow { page: 8, sub_tab: 0, title: "RestoreTaskbarTitle", description: "RestoreTaskbarDesc2", section: "TroubleshootingHeader", key: "" },
+    IndexRow { page: 8, sub_tab: 0, title: "ResetSettingsTitle", description: "ResetSettingsDesc", section: "TroubleshootingHeader", key: "" },
+    IndexRow { page: 8, sub_tab: 0, title: "ResetSettingsTitle", description: "ResetSettingsDesc", section: "TroubleshootingHeader", key: "" },
+    IndexRow { page: 8, sub_tab: 0, title: "DeveloperModeTitle", description: "DeveloperModeDesc", section: "TroubleshootingHeader", key: "General.DeveloperMode" },
+    IndexRow { page: 8, sub_tab: 0, title: "SourceCodeTitle", description: "", section: "LinksHeader", key: "" },
+    IndexRow { page: 8, sub_tab: 0, title: "AboutSiteTitle", description: "AboutSiteDesc", section: "LinksHeader", key: "" },
+    IndexRow { page: 8, sub_tab: 0, title: "AboutWeatherTitle", description: "AboutWeatherLicense", section: "LinksHeader", key: "" },
+    IndexRow { page: 8, sub_tab: 0, title: "AboutPlaceTitle", description: "AboutPlaceLicense", section: "LinksHeader", key: "" },
+    IndexRow { page: 8, sub_tab: 0, title: "UninstallTitle", description: "", section: "LinksHeader", key: "" },
+];
+
+const PAGE_NAME_KEYS: &[&str] = &[
+    "NavGeneral", "NavNotch", "NavDock", "NavDisplays", "NavAppearance", "NavShortcuts", "NavDictation", "NavPerformance",
+    "NavAbout", "NavAdvanced", "NavExtensions",
+];
+
+pub fn page_name(index: i32) -> String {
+    usize::try_from(index).ok().and_then(|i| PAGE_NAME_KEYS.get(i)).map(|k| Strings::get(k)).unwrap_or_default()
+}
+
+/// Sorguya uyan satırlar (dizin, girdi), puan sırasıyla.
+pub fn search(query: &str) -> Vec<(usize, SettingSearchEntry)> {
+    let entries: Vec<SettingSearchEntry> = ROWS
+        .iter()
+        .enumerate()
+        .map(|(i, r)| SettingSearchEntry {
+            key: i.to_string(),
+            page: page_name(r.page),
+            title: Strings::get(r.title),
+            description: if r.description.is_empty() { String::new() } else { Strings::get(r.description) },
+            keywords: if r.section.is_empty() { Vec::new() } else { vec![Strings::get(r.section)] },
+        })
+        .collect();
+    SettingsSearch::search(&entries, Some(query), i32::MAX)
+        .into_iter()
+        .filter_map(|h| h.entry.key.parse::<usize>().ok().map(|i| (i, h.entry)))
+        .collect()
+}

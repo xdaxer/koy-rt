@@ -31,8 +31,12 @@ unsafe impl Send for ChangeHandle {}
 impl UserStyleWatcher {
     /// `reload` arayüz iş parçacığında çağrılır.
     pub fn new(reload: fn()) -> UserStyleWatcher {
+        Self::watch_folder(UserStyleFile::default_folder(), reload)
+    }
+
+    /// Verilen klasörü izler (Koy penceresi settings.json için de kullanır: C# FileSystemWatcher).
+    pub fn watch_folder(folder: std::path::PathBuf, reload: fn()) -> UserStyleWatcher {
         let disposed = Arc::new(AtomicBool::new(false));
-        let folder = UserStyleFile::default_folder();
         // İzlenecek klasör yoksa oluşturulur (yalnız klasör; dosya kullanıcıya aittir ve Koy yazmaz).
         let _ = std::fs::create_dir_all(&folder);
         let filter = FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_CREATION;
