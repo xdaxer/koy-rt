@@ -21,4 +21,18 @@
 2. ✅ Dalga 3: notifications, system_stats, bluetooth, extensions, updates, start_menu.
 3. Ortak temizlik: `Guid` tekleştir, `iso_time` (calendar + extensions) ve `to_string_fixed` (units + system_stats) kopyalarını birleştir, feature kapılarını kaldır (tek crate, kapısız), `cargo test` tamamı yeşil.
 4. ✅ **Platform** (`koy-platform`): bütün C# Platform servisleri taşındı.
-5. **Arayüz**: karar bekliyor (öneri: Slint, yazılımla çizim). Sonra App katmanı (WPF ~35k satır).
+5. **App** (`koy-app`, Slint 1.18 winit + yazılım çizici; WPF ~43k satır). Karar: Slint (GPLv3 uyumlu).
+   - ✅ Altyapı: `infra/` (dispatch: post/post_local/delay, message_window, native_window: HWND/stil/DWM/alt sınıf kancası,
+     system_events, single_instance, ui_ref: Rc'ye Send jeton, snapshot: `koy --snapshot <görünüm> <png>`).
+   - ✅ `shared_services.rs`, `update_status.rs`, kısayol / ekran köşesi / tepsi simgesi denetleyicileri.
+   - ✅ Kaynaklar: `resources/` (strings: resx→tablo build.rs, theme_manager: Slint `Theme` global'i, pure callback +
+     `rev` ile DynamicResource; palette.rs ve ui/theme.slint, ui/icons.slint `tools/gen_*.py` ile XAML'den üretilir),
+     motion, material_state, window_frame, user_style_watcher. `ui/controls.slint` (Styles.xaml), `ui/notch_controls.slint`.
+   - ✅ Menü: `features/menu` (SagAltMenuWindow, TrayIconManager).
+   - Sıradaki: Notch (alt VM'ler: Status, Music, ControlCenter, Focus/Tasks, Shelf, Calendar, SystemInfo, QuickLaunch,
+     ClipboardPanel, Search, OSD → NotchViewModel → NotchWindow → NotchFeature), sonra Dock, Settings/KoyWindow, Extensions,
+     Rules, Wizard, Home, `app.rs` (App.xaml.cs) ve main.
+   - Desen: C# ViewModel → Rust struct (`Rc`), görünüm durumu Slint bileşen özelliklerine / global'lere yazılır; olaylar
+     arka plandan `dispatch::post` ile, Rc'ye `UiRef` ile ulaşılır. Pencereler `ThemeManager::install` ile temaya bağlanır.
+   - Açık: otomatik güncelleme (C# Velopack) — paketleme kararıyla; UiScalePercent menüde `ui-scale` ile, diğer
+     pencerelerde de aynı desen.
