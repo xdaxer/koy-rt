@@ -1,0 +1,225 @@
+// Karşılığı: koy/src/App/Features/Notch/OSD/OsdView.xaml ve NotchCardView.xaml. 260×40 gösterge (ses, parlaklık, pil,
+// Bluetooth, sesli komut) ve 380×72 kart (güncelleme, bildirim).
+
+import { Theme } from "theme.slint";
+import { Icons, KoyIcon } from "icons.slint";
+
+export struct OsdData {
+    // 1 ses, 2 parlaklık, 3 pil, 4 Bluetooth, 5 sesli komut, 6 kart.
+    kind: int,
+    percent: int,
+    is-muted: bool,
+    percent-text: string,
+    // 0 yok, 1 takıldı, 2 çıkarıldı, 3 düşük, 4 dolu.
+    battery-kind: int,
+    battery-status-text: string,
+    bluetooth-device-name: string,
+    bluetooth-connected: bool,
+    bluetooth-status-text: string,
+    voice-prompt: string,
+    voice-status-text: string,
+    voice-editing: bool,
+    voice-input: string,
+    voice-detail: string,
+    // Kart.
+    card-is-notification: bool,
+    card-header: string,
+    card-title: string,
+    card-subtitle: string,
+    card-action: string,
+    has-card-icon: bool,
+    card-icon: image,
+}
+
+component Level inherits Rectangle {
+    in property <int> percent;
+    in property <color> fill;
+    in property <length> thickness: 6px;
+    height: thickness;
+    border-radius: thickness / 2;
+    background: Theme.notch-track;
+    clip: true;
+    Rectangle {
+        x: 0px;
+        width: parent.width * clamp(percent, 0, 100) / 100;
+        height: 100%;
+        border-radius: thickness / 2;
+        background: fill;
+    }
+}
+
+export component OsdView inherits Rectangle {
+    in property <OsdData> d;
+    callback voice-input-edited(string);
+    callback enter-clicked();
+    width: 260px;
+    height: 40px;
+    property <color> battery-color: d.battery-kind == 3 ? #ef4444 : d.battery-kind == 2 ? Theme.notch-text : #10b981;
+    HorizontalLayout {
+        padding-left: 16px;
+        padding-right: 16px;
+        spacing: 12px;
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: 18px;
+                height: 18px;
+                if d.kind == 1: Path {
+                    width: 18px;
+                    height: 18px;
+                    viewbox-x: 2;
+                    viewbox-y: 2;
+                    viewbox-width: 20;
+                    viewbox-height: 20;
+                    commands: d.is-muted ? "M 4,9 L 4,15 L 8,15 L 13,19 L 13,5 L 8,9 Z M 16,10 L 20,14 M 20,10 L 16,14" : "M 4,9 L 4,15 L 8,15 L 13,19 L 13,5 L 8,9 Z M 16,9 A 4,4 0 0 1 16,15 M 18.5,6.5 A 8,8 0 0 1 18.5,17.5";
+                    stroke: Theme.notch-text;
+                    stroke-width: 2px;
+                    stroke-line-cap: round;
+                }
+                if d.kind == 2: Path {
+                    width: 18px;
+                    height: 18px;
+                    viewbox-x: 1;
+                    viewbox-y: 1;
+                    viewbox-width: 22;
+                    viewbox-height: 22;
+                    commands: "M 12,8 A 4,4 0 1 1 11.99,8 Z M 12,2 L 12,4 M 12,20 L 12,22 M 2,12 L 4,12 M 20,12 L 22,12 M 4.9,4.9 L 6.3,6.3 M 17.7,17.7 L 19.1,19.1 M 4.9,19.1 L 6.3,17.7 M 17.7,6.3 L 19.1,4.9";
+                    stroke: Theme.notch-brightness;
+                    stroke-width: 2px;
+                    stroke-line-cap: round;
+                }
+                if d.kind == 3: KoyIcon {
+                    data: d.battery-kind == 1 || d.battery-kind == 4 ? Icons.battery-charging : Icons.battery;
+                    size: 18px;
+                    color: battery-color;
+                }
+                if d.kind == 4: KoyIcon { data: Icons.bluetooth; size: 18px; color: d.bluetooth-connected ? Theme.accent : Theme.notch-dim; }
+                if d.kind == 5: KoyIcon { data: Icons.mic; size: 18px; color: Theme.accent; }
+            }
+        }
+        // Orta.
+        VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            if d.kind == 1 || d.kind == 2: Level { percent: d.percent; fill: d.kind == 2 ? Theme.notch-brightness : Theme.notch-text; }
+            if d.kind == 3: VerticalLayout {
+                spacing: 2px;
+                Text { text: d.battery-status-text; font-size: 11px; font-weight: 500; color: d.battery-kind == 3 ? #ef4444 : #e4e4e7; overflow: elide; font-family: Theme.notch-font; }
+                Level { percent: d.percent; thickness: 3px; fill: d.battery-kind == 3 ? #ef4444 : #10b981; }
+            }
+            if d.kind == 4: VerticalLayout {
+                spacing: 1px;
+                Text { text: d.bluetooth-device-name; font-size: 12px; font-weight: 600; color: Theme.notch-text; overflow: elide; font-family: Theme.notch-font; }
+                Text { text: d.bluetooth-status-text; font-size: 10px; color: Theme.notch-text-muted; overflow: elide; font-family: Theme.notch-font; }
+            }
+            if d.kind == 5: VerticalLayout {
+                spacing: 1px;
+                if !d.voice-editing && d.voice-prompt != "": Text {
+                    text: d.voice-prompt;
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: Theme.notch-text;
+                    overflow: elide;
+                    font-family: Theme.notch-font;
+                }
+                if d.voice-editing: voice-box := TextInput {
+                    text: d.voice-input;
+                    font-size: 12px;
+                    font-weight: 600;
+                    color: Theme.notch-text;
+                    single-line: true;
+                    font-family: Theme.notch-font;
+                    edited => { root.voice-input-edited(self.text); }
+                    init => { self.focus(); }
+                }
+                Text { text: d.voice-status-text; font-size: 11px; color: Theme.notch-text-muted; overflow: elide; font-family: Theme.notch-font; }
+            }
+        }
+        // Sağ: yüzde (ya da "Enter ↵").
+        if d.percent-text != "": VerticalLayout {
+            alignment: center;
+            Text {
+                min-width: 26px;
+                text: d.percent-text;
+                font-size: 12px;
+                font-weight: 600;
+                color: Theme.notch-text;
+                horizontal-alignment: right;
+                font-family: Theme.notch-font;
+                TouchArea {
+                    enabled: d.voice-editing;
+                    mouse-cursor: d.voice-editing ? pointer : default;
+                    clicked => { root.enter-clicked(); }
+                }
+            }
+        }
+    }
+}
+
+export component NotchCardView inherits Rectangle {
+    in property <OsdData> d;
+    callback primary-action();
+    callback dismiss();
+    width: 380px;
+    height: 72px;
+    // Kartın üstüne basmak çentiği açmasın.
+    TouchArea { }
+    HorizontalLayout {
+        padding-left: 18px;
+        padding-right: 14px;
+        spacing: 12px;
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: 36px;
+                height: 36px;
+                border-radius: 18px;
+                background: Theme.notch-icon-bg;
+                if !d.has-card-icon: KoyIcon { data: d.card-is-notification ? Icons.bell : Icons.download; size: 18px; color: Theme.accent; }
+                if d.has-card-icon: Image { width: 26px; height: 26px; source: d.card-icon; image-fit: contain; }
+            }
+        }
+        VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            if d.card-header != "": Text { text: d.card-header; font-size: 10.5px; color: Theme.notch-text-muted; overflow: elide; font-family: Theme.notch-font; }
+            Text { text: d.card-title; font-size: 13px; font-weight: 600; color: Theme.notch-text; overflow: elide; font-family: Theme.notch-font; }
+            if d.card-subtitle != "": Text { text: d.card-subtitle; font-size: 11px; color: Theme.notch-text-muted; overflow: elide; font-family: Theme.notch-font; }
+        }
+        HorizontalLayout {
+            alignment: center;
+            spacing: 8px;
+            if d.card-action != "": VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    height: 28px;
+                    width: max(64px, action-label.preferred-width + 28px);
+                    border-radius: 14px;
+                    background: Theme.accent;
+                    action-label := Text { text: d.card-action; font-size: 12px; font-weight: 600; color: Theme.on-accent; font-family: Theme.notch-font; }
+                    TouchArea { mouse-cursor: pointer; clicked => { root.primary-action(); } }
+                }
+            }
+            VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    width: 26px;
+                    height: 26px;
+                    border-radius: 13px;
+                    background: x-touch.has-hover ? Theme.notch-hover : transparent;
+                    Path {
+                        width: 10px;
+                        height: 10px;
+                        viewbox-width: 10;
+                        viewbox-height: 10;
+                        commands: "M 0,0 L 10,10 M 10,0 L 0,10";
+                        stroke: Theme.notch-text-muted;
+                        stroke-width: 1.6px;
+                        stroke-line-cap: round;
+                    }
+                    x-touch := TouchArea { mouse-cursor: pointer; clicked => { root.dismiss(); } }
+                }
+            }
+        }
+    }
+}

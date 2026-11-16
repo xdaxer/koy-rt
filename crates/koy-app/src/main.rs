@@ -104,11 +104,13 @@ fn dev_snapshot(view: &str, path: String) -> Result<(), slint::PlatformError> {
             });
             v.run()
         }
-        "notch" | "notch-music" | "notch-peek" | "notch-ring" => {
+        "notch" | "notch-music" | "notch-peek" | "notch-ring" | "osd-volume" | "osd-card" => {
             use features::notch::notch_shape::{ShapeSpec, path_commands};
             let v = NotchShapePreview::new()?;
             ThemeManager::install(&v);
             let (w, h, r) = match view {
+                "osd-volume" => (260.0, 40.0, 20.0),
+                "osd-card" => (380.0, 72.0, 28.0),
                 "notch-music" => (280.0, 34.0, 18.0),
                 "notch-peek" => (300.0, 38.0, 20.0),
                 _ => (236.0, 34.0, 18.0),
@@ -140,6 +142,18 @@ fn dev_snapshot(view: &str, path: String) -> Result<(), slint::PlatformError> {
             d.show_music_waveform = true;
             d.waveform_bars = slint::ModelRc::new(slint::VecModel::from(vec![6.0f32, 12.0, 14.0, 10.0, 5.0]));
             d.waveform_color = slint::Color::from_argb_encoded(0xFF4A_DE80);
+            if view.starts_with("osd") {
+                let osd = features::notch::osd::osd_indicator_view_model::OsdIndicatorViewModel::new();
+                if view == "osd-volume" {
+                    osd.show_volume(0.62, false);
+                } else {
+                    let mut card = koy_core::notch::NotchCard::new(koy_core::notch::NotchCardKind::Update, "Koy 0.2.13 hazır", "Yeniden başlatınca kurulur");
+                    card.primary_action_label = "Güncelle".into();
+                    osd.show_card(card, std::time::Duration::from_secs(30));
+                }
+                d.osd_active = true;
+                v.set_osd(features::notch::osd::osd_binding::to_data(&osd.state()));
+            }
             v.set_d(d);
             v.set_shape_width((w as f32) * 1.0);
             v.set_shape_height(h as f32);
