@@ -1,6 +1,7 @@
 //! Karşılığı: `koy/src/App/Features/`.
 
 pub mod actions;
+pub mod focus;
 pub mod menu;
 pub mod shortcuts;
 pub mod status;
