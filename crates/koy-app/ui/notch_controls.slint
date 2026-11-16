@@ -1,0 +1,126 @@
+// Karşılığı: koy/src/App/Resources/StylesNotch.xaml. Çentik sayfalarının ortak bileşenleri; renkler çentik
+// belirteçlerinden gelir (çentik temadan bağımsız koyu yüzeydir).
+
+import { Theme } from "theme.slint";
+
+// Yuvarlak yazı kutusu: boşken ipucu görünür, odaktayken kaybolmaz ama yazınca gider.
+export component NotchInput inherits Rectangle {
+    in-out property <string> text;
+    in property <string> hint;
+    in property <bool> password;
+    in property <length> radius: 15px;
+    callback edited(string);
+    callback accepted(string);
+    height: 30px;
+    border-radius: radius;
+    background: Theme.notch-surface;
+    border-width: 1px;
+    border-color: input.has-focus ? Theme.notch-check-border : transparent;
+    forward-focus: input;
+    if text == "": Text {
+        x: 12px;
+        width: parent.width - 24px;
+        text: hint;
+        color: Theme.notch-muted;
+        font-size: 12px;
+        font-family: Theme.notch-font;
+        vertical-alignment: center;
+        overflow: elide;
+    }
+    input := TextInput {
+        x: 12px;
+        width: parent.width - 24px;
+        text <=> root.text;
+        color: Theme.notch-text;
+        font-size: 12px;
+        font-family: Theme.notch-font;
+        vertical-alignment: center;
+        single-line: true;
+        input-type: password ? InputType.password : InputType.text;
+        edited => { root.edited(self.text); }
+        accepted => { root.accepted(self.text); }
+    }
+}
+
+// Satır içi şifre kutusu (Wi-Fi): 28 px, köşe 14.
+export component NotchPassword inherits NotchInput {
+    password: true;
+    height: 28px;
+    radius: 14px;
+}
+
+// Çentik anahtarı: 36x20 iz, açıkken Kontrol vurgu rengi.
+export component NotchSwitch inherits Rectangle {
+    in-out property <bool> checked;
+    in property <bool> enabled: true;
+    callback toggled(bool);
+    width: 36px;
+    height: 20px;
+    opacity: enabled ? 1 : 0.4;
+    accessible-role: switch;
+    accessible-checked: checked;
+    border-radius: 10px;
+    background: checked ? Theme.notch-accent-control : Theme.notch-control-track;
+    Rectangle {
+        width: 14px;
+        height: 14px;
+        border-radius: 7px;
+        x: checked ? parent.width - 17px : 3px;
+        background: checked ? Theme.notch-text : Theme.notch-muted;
+    }
+    TouchArea {
+        enabled: enabled;
+        mouse-cursor: pointer;
+        clicked => {
+            checked = !checked;
+            toggled(checked);
+        }
+    }
+}
+
+// Liste satırı düğmesi: etkinken fareyle üstüne gelince hafif aydınlanır; etkin değilse imleç ok.
+export component NotchRowButton inherits Rectangle {
+    in property <bool> enabled: true;
+    callback clicked;
+    border-radius: 12px;
+    background: enabled && touch.has-hover ? Theme.notch-row-hover : transparent;
+    @children
+    touch := TouchArea {
+        enabled: enabled;
+        mouse-cursor: enabled ? pointer : default;
+        clicked => { root.clicked(); }
+    }
+}
+
+// Küçük pill düğme (Bağlan / Bağlantıyı kes).
+export component NotchPillButton inherits Rectangle {
+    in property <string> text;
+    in property <bool> enabled: true;
+    callback clicked;
+    height: 22px;
+    min-width: label.preferred-width + 20px;
+    border-radius: 11px;
+    opacity: enabled ? 1 : 0.4;
+    background: enabled && touch.has-hover ? Theme.notch-accent-control : Theme.notch-chip;
+    accessible-role: button;
+    accessible-label: text;
+    label := Text {
+        text: root.text;
+        color: Theme.notch-text;
+        font-size: 11px;
+        font-family: Theme.notch-font;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+    touch := TouchArea { enabled: enabled; mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+// Kart içi düz düğme: yalnız tıklanabilir yüzey, görünüm içeriğin kendisinde.
+export component NotchPlainButton inherits Rectangle {
+    in property <bool> enabled: true;
+    callback clicked;
+    out property <bool> hovered: touch.has-hover;
+    out property <bool> pressed: touch.pressed;
+    @children
+    touch := TouchArea { enabled: enabled; mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
