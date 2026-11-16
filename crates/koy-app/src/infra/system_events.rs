@@ -9,6 +9,7 @@ use super::message_window::MessageWindow;
 
 const WM_SETTINGCHANGE: u32 = 0x001A;
 const WM_DISPLAYCHANGE: u32 = 0x007E;
+const WM_TIMECHANGE: u32 = 0x001E;
 const WM_THEMECHANGED: u32 = 0x031A;
 const WM_DWMCOLORIZATIONCOLORCHANGED: u32 = 0x0320;
 
@@ -19,6 +20,7 @@ struct Listeners {
     next: u64,
     display: Vec<(u64, Listener)>,
     preferences: Vec<(u64, Listener)>,
+    time: Vec<(u64, Listener)>,
 }
 
 thread_local! {
@@ -36,6 +38,7 @@ impl Drop for Subscription {
             let mut l = l.borrow_mut();
             l.display.retain(|(i, _)| *i != id);
             l.preferences.retain(|(i, _)| *i != id);
+            l.time.retain(|(i, _)| *i != id);
         });
     }
 }
@@ -59,6 +62,7 @@ fn ensure_window() {
             Box::new(|msg, _, _| {
                 match msg {
                     WM_DISPLAYCHANGE => raise(|l| &l.display),
+                    WM_TIMECHANGE => raise(|l| &l.time),
                     WM_SETTINGCHANGE | WM_THEMECHANGED | WM_DWMCOLORIZATIONCOLORCHANGED => raise(|l| &l.preferences),
                     _ => return None,
                 }
@@ -91,5 +95,10 @@ impl SystemEvents {
     /// `SystemEvents.UserPreferenceChanged` (tema, renk, duvar kağıdı).
     pub fn on_user_preference_changed(f: impl Fn() + 'static) -> Subscription {
         subscribe(|l| &mut l.preferences, f)
+    }
+
+    /// `SystemEvents.TimeChanged` (saat ya da saat dilimi elle değişti; WM_TIMECHANGE).
+    pub fn on_time_changed(f: impl Fn() + 'static) -> Subscription {
+        subscribe(|l| &mut l.time, f)
     }
 }
