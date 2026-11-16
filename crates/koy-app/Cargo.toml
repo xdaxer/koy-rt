@@ -1,0 +1,18 @@
+[package]
+name = "koy-app"
+edition.workspace = true
+license.workspace = true
+version.workspace = true
+
+[[bin]]
+name = "koy"
+path = "src/main.rs"
+
+[dependencies]
+koy-core = { workspace = true, features = ["all"] }
+koy-platform = { workspace = true, features = ["watchdog-launcher"] }
+slint = { version = "1", default-features = false, features = ["std", "compat-1-2", "backend-winit", "renderer-software", "raw-window-handle-06"] }
+raw-window-handle = "0.6"
+
+[build-dependencies]
+slint-build = "1"

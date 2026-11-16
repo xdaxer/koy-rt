@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/koy-core", "crates/koy-platform", "crates/koy-watchdog"]
+members = ["crates/koy-core", "crates/koy-platform", "crates/koy-watchdog", "crates/koy-app"]
 
 [workspace.package]
 edition = "2024"
