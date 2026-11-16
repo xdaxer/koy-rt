@@ -6,6 +6,7 @@
 //! havuzun `Arc`'ı bırakılır, çağıranlar da kendi kopyalarını `release` ile birlikte bırakmalıdır.
 
 use std::cell::RefCell;
+use std::rc::Rc;
 use std::sync::Arc;
 
 use koy_core::clipboard::IClipboardHistoryService;
@@ -13,7 +14,7 @@ use koy_core::event::Event;
 use koy_core::network::INetworkService;
 use koy_core::notifications::INotificationListener;
 use koy_core::privacy::IPrivacyMonitorService;
-use koy_core::quick_launch::{IQuickLaunchService, QuickLaunchService};
+use koy_core::quick_launch::QuickLaunchService;
 use koy_core::settings::{SettingsStore, ValueList};
 use koy_core::system_stats::ISystemStatsService;
 use koy_core::tasks::{ITaskService, TaskService};
@@ -83,7 +84,7 @@ struct State {
     power: Counted<PowerService>,
     notifications: Counted<WinRtNotificationListener>,
     tasks: Option<Arc<TaskService>>,
-    quick_launch: Option<Arc<QuickLaunchService>>,
+    quick_launch: Option<Rc<RefCell<QuickLaunchService>>>,
     disposed: bool,
 }
 
@@ -340,13 +341,13 @@ impl SharedServices {
         Arc::clone(st.tasks.get_or_insert_with(|| Arc::new(TaskService::new(None, None, None)))) as Arc<dyn ITaskService>
     }
 
-    /// Hızlı başlat listesi: tek örnek. Değişiklikler settings.json'a (QuickLaunch.Items) yazılır.
-    pub fn quick_launch(&self) -> Arc<dyn IQuickLaunchService> {
+    /// Hızlı başlat listesi: tek örnek (arayüz iş parçacığında). Değişiklikler settings.json'a (QuickLaunch.Items) yazılır.
+    pub fn quick_launch(&self) -> Rc<RefCell<QuickLaunchService>> {
         let mut st = self.st();
         let service = st.quick_launch.get_or_insert_with(|| {
             let store = SettingsStore::new(SettingsStore::default_path());
             let initial = store.load().quick_launch.items.clone();
-            Arc::new(QuickLaunchService::new(
+            Rc::new(RefCell::new(QuickLaunchService::new(
                 initial.iter().cloned().collect::<Vec<String>>(),
                 Box::new(move |items: &[String]| {
                     let store = SettingsStore::new(SettingsStore::default_path());
@@ -356,9 +357,9 @@ impl SharedServices {
                 }),
                 Arc::new(ShellActionService),
                 None,
-            ))
+            )))
         });
-        Arc::clone(service) as Arc<dyn IQuickLaunchService>
+        Rc::clone(service)
     }
 
     /// Tepsi penceresini beklemeden kapatma isteği (çökme işleyicileri). Örnek sonra normal yoldan bırakılır.
