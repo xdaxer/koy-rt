@@ -1,5 +1,6 @@
 //! Karşılığı: `koy/src/Platform/Shell/`.
 
+mod app_bar_service;
 mod app_user_model_id_reader;
 mod corner_hook_service;
 mod dwm;
@@ -21,6 +22,7 @@ pub mod taskbar_service;
 #[cfg(feature = "watchdog-launcher")]
 pub mod watchdog_launcher;
 
+pub use app_bar_service::*;
 pub use app_user_model_id_reader::*;
 pub use corner_hook_service::*;
 pub use dwm::*;
