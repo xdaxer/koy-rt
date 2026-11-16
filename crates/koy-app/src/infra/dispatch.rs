@@ -36,3 +36,9 @@ pub fn delay(after: Duration, work: impl FnOnce() + 'static) -> slint::Timer {
 pub fn guard(source: &str, action: impl FnOnce()) {
     CrashLog::guard(source, action);
 }
+
+/// Arayüz iş parçacığında, geçerli olay işlendikten sonra çalışır (`Send` gerektirmez; yalnız arayüz iş parçacığından
+/// çağrılır). Pencere yordamı içinden pencereyi gizlemek gibi yeniden girişli işler için.
+pub fn post_local(work: impl FnOnce() + 'static) {
+    slint::Timer::single_shot(Duration::ZERO, work);
+}

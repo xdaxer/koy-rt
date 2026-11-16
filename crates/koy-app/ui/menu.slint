@@ -1,0 +1,175 @@
+// Karşılığı: koy/src/App/Features/Menu/SagAltMenuWindow.xaml. Sağ alt (tepsi) menüsü: 320 px kabuk; köşe, kenarlık,
+// gölge ve bulanıklık DWM'den (WindowFrame), yüzey malzemeyi izler.
+
+import { Theme } from "theme.slint";
+import { Icons, KoyIcon } from "icons.slint";
+import { Motion } from "controls.slint";
+
+// Çentik / Dock aç-kapa kartı (64 px).
+component FeatureCard inherits Rectangle {
+    in property <string> title;
+    in property <bool> enabled;
+    in property <string> on-text;
+    in property <string> off-text;
+    callback clicked;
+    height: 64px;
+    border-radius: Theme.radius-row;
+    background: enabled ? Theme.accent : Theme.bg-control;
+    opacity: touch.has-hover ? 0.9 : 1;
+    accessible-role: switch;
+    accessible-checked: enabled;
+    accessible-label: title;
+    VerticalLayout {
+        padding-left: 14px;
+        padding-right: 14px;
+        alignment: center;
+        Text {
+            text: title;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: Theme.font;
+            color: enabled ? Theme.on-accent : Theme.text-secondary;
+        }
+        Text {
+            text: enabled ? on-text : off-text;
+            font-size: 12px;
+            font-family: Theme.font;
+            color: enabled ? Theme.on-accent : Theme.text-secondary;
+            opacity: enabled ? 0.8 : 1;
+        }
+    }
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+export enum MenuActionKind { normal, danger, update }
+
+// Eylem satırı: 40 px, simge + metin.
+component MenuAction inherits Rectangle {
+    in property <string> icon;
+    in property <string> text;
+    in property <MenuActionKind> kind: MenuActionKind.normal;
+    callback clicked;
+    height: 40px;
+    border-radius: Theme.radius-control;
+    background: kind == MenuActionKind.update
+        ? (touch.has-hover ? Theme.accent-hover : Theme.accent)
+        : touch.pressed ? Theme.border-strong : touch.has-hover ? Theme.bg-control : transparent;
+    opacity: kind == MenuActionKind.update && touch.pressed ? 0.85 : 1;
+    accessible-role: button;
+    accessible-label: text;
+    property <color> fg: kind == MenuActionKind.danger ? Theme.danger-text : kind == MenuActionKind.update ? Theme.on-accent : Theme.text-primary;
+    HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 10px;
+        spacing: 12px;
+        KoyIcon { data: icon; size: 16px; color: fg; y: (parent.height - 16px) / 2; }
+        Text {
+            text: root.text;
+            font-size: 14px;
+            font-weight: kind == MenuActionKind.update ? 600 : 400;
+            font-family: Theme.font;
+            color: fg;
+            vertical-alignment: center;
+            horizontal-stretch: 1;
+        }
+    }
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+export global MenuText {
+    in property <string> title;
+    in property <string> nav-notch;
+    in property <string> nav-dock;
+    in property <string> on;
+    in property <string> off;
+    in property <string> open-koy-window;
+}
+
+export component SagAltMenuWindow inherits Window {
+    title: MenuText.title;
+    no-frame: true;
+    always-on-top: true;
+    background: transparent;
+    in property <float> ui-scale: 1;
+    width: 320px * ui-scale;
+    in property <string> monitor-summary;
+    in property <bool> notch-enabled;
+    in property <bool> dock-enabled;
+    in property <string> pause-text;
+    in property <string> exit-text;
+    in property <bool> has-available-update;
+    in property <string> available-version-text;
+    callback toggle-notch;
+    callback toggle-dock;
+    callback open-koy-window;
+    callback pause-one-hour;
+    callback open-update;
+    callback exit;
+
+    Rectangle {
+        background: Theme.bg-window;
+        content := VerticalLayout {
+            padding: 14px * ui-scale;
+            // Başlık alanı
+            HorizontalLayout {
+                padding-left: 2px * ui-scale;
+                padding-right: 4px * ui-scale;
+                padding-top: 2px * ui-scale;
+                padding-bottom: 12px * ui-scale;
+                Text {
+                    text: "Koy";
+                    font-size: 15px * ui-scale;
+                    font-weight: 700;
+                    font-family: Theme.font;
+                    color: Theme.text-primary;
+                    vertical-alignment: center;
+                    horizontal-stretch: 1;
+                }
+                Text {
+                    text: monitor-summary;
+                    font-size: 12px * ui-scale;
+                    font-family: Theme.font;
+                    color: Theme.text-secondary;
+                    vertical-alignment: center;
+                }
+            }
+            // 2 sütunlu aç/kapa ızgarası
+            HorizontalLayout {
+                spacing: 8px * ui-scale;
+                padding-bottom: 12px * ui-scale;
+                FeatureCard {
+                    height: 64px * ui-scale;
+                    title: MenuText.nav-notch;
+                    enabled: notch-enabled;
+                    on-text: MenuText.on;
+                    off-text: MenuText.off;
+                    clicked => { toggle-notch(); }
+                }
+                FeatureCard {
+                    height: 64px * ui-scale;
+                    title: MenuText.nav-dock;
+                    enabled: dock-enabled;
+                    on-text: MenuText.on;
+                    off-text: MenuText.off;
+                    clicked => { toggle-dock(); }
+                }
+            }
+            // Eylem listesi
+            MenuAction { height: 40px * ui-scale; icon: Icons.app-window; text: MenuText.open-koy-window; clicked => { open-koy-window(); } }
+            MenuAction { height: 40px * ui-scale; icon: Icons.pause; text: pause-text; clicked => { pause-one-hour(); } }
+            if has-available-update: VerticalLayout {
+                padding-top: 4px * ui-scale;
+                MenuAction {
+                    height: 40px * ui-scale;
+                    kind: MenuActionKind.update;
+                    icon: Icons.download;
+                    text: available-version-text;
+                    clicked => { open-update(); }
+                }
+            }
+            Rectangle { height: 13px * ui-scale; Rectangle { height: 1px; background: Theme.border-hairline; } }
+            MenuAction { height: 40px * ui-scale; kind: MenuActionKind.danger; icon: Icons.power; text: exit-text; clicked => { exit(); } }
+        }
+    }
+    height: content.preferred-height;
+}

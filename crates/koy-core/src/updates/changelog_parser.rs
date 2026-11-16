@@ -43,8 +43,8 @@ static SCOPE_REGEX: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\*\*([a-z0-
 const HIDDEN_SCOPES: [&str; 3] = ["site", "ci", "deps"];
 
 // C#'ta `EmbeddedResource`; burada derleme zamanında gömülür (yol: koy-rt/crates/koy-core/src/updates → koy/).
-const EMBEDDED_CHANGELOG_EN: &str = include_str!("../../../../../koy/CHANGELOG.md");
-const EMBEDDED_CHANGELOG_TR: &str = include_str!("../../../../../koy/CHANGELOG.tr.md");
+const EMBEDDED_CHANGELOG_EN: &str = include_str!("../../assets/CHANGELOG.md");
+const EMBEDDED_CHANGELOG_TR: &str = include_str!("../../assets/CHANGELOG.tr.md");
 
 /// CHANGELOG.md dosyasından sürüme özel notları, öne çıkanları ve kategorileri ayrıştıran saf mantık.
 pub struct ChangelogParser;
