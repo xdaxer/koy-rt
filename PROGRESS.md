@@ -32,7 +32,13 @@
    - ✅ Çentik alt panelleri: Status (VM + WeatherGlyph), SystemInfo, Focus/Tasks (ArcRing), Shelf (OLE sürükle-bırak:
      `infra/ole_dnd.rs`), ClipboardPanel, Calendar (SharedEvents + Google/Outlook eşitleme). Önizleme:
      `koy --snapshot <system|focus|timer|shelf|clipboard|calendar|calweek> <png>`.
-   - Sıradaki: Notch (kalan alt VM'ler: Music, ControlCenter, Focus/Tasks, Shelf, Calendar, SystemInfo, QuickLaunch,
+   - ✅ Görünüm modelleri: Music/Lyrics (WIC kapak çözümü `infra/image_decode.rs`), Home + QuickLaunch (dosya seçici
+     `infra/file_dialog.rs`), ControlCenter (radyo döşemeleri, ses, parlaklık, Wi-Fi sayfası, Bluetooth), Search (22 kaynak,
+     `infra/clipboard_text.rs`), OSD, LiveBackgroundState, NotchViewModel. `ui/notch.slint`: çentik yüzeyi, kapalı / göz atma
+     yerleşimi, açık çentik üst satırı (derleniyor, henüz görsel doğrulanmadı).
+   - Sıradaki: notch_shape.rs (yol + SetWindowRgn ile şekil kırpma; yazılım çizici saydam pencere desteklemiyor), yay
+     animasyonu, NotchWindow (Rust) + Home/ControlCenter/Search/OSD/Kart Slint görünümleri, NotchFeature. Sonra (eski not:
+     Music, ControlCenter, Focus/Tasks, Shelf, Calendar, SystemInfo, QuickLaunch,
      ClipboardPanel, Search, OSD → NotchViewModel → NotchWindow → NotchFeature), sonra Dock, Settings/KoyWindow, Extensions,
      Rules, Wizard, Home, `app.rs` (App.xaml.cs) ve main.
    - Desen: C# ViewModel → Rust struct (`Rc`), görünüm durumu Slint bileşen özelliklerine / global'lere yazılır; olaylar

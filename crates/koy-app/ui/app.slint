@@ -5,11 +5,12 @@ import { NotchInput, NotchSwitch, NotchRowButton, NotchPillButton, NotchPlainBut
 import { SagAltMenuWindow, MenuText } from "menu.slint";
 import { WeatherGlyph } from "status.slint";
 import { SystemPanel, SystemStatsData, SystemText } from "system_panel.slint";
+import { NotchSurface, NotchTopRow, NotchData, NotchTabData, NotchText } from "notch.slint";
 import { CalendarPanel, CalendarData, CalendarText, CalCellData, CalWeekRowData, CalEventData } from "calendar_panel.slint";
 import { ClipboardPanel, ClipFilterData, ClipCardData, ClipText } from "clipboard_panel.slint";
 import { ShelfPanel, ShelfItemData, ShelfText } from "shelf_panel.slint";
 import { FocusPanel, FocusData, TasksData, FocusText, FocusTabData, FocusPresetData, FocusLapData, TaskRowData } from "focus_panel.slint";
-export { Theme, Motion, SagAltMenuWindow, MenuText, SystemText, SystemStatsData, FocusText, FocusData, TasksData, FocusTabData, FocusPresetData, FocusLapData, TaskRowData, ShelfItemData, ShelfText, ClipFilterData, ClipCardData, ClipText, CalendarData, CalendarText, CalCellData, CalWeekRowData, CalEventData }
+export { Theme, Motion, SagAltMenuWindow, MenuText, SystemText, SystemStatsData, FocusText, FocusData, TasksData, FocusTabData, FocusPresetData, FocusLapData, TaskRowData, ShelfItemData, ShelfText, ClipFilterData, ClipCardData, ClipText, CalendarData, CalendarText, CalCellData, CalWeekRowData, CalEventData, NotchData, NotchTabData, NotchText }
 
 // Bileşen denetimi: kontrol kitaplığının derlendiğini ve çizildiğini doğrulayan önizleme penceresi.
 export component Probe inherits Window {
@@ -58,4 +59,16 @@ export component NotchPanelPreview inherits Window {
         if panel == "shelf": ShelfPanel { items: shelf-items; count-text: shelf-count; }
         if panel == "focus": FocusPanel { fdata: fdata; tasks: tasks; }
     }
+}
+
+// Geliştirici önizlemesi: kapalı / göz atma çentiği (`koy --snapshot notch-collapsed <png>`).
+export component NotchShapePreview inherits Window {
+    in property <NotchData> d;
+    in property <string> shape-path;
+    in property <length> shape-width;
+    in property <length> shape-height;
+    width: 640px;
+    height: 120px;
+    background: #3a4a5a;
+    NotchSurface { d: d; shape-path: shape-path; shape-width: shape-width; shape-height: shape-height; }
 }

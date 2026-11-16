@@ -1,0 +1,562 @@
+// Karşılığı: koy/src/App/Features/Notch/NotchWindow.xaml. Sabit 640×364 tuval üzerinde yay animasyonlu çentik şekli:
+// kapalı (saat, pil, radyo simgeleri ya da çalan parça), göz atma (kapak, ad, sanatçı), gösterge (OSD / kart) ve açık
+// çentik (üst satır + sayfa). Şeklin dışı pencere bölgesiyle (SetWindowRgn) kırpılır; boyutlar Rust'taki yaydan gelir.
+
+import { Theme } from "theme.slint";
+import { Icons, KoyIcon } from "icons.slint";
+import { WeatherGlyph } from "status.slint";
+import { NotchPlainButton } from "notch_controls.slint";
+
+export struct NotchTabData { panel: int, label: string, icon: string, accent: string, selected: bool }
+
+export struct NotchData {
+    // 0 kapalı, 1 göz atma, 2 açık.
+    state: int,
+    current-panel: int,
+    surface: color,
+    show-collapsed-layout: bool,
+    show-peek-layout: bool,
+    osd-active: bool,
+    search-open: bool,
+    // Boşta görünüm.
+    is-music-playing: bool,
+    show-idle-classic-clock: bool,
+    clock-time: string,
+    clock-extras: string,
+    show-idle-timer: bool,
+    idle-timer-text: string,
+    is-idle-ring: bool,
+    show-idle-ring: bool,
+    battery-ring-path: string,
+    battery-ring-color: color,
+    battery-percent-text: string,
+    is-charging: bool,
+    idle-day-time: string,
+    idle-peek-date: string,
+    show-idle-peek-date: bool,
+    show-idle-battery: bool,
+    battery-fill-width: float,
+    has-battery: bool,
+    battery-percent: int,
+    show-idle-radio: bool,
+    wifi-present: bool,
+    wifi-on: bool,
+    bluetooth-present: bool,
+    bluetooth-on: bool,
+    has-privacy-activity: bool,
+    camera-active: bool,
+    microphone-active: bool,
+    // Müzik.
+    music-title: string,
+    music-artist: string,
+    music-has-track: bool,
+    has-thumbnail: bool,
+    thumbnail: image,
+    show-music-waveform: bool,
+    waveform-bars: [float],
+    waveform-color: color,
+    // Açık çentik üst satırı.
+    status-time: string,
+    show-weather: bool,
+    show-no-location: bool,
+    weather-icon: string,
+    temperature-short: string,
+    is-music-page-selected: bool,
+    is-home-page-selected: bool,
+    show-tab-bar: bool,
+    side-tabs: [NotchTabData],
+    is-pinned: bool,
+}
+
+export global NotchText {
+    in property <string> pick-location;
+    in property <string> percent-format;
+}
+
+// Gizlilik noktaları: kamera (yeşil) ve mikrofon (turuncu).
+component PrivacyDots inherits HorizontalLayout {
+    in property <bool> camera;
+    in property <bool> microphone;
+    spacing: 4px;
+    alignment: center;
+    if camera: VerticalLayout {
+        alignment: center;
+        Rectangle { width: 6px; height: 6px; border-radius: 3px; background: #22c55e; }
+    }
+    if microphone: VerticalLayout {
+        alignment: center;
+        Rectangle { width: 6px; height: 6px; border-radius: 3px; background: #f97316; }
+    }
+}
+
+// Kapalıyken çapraz çizgili radyo simgesi.
+component RadioIcon inherits Rectangle {
+    in property <string> icon;
+    in property <bool> on;
+    in property <float> stroke: 2.4;
+    width: 14px;
+    height: 14px;
+    opacity: on ? 1 : 0.4;
+    KoyIcon { data: icon; size: 14px; stroke-units: stroke; color: Theme.notch-text; }
+    if !on: Path {
+        width: 14px;
+        height: 14px;
+        viewbox-width: 14;
+        viewbox-height: 14;
+        commands: "M 1 13 L 13 1";
+        stroke: Theme.notch-text;
+        stroke-width: 1.4px;
+        stroke-line-cap: round;
+    }
+}
+
+// Kapak: arka plan, nota simgesi ve (varsa) kapak resmi.
+component Cover inherits Rectangle {
+    in property <bool> has-image;
+    in property <image> source;
+    in property <color> fill: Theme.notch-music-cover;
+    border-radius: 5px;
+    background: fill;
+    clip: true;
+    Path {
+        width: parent.width / 2;
+        height: parent.height / 2;
+        commands: "M 12,3 L 6,5 L 6,11 A 2.5,2.5 0 1 1 3.5,8.5 L 5,8.5 L 5,4 L 12,2 Z";
+        fill: #ffffff60;
+    }
+    if has-image: Image {
+        width: 100%;
+        height: 100%;
+        source: source;
+        image-fit: cover;
+    }
+}
+
+component StatusButton inherits Rectangle {
+    in property <string> icon;
+    in property <color> tint: Theme.notch-dim;
+    callback clicked;
+    width: 26px;
+    height: 26px;
+    border-radius: 13px;
+    background: touch.has-hover ? Theme.notch-hover : transparent;
+    KoyIcon { data: icon; size: 15px; color: tint; }
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+component SwitchButton inherits Rectangle {
+    in property <string> icon;
+    in property <bool> selected;
+    in property <bool> dot;
+    callback clicked;
+    width: 40px;
+    height: 24px;
+    border-radius: 12px;
+    background: selected ? Theme.notch-pressed : transparent;
+    KoyIcon { data: icon; size: 15px; color: selected || touch.has-hover ? Theme.notch-text : Theme.notch-dim; }
+    if dot: Rectangle { x: parent.width - 9px - 5px; y: 4px; width: 5px; height: 5px; border-radius: 2.5px; background: #4ade80; }
+    touch := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+// Kapalı çentik: boşta görünüm (saat, pil, radyo) ya da çalan parça.
+component CollapsedView inherits Rectangle {
+    in property <NotchData> d;
+    callback open-control-center();
+    // 1a. Boşta.
+    if !d.is-music-playing: HorizontalLayout {
+        padding-left: 22px;
+        padding-right: 22px;
+        spacing: 0px;
+        // Sol sütun: klasik saat, halka modunda pil halkası ya da süre.
+        if d.show-idle-classic-clock: Text {
+            vertical-alignment: center;
+            overflow: elide;
+            font-family: Theme.clock-font;
+            font-size: 13px;
+            font-weight: 600;
+            color: Theme.notch-text;
+            text: d.clock-time;
+        }
+        if d.show-idle-classic-clock && d.clock-extras != "": Text {
+            vertical-alignment: center;
+            overflow: elide;
+            font-family: Theme.clock-font;
+            font-size: 13px;
+            color: Theme.notch-text-muted;
+            text: d.clock-extras;
+        }
+        if d.is-idle-ring && d.show-idle-timer: Text {
+            vertical-alignment: center;
+            text: d.idle-timer-text;
+            color: Theme.notch-accent-focus;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: Theme.notch-font;
+        }
+        if d.show-idle-ring: HorizontalLayout {
+            spacing: 6px;
+            alignment: start;
+            VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    width: 18px;
+                    height: 18px;
+                    Rectangle { width: 17px; height: 17px; border-radius: 8.5px; border-width: 2.5px; border-color: #ffffff47; }
+                    if d.battery-ring-path != "": Path {
+                        width: 18px;
+                        height: 18px;
+                        viewbox-width: 18;
+                        viewbox-height: 18;
+                        commands: d.battery-ring-path;
+                        stroke: d.battery-ring-color;
+                        stroke-width: 2.5px;
+                        stroke-line-cap: round;
+                    }
+                }
+            }
+            Text {
+                vertical-alignment: center;
+                text: d.battery-percent-text;
+                color: Theme.notch-text;
+                font-size: 12px;
+                font-weight: 600;
+                font-family: Theme.notch-font;
+            }
+            if d.is-charging: VerticalLayout {
+                alignment: center;
+                Path { width: 11px; height: 11px; commands: "M13 2L4 14h7l-1 8 9-12h-7z"; fill: d.battery-ring-color; }
+            }
+        }
+        // Orta: gizlilik noktaları (ve klasik yerleşimde radyo simgeleri sağa yaslı).
+        Rectangle {
+            horizontal-stretch: 1;
+            HorizontalLayout {
+                alignment: d.is-idle-ring && !d.show-idle-ring && !d.show-idle-timer ? center : stretch;
+                if d.has-privacy-activity: Rectangle {
+                    horizontal-stretch: 1;
+                    PrivacyDots { camera: d.camera-active; microphone: d.microphone-active; }
+                }
+                // Halka modu, sağ: gün ve saat (pil ve süre yoksa ortada).
+                if d.is-idle-ring: HorizontalLayout {
+                    alignment: end;
+                    horizontal-stretch: 1;
+                    spacing: 5px;
+                    Text {
+                        vertical-alignment: center;
+                        text: d.idle-day-time;
+                        font-family: Theme.clock-font;
+                        color: Theme.notch-text;
+                        font-size: 13px;
+                        font-weight: 600;
+                    }
+                    if d.show-idle-peek-date: Text {
+                        vertical-alignment: center;
+                        text: d.idle-peek-date;
+                        color: Theme.notch-text-muted;
+                        font-size: 13px;
+                        font-family: Theme.notch-font;
+                    }
+                }
+                if !d.is-idle-ring && !d.has-privacy-activity: Rectangle { horizontal-stretch: 1; }
+                if d.show-idle-radio: HorizontalLayout {
+                    padding-left: d.is-idle-ring ? 6px : 0px;
+                    padding-right: d.is-idle-ring ? 0px : 4px;
+                    spacing: 6px;
+                    alignment: end;
+                    if d.wifi-present: VerticalLayout {
+                        alignment: center;
+                        RadioIcon { icon: Icons.wifi; on: d.wifi-on; }
+                    }
+                    if d.bluetooth-present: VerticalLayout {
+                        alignment: center;
+                        RadioIcon { icon: Icons.bluetooth; on: d.bluetooth-on; stroke: 1.8; }
+                    }
+                    TouchArea { width: 0px; }
+                }
+            }
+            if d.show-idle-radio: TouchArea {
+                x: parent.width - 50px;
+                width: 50px;
+                mouse-cursor: pointer;
+                clicked => { root.open-control-center(); }
+            }
+        }
+        // Sağ sütun: süre ya da pil gövdesi.
+        if !d.is-idle-ring && d.show-idle-timer: Text {
+            vertical-alignment: center;
+            text: d.idle-timer-text;
+            color: Theme.notch-accent-focus;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: Theme.notch-font;
+        }
+        if d.show-idle-battery: HorizontalLayout {
+            spacing: 2px;
+            VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    width: 22px;
+                    height: 11px;
+                    border-width: 1.5px;
+                    border-color: Theme.notch-text;
+                    border-radius: 3px;
+                    Rectangle {
+                        x: 2.5px;
+                        width: d.battery-fill-width * 1px;
+                        height: 6px;
+                        border-radius: 1px;
+                        background: #4ade80;
+                    }
+                }
+            }
+            VerticalLayout {
+                alignment: center;
+                Rectangle { width: 2px; height: 5px; border-radius: 1px; background: Theme.notch-text; }
+            }
+        }
+    }
+    // 1b. Müzik çalarken: kapak, ad ve dalga simgesi.
+    if d.is-music-playing: HorizontalLayout {
+        padding-left: 30px;
+        padding-right: 30px;
+        spacing: 8px;
+        VerticalLayout {
+            alignment: center;
+            Cover { width: 22px; height: 22px; has-image: d.has-thumbnail; source: d.thumbnail; }
+        }
+        Text {
+            horizontal-stretch: 1;
+            text: d.music-title;
+            color: Theme.notch-text;
+            font-size: 11px;
+            font-weight: 500;
+            font-family: Theme.notch-font;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+        if d.has-privacy-activity: PrivacyDots { camera: d.camera-active; microphone: d.microphone-active; }
+        if d.show-music-waveform: HorizontalLayout {
+            spacing: 2px;
+            alignment: center;
+            for b in d.waveform-bars: VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    height: 14px;
+                    width: 3px;
+                    Rectangle { y: parent.height - self.height; width: 3px; height: b * 1px; border-radius: 1px; background: d.waveform-color; }
+                }
+            }
+        }
+    }
+}
+
+// Göz atma: kapak, ad ve sanatçı, oynatma çizgileri.
+component PeekView inherits HorizontalLayout {
+    in property <NotchData> d;
+    padding-left: 12px;
+    padding-right: 12px;
+    spacing: 8px;
+    VerticalLayout {
+        alignment: center;
+        Cover { width: 24px; height: 24px; fill: #ffffff20; has-image: d.has-thumbnail; source: d.thumbnail; }
+    }
+    VerticalLayout {
+        horizontal-stretch: 1;
+        alignment: center;
+        Text { text: d.music-title; color: Theme.notch-text; font-size: 11px; font-weight: 600; overflow: elide; font-family: Theme.notch-font; }
+        Text { text: d.music-artist; color: #ffffff99; font-size: 9px; overflow: elide; font-family: Theme.notch-font; }
+    }
+    VerticalLayout {
+        alignment: center;
+        Path {
+            width: 14px;
+            height: 14px;
+            viewbox-width: 14;
+            viewbox-height: 14;
+            opacity: 0.9;
+            commands: "M 2 3 L 2 11 M 6 1 L 6 13 M 10 4 L 10 10";
+            stroke: Theme.notch-text;
+            stroke-width: 1.5px;
+            stroke-line-cap: round;
+        }
+    }
+}
+
+// Açık çentiğin üst satırı: solda saat, hava ve pil; ortada Müzik / Ana anahtarı; sağda öbür sekmeler, bildirim ve iğne.
+export component NotchTopRow inherits Rectangle {
+    in property <NotchData> d;
+    callback refresh-weather();
+    callback choose-location();
+    callback show-music();
+    callback show-home();
+    callback select-tab(int);
+    callback open-notifications();
+    callback toggle-pinned();
+    height: 30px;
+    HorizontalLayout {
+        padding-left: 4px;
+        spacing: 10px;
+        alignment: start;
+        Text {
+            vertical-alignment: center;
+            text: d.status-time;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: Theme.notch-text;
+            font-family: Theme.notch-font;
+        }
+        if d.has-privacy-activity: PrivacyDots { camera: d.camera-active; microphone: d.microphone-active; }
+        if d.show-weather: NotchPlainButton {
+            clicked => { root.refresh-weather(); }
+            HorizontalLayout {
+                spacing: 5px;
+                VerticalLayout {
+                    alignment: center;
+                    Rectangle {
+                        width: 15px;
+                        height: 15px;
+                        WeatherGlyph { kind: d.weather-icon; width: 20px; height: 22px; x: -2px; y: -3px; }
+                    }
+                }
+                Text { vertical-alignment: center; text: d.temperature-short; font-size: 12.5px; color: Theme.notch-text; font-family: Theme.notch-font; }
+            }
+        }
+        if d.show-no-location: NotchPlainButton {
+            clicked => { root.choose-location(); }
+            Text { vertical-alignment: center; text: NotchText.pick-location; font-size: 12px; color: Theme.notch-muted; font-family: Theme.notch-font; }
+        }
+        if d.has-battery: HorizontalLayout {
+            spacing: 5px;
+            VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    width: 20px;
+                    height: 10px;
+                    border-width: 1.5px;
+                    border-color: Theme.notch-muted;
+                    border-radius: 3px;
+                    Rectangle { x: 2.5px; width: min(d.battery-fill-width, 14) * 1px; height: 5px; border-radius: 1px; background: #4ade80; }
+                }
+            }
+            Text {
+                vertical-alignment: center;
+                text: NotchText.percent-format == "tr" ? "%" + d.battery-percent : d.battery-percent + "%";
+                font-size: 12px;
+                color: Theme.notch-muted;
+                font-family: Theme.notch-font;
+            }
+        }
+    }
+    // Orta: Müzik / Ana anahtarı.
+    Rectangle {
+        x: (parent.width - self.width) / 2;
+        width: 88px;
+        height: 28px;
+        border-radius: 14px;
+        background: Theme.notch-chip;
+        HorizontalLayout {
+            padding: 2px;
+            spacing: 2px;
+            SwitchButton { icon: Icons.music; selected: d.is-music-page-selected; dot: d.music-has-track; clicked => { root.show-music(); } }
+            SwitchButton { icon: Icons.tab-home; selected: d.is-home-page-selected; clicked => { root.show-home(); } }
+        }
+    }
+    // Sağ: sekmeler, çizgi, bildirim, iğne.
+    HorizontalLayout {
+        alignment: end;
+        spacing: 0px;
+        if d.show-tab-bar: HorizontalLayout {
+            spacing: 2px;
+            for t in d.side-tabs: VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    width: 27px;
+                    height: 27px;
+                    border-radius: 8px;
+                    background: t.selected ? Theme.notch-active : tab-touch.has-hover ? Theme.notch-hover : transparent;
+                    KoyIcon {
+                        data: t.icon;
+                        size: 15px;
+                        color: t.selected ? Theme.get-color(t.accent, Theme.rev) : tab-touch.has-hover ? Theme.notch-text : Theme.notch-dim;
+                    }
+                    tab-touch := TouchArea { mouse-cursor: pointer; clicked => { root.select-tab(t.panel); } }
+                }
+            }
+        }
+        VerticalLayout {
+            alignment: center;
+            padding-left: 6px;
+            padding-right: 6px;
+            Rectangle { width: 1px; height: 16px; background: Theme.notch-divider; }
+        }
+        VerticalLayout {
+            alignment: center;
+            StatusButton { icon: Icons.bell; clicked => { root.open-notifications(); } }
+        }
+        VerticalLayout {
+            alignment: center;
+            StatusButton { icon: Icons.pin; tint: d.is-pinned ? Theme.notch-accent-control : Theme.notch-dim; clicked => { root.toggle-pinned(); } }
+        }
+    }
+}
+
+// Çentik şekli ve içerik katmanları. Sayfa ve gösterge içerikleri `@children` ile verilir (uygulama penceresi bağlar).
+export component NotchSurface inherits Rectangle {
+    in property <NotchData> d;
+    in property <length> shape-width: 236px;
+    in property <length> shape-height: 34px;
+    in property <length> translate-y: 0px;
+    in property <string> shape-path;
+    in property <length> panel-translate-x: 0px;
+    in property <float> panel-opacity: 1;
+    in property <float> scale-x: 1;
+    in property <float> scale-y: 1;
+    callback open-control-center();
+    callback mouse-entered();
+    callback mouse-left();
+    callback clicked();
+    callback wheel(length);
+    callback context-menu();
+    // Şekil (yol 640×364 tuvalde).
+    Path {
+        width: 640px;
+        height: 364px;
+        viewbox-width: 640;
+        viewbox-height: 364;
+        commands: shape-path;
+        fill: d.surface;
+    }
+    // İçerik dokunma alanının içindedir: düğmelerin üstündeyken de çentik "fare üstünde" sayılır (WPF MouseEnter/Leave).
+    hit := TouchArea {
+        x: (640px - shape-width) / 2;
+        y: translate-y;
+        width: shape-width;
+        height: shape-height;
+        mouse-cursor: pointer;
+        changed has-hover => {
+            if self.has-hover { root.mouse-entered(); } else { root.mouse-left(); }
+        }
+        clicked => { root.clicked(); }
+        pointer-event(e) => {
+            if e.button == PointerEventButton.right && e.kind == PointerEventKind.up { root.context-menu(); }
+        }
+        scroll-event(e) => {
+            root.wheel(e.delta-y);
+            accept
+        }
+        Rectangle {
+            width: 100%;
+            height: 100%;
+            clip: true;
+            if d.show-collapsed-layout && !d.osd-active: CollapsedView {
+                width: 100%;
+                height: 100%;
+                d: d;
+                open-control-center => { root.open-control-center(); }
+            }
+            if d.show-peek-layout && !d.osd-active: PeekView { width: 100%; height: 100%; d: d; }
+            @children
+        }
+    }
+}
