@@ -321,139 +321,145 @@ component DockEntryView inherits Rectangle {
     }
 }
 
-// Uygulama şeridi (yatay ya da dikey).
-export component DockStrip inherits Rectangle {
+// Uygulama şeridi (yatay ve dikey ayrı bileşen: düzen boyutu üst öğeye geçsin diye).
+export component DockStripH inherits HorizontalLayout {
     in property <[DockEntryData]> entries;
     in property <DockPresentationData> p;
-    in property <bool> vertical;
-    in property <length> spacing;
-    in property <length> max-length;
-    in property <bool> clipped;
+    in property <length> gap;
     callback pointer(int, int, int, length, length, length);
     callback entered(int);
     callback left(int);
-    clip: clipped;
-    if !vertical: HorizontalLayout {
-        spacing: root.spacing;
-        for en[i] in entries: DockEntryView {
-            e: en;
-            p: root.p;
-            index: i;
-            vertical: false;
-            spacing: root.spacing;
-            pointer(a, b, c, x, y, s) => { root.pointer(a, b, c, x, y, s); }
-            entered(i) => { root.entered(i); }
-            left(i) => { root.left(i); }
-        }
+    spacing: gap;
+    for en[i] in entries: DockEntryView {
+        e: en;
+        p: root.p;
+        index: i;
+        vertical: false;
+        spacing: root.gap;
+        pointer(a, b, c, x, y, s) => { root.pointer(a, b, c, x, y, s); }
+        entered(i) => { root.entered(i); }
+        left(i) => { root.left(i); }
     }
-    if vertical: VerticalLayout {
-        spacing: root.spacing;
-        for en[i] in entries: DockEntryView {
-            e: en;
-            p: root.p;
-            index: i;
-            vertical: true;
-            spacing: root.spacing;
-            pointer(a, b, c, x, y, s) => { root.pointer(a, b, c, x, y, s); }
-            entered(i) => { root.entered(i); }
-            left(i) => { root.left(i); }
-        }
+}
+
+export component DockStripV inherits VerticalLayout {
+    in property <[DockEntryData]> entries;
+    in property <DockPresentationData> p;
+    in property <length> gap;
+    callback pointer(int, int, int, length, length, length);
+    callback entered(int);
+    callback left(int);
+    spacing: gap;
+    for en[i] in entries: DockEntryView {
+        e: en;
+        p: root.p;
+        index: i;
+        vertical: true;
+        spacing: root.gap;
+        pointer(a, b, c, x, y, s) => { root.pointer(a, b, c, x, y, s); }
+        entered(i) => { root.entered(i); }
+        left(i) => { root.left(i); }
     }
 }
 
 // Sağ bölümdeki düğmeler (indirilenler, son kullanılanlar, tepsi) ve Koy menüsü — kapsül ve tam genişlik paylaşır.
-component RightSection inherits Rectangle {
+component RightSectionH inherits HorizontalLayout {
     in property <DockData> d;
-    in property <bool> vertical;
     in property <length> size;
     callback open-downloads();
     callback toggle-recents();
     callback toggle-tray();
     callback open-koy-menu();
-    callback koy-menu-right();
-    if !vertical: HorizontalLayout {
-        spacing: d.slot-spacing;
-        if d.show-folders: FlatButton { width: size; height: size; tip: DockText.downloads; clicked => { root.open-downloads(); } DownloadsGlyph { } }
-        if d.show-recents: FlatButton {
-            width: size;
-            height: size;
-            tip: DockText.recent-files;
-            active: d.recents-open;
-            clicked => { root.toggle-recents(); }
-            KoyIcon { data: Icons.layers; size: 16px; stroke-units: 2; color: Theme.notch-text-secondary; }
-        }
-        if d.show-full-tray: FlatButton {
-            width: size;
-            height: size;
-            tip: DockText.system-tray;
-            active: d.tray-open;
-            clicked => { root.toggle-tray(); }
-            KoyIcon { data: Icons.chevron-up; size: 16px; stroke-units: 2.2; color: Theme.notch-text-secondary; }
-        }
-        if d.show-right-section: VerticalLayout {
-            alignment: center;
-            padding-left: 4px;
-            padding-right: 4px;
-            Rectangle { width: 1px; height: 24px; background: Theme.dock-separator; }
-        }
-        FlatButton {
-            width: size;
-            height: size;
-            tip: DockText.koy-menu;
-            clicked => { root.open-koy-menu(); }
-            KoyLogo { width: 18px; height: 18px; color: Theme.accent; }
-        }
-        if d.show-small-tray: FlatButton {
-            width: d.small-tray-width;
-            height: size;
-            radius: 6px;
-            tip: DockText.system-tray;
-            active: d.tray-open;
-            clicked => { root.toggle-tray(); }
-            KoyIcon { data: Icons.chevron-up; size: 12px; stroke-units: 2.2; color: Theme.notch-text-secondary; }
-        }
+
+    spacing: d.slot-spacing;
+    if d.show-folders: FlatButton { width: size; height: size; tip: DockText.downloads; clicked => { root.open-downloads(); } DownloadsGlyph { } }
+    if d.show-recents: FlatButton {
+        width: size;
+        height: size;
+        tip: DockText.recent-files;
+        active: d.recents-open;
+        clicked => { root.toggle-recents(); }
+        KoyIcon { data: Icons.layers; size: 16px; stroke-units: 2; color: Theme.notch-text-secondary; }
     }
-    if vertical: VerticalLayout {
-        spacing: d.slot-spacing;
-        if d.show-folders: FlatButton { width: size; height: size; tip: DockText.downloads; clicked => { root.open-downloads(); } DownloadsGlyph { } }
-        if d.show-recents: FlatButton {
-            width: size;
-            height: size;
-            tip: DockText.recent-files;
-            active: d.recents-open;
-            clicked => { root.toggle-recents(); }
-            KoyIcon { data: Icons.layers; size: 16px; stroke-units: 2; color: Theme.notch-text-secondary; }
-        }
-        if d.show-full-tray: FlatButton {
-            width: size;
-            height: size;
-            tip: DockText.system-tray;
-            active: d.tray-open;
-            clicked => { root.toggle-tray(); }
-            KoyIcon { data: Icons.chevron-up; size: 16px; stroke-units: 2.2; color: Theme.notch-text-secondary; }
-        }
-        if d.show-right-section: HorizontalLayout {
-            alignment: center;
-            padding-top: 4px;
-            padding-bottom: 4px;
-            Rectangle { width: 24px; height: 1px; background: Theme.dock-separator; }
-        }
-        FlatButton {
-            width: size;
-            height: size;
-            tip: DockText.koy-menu;
-            clicked => { root.open-koy-menu(); }
-            KoyLogo { width: 18px; height: 18px; color: Theme.accent; }
-        }
-        if d.show-small-tray: FlatButton {
-            width: size;
-            height: d.small-tray-width;
-            radius: 6px;
-            tip: DockText.system-tray;
-            active: d.tray-open;
-            clicked => { root.toggle-tray(); }
-            KoyIcon { data: Icons.chevron-up; size: 12px; stroke-units: 2.2; color: Theme.notch-text-secondary; }
-        }
+    if d.show-full-tray: FlatButton {
+        width: size;
+        height: size;
+        tip: DockText.system-tray;
+        active: d.tray-open;
+        clicked => { root.toggle-tray(); }
+        KoyIcon { data: Icons.chevron-up; size: 16px; stroke-units: 2.2; color: Theme.notch-text-secondary; }
+    }
+    if d.show-right-section: VerticalLayout {
+        alignment: center;
+        padding-left: 4px;
+        padding-right: 4px;
+        Rectangle { width: 1px; height: 24px; background: Theme.dock-separator; }
+    }
+    FlatButton {
+        width: size;
+        height: size;
+        tip: DockText.koy-menu;
+        clicked => { root.open-koy-menu(); }
+        KoyLogo { width: 18px; height: 18px; color: Theme.accent; }
+    }
+    if d.show-small-tray: FlatButton {
+        width: d.small-tray-width;
+        height: size;
+        radius: 6px;
+        tip: DockText.system-tray;
+        active: d.tray-open;
+        clicked => { root.toggle-tray(); }
+        KoyIcon { data: Icons.chevron-up; size: 12px; stroke-units: 2.2; color: Theme.notch-text-secondary; }
+    }
+}
+
+component RightSectionV inherits VerticalLayout {
+    in property <DockData> d;
+    in property <length> size;
+    callback open-downloads();
+    callback toggle-recents();
+    callback toggle-tray();
+    callback open-koy-menu();
+
+    spacing: d.slot-spacing;
+    if d.show-folders: FlatButton { width: size; height: size; tip: DockText.downloads; clicked => { root.open-downloads(); } DownloadsGlyph { } }
+    if d.show-recents: FlatButton {
+        width: size;
+        height: size;
+        tip: DockText.recent-files;
+        active: d.recents-open;
+        clicked => { root.toggle-recents(); }
+        KoyIcon { data: Icons.layers; size: 16px; stroke-units: 2; color: Theme.notch-text-secondary; }
+    }
+    if d.show-full-tray: FlatButton {
+        width: size;
+        height: size;
+        tip: DockText.system-tray;
+        active: d.tray-open;
+        clicked => { root.toggle-tray(); }
+        KoyIcon { data: Icons.chevron-up; size: 16px; stroke-units: 2.2; color: Theme.notch-text-secondary; }
+    }
+    if d.show-right-section: HorizontalLayout {
+        alignment: center;
+        padding-top: 4px;
+        padding-bottom: 4px;
+        Rectangle { width: 24px; height: 1px; background: Theme.dock-separator; }
+    }
+    FlatButton {
+        width: size;
+        height: size;
+        tip: DockText.koy-menu;
+        clicked => { root.open-koy-menu(); }
+        KoyLogo { width: 18px; height: 18px; color: Theme.accent; }
+    }
+    if d.show-small-tray: FlatButton {
+        width: size;
+        height: d.small-tray-width;
+        radius: 6px;
+        tip: DockText.system-tray;
+        active: d.tray-open;
+        clicked => { root.toggle-tray(); }
+        KoyIcon { data: Icons.chevron-up; size: 12px; stroke-units: 2.2; color: Theme.notch-text-secondary; }
     }
 }
 
@@ -486,6 +492,9 @@ export component DockWindow inherits Window {
     background: d.full-width ? d.full-surface : d.capsule-surface;
     default-font-family: Theme.notch-font;
     property <length> start-size: d.full-width ? 34px : d.item-size;
+    // Kapsülde pencere içeriğe göre (kenar boşlukları dahil); tam genişlikte Rust'ın verdiği çubuk boyutu.
+    width: d.full-width ? bar-width : (d.vertical ? d.dock-height + d.margin-left + d.margin-right : max(d.dock-height, cap-h.preferred-width) + d.margin-left + d.margin-right);
+    height: d.full-width ? bar-height : (d.vertical ? max(d.dock-height, cap-v.preferred-height) + d.margin-top + d.margin-bottom : d.dock-height + d.margin-top + d.margin-bottom);
 
     FocusScope {
         key-pressed(e) => {
@@ -504,7 +513,8 @@ export component DockWindow inherits Window {
                 height: parent.height;
                 opacity: d.opacity;
                 // ---- Yüzen kapsül ----
-                if !d.full-width: Rectangle {
+                Rectangle {
+                    visible: !d.full-width;
                     x: d.margin-left;
                     y: d.margin-top;
                     width: parent.width - d.margin-left - d.margin-right;
@@ -517,7 +527,8 @@ export component DockWindow inherits Window {
                     border-color: Theme.dock-capsule-border;
                     background: d.capsule-surface;
                     capsule := Rectangle {
-                        if !d.vertical: HorizontalLayout {
+                        cap-h := HorizontalLayout {
+                            visible: !d.vertical;
                             padding: d.inner-padding;
                             alignment: center;
                             spacing: d.slot-spacing;
@@ -534,13 +545,10 @@ export component DockWindow inherits Window {
                             }
                             VerticalLayout {
                                 alignment: center;
-                                DockStrip {
+                                DockStripH {
                                     entries: root.entries;
                                     p: root.p;
-                                    vertical: false;
-                                    spacing: d.slot-spacing;
-                                    clipped: d.strip-clipped;
-                                    max-width: d.items-max-length;
+                                    gap: d.slot-spacing;
                                     pointer(a, b, c, x, y, s) => { root.entry-pointer(a, b, c, x, y, s); }
                                     entered(i) => { root.entry-entered(i); }
                                     left(i) => { root.entry-left(i); }
@@ -554,9 +562,8 @@ export component DockWindow inherits Window {
                             }
                             VerticalLayout {
                                 alignment: center;
-                                RightSection {
+                                RightSectionH {
                                     d: d;
-                                    vertical: false;
                                     size: d.item-size;
                                     open-downloads => { root.open-downloads(); }
                                     toggle-recents => { root.toggle-recents(); }
@@ -565,7 +572,8 @@ export component DockWindow inherits Window {
                                 }
                             }
                         }
-                        if d.vertical: VerticalLayout {
+                        cap-v := VerticalLayout {
+                            visible: d.vertical;
                             padding: d.inner-padding;
                             alignment: center;
                             spacing: d.slot-spacing;
@@ -582,13 +590,10 @@ export component DockWindow inherits Window {
                             }
                             HorizontalLayout {
                                 alignment: center;
-                                DockStrip {
+                                DockStripV {
                                     entries: root.entries;
                                     p: root.p;
-                                    vertical: true;
-                                    spacing: d.slot-spacing;
-                                    clipped: d.strip-clipped;
-                                    max-height: d.items-max-length;
+                                    gap: d.slot-spacing;
                                     pointer(a, b, c, x, y, s) => { root.entry-pointer(a, b, c, x, y, s); }
                                     entered(i) => { root.entry-entered(i); }
                                     left(i) => { root.entry-left(i); }
@@ -602,9 +607,8 @@ export component DockWindow inherits Window {
                             }
                             HorizontalLayout {
                                 alignment: center;
-                                RightSection {
+                                RightSectionV {
                                     d: d;
-                                    vertical: true;
                                     size: d.item-size;
                                     open-downloads => { root.open-downloads(); }
                                     toggle-recents => { root.toggle-recents(); }
@@ -671,14 +675,13 @@ export component DockWindow inherits Window {
                         center-area := Rectangle {
                             horizontal-stretch: 1;
                             changed width => { root.center-length(self.width); }
-                            DockStrip {
+                            clip: d.strip-clipped;
+                            DockStripH {
                                 x: d.strip-alignment == 1 ? 0px : d.strip-alignment == 2 ? parent.width - self.width : (parent.width - self.width) / 2;
                                 width: min(self.preferred-width, parent.width);
                                 entries: root.entries;
                                 p: root.p;
-                                vertical: false;
-                                spacing: d.slot-spacing;
-                                clipped: d.strip-clipped;
+                                gap: d.slot-spacing;
                                 pointer(a, b, c, x, y, s) => { root.entry-pointer(a, b, c, x, y, s); }
                                 entered(i) => { root.entry-entered(i); }
                                 left(i) => { root.entry-left(i); }
@@ -686,9 +689,8 @@ export component DockWindow inherits Window {
                         }
                         VerticalLayout {
                             alignment: center;
-                            RightSection {
+                            RightSectionH {
                                 d: d;
-                                vertical: false;
                                 size: 34px;
                                 open-downloads => { root.open-downloads(); }
                                 toggle-recents => { root.toggle-recents(); }
@@ -736,14 +738,13 @@ export component DockWindow inherits Window {
                         Rectangle {
                             vertical-stretch: 1;
                             changed height => { root.center-length(self.height); }
-                            DockStrip {
+                            clip: d.strip-clipped;
+                            DockStripV {
                                 y: d.strip-alignment == 1 ? 0px : d.strip-alignment == 2 ? parent.height - self.height : (parent.height - self.height) / 2;
                                 height: min(self.preferred-height, parent.height);
                                 entries: root.entries;
                                 p: root.p;
-                                vertical: true;
-                                spacing: d.slot-spacing;
-                                clipped: d.strip-clipped;
+                                gap: d.slot-spacing;
                                 pointer(a, b, c, x, y, s) => { root.entry-pointer(a, b, c, x, y, s); }
                                 entered(i) => { root.entry-entered(i); }
                                 left(i) => { root.entry-left(i); }
@@ -751,9 +752,8 @@ export component DockWindow inherits Window {
                         }
                         HorizontalLayout {
                             alignment: center;
-                            RightSection {
+                            RightSectionV {
                                 d: d;
-                                vertical: true;
                                 size: 34px;
                                 open-downloads => { root.open-downloads(); }
                                 toggle-recents => { root.toggle-recents(); }

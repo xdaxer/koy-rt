@@ -191,6 +191,84 @@ fn dev_snapshot(view: &str, path: String) -> Result<(), slint::PlatformError> {
             });
             v.run()
         }
+        "dock" | "dock-full" => {
+            use slint::{ModelRc, VecModel};
+            let v = DockWindow::new()?;
+            ThemeManager::install(&v);
+            features::dock::dock_binding::install_text(&v);
+            let full = view == "dock-full";
+            let mut d = DockData::default();
+            d.full_width = full;
+            d.item_size = 38.0;
+            d.slot_spacing = 2.0;
+            d.capsule_surface = slint::Color::from_argb_encoded(0xFF18_181B);
+            d.full_surface = slint::Color::from_argb_encoded(0xFF12_1216);
+            d.dock_height = 60.0;
+            d.margin_left = 12.0;
+            d.margin_top = 12.0;
+            d.margin_right = 12.0;
+            d.margin_bottom = 10.0;
+            d.radius_tl = 18.0;
+            d.radius_tr = 18.0;
+            d.radius_br = 18.0;
+            d.radius_bl = 18.0;
+            d.full_border_top = 1.0;
+            d.opacity = 1.0;
+            d.is_visible = true;
+            d.show_start = true;
+            d.show_folders = true;
+            d.show_recents = true;
+            d.show_full_tray = true;
+            d.show_right_section = true;
+            d.small_tray_width = 18.0;
+            d.items_max_length = 100000.0;
+            d.has_now_playing = full;
+            d.now_playing_title = "Bohemian Rhapsody".into();
+            d.now_playing_artist = "Queen".into();
+            let mut p = DockPresentationData::default();
+            p.draws_mark = true;
+            let entry = |kind: i32, title: &str, running: bool, active: bool, badge: &str, extra: i32| DockEntryData {
+                kind,
+                title: title.into(),
+                icon_size: 28.0,
+                item_size: 38.0,
+                scale: 1.0,
+                press_scale: 1.0,
+                press_opacity: 1.0,
+                running,
+                active,
+                indicator_count: if running { 1 } else { 0 },
+                show_badge: !badge.is_empty(),
+                badge_text: badge.into(),
+                extra_kind: extra,
+                glyph: "\u{E74D}".into(),
+                time_text: "14:32".into(),
+                date_text: "16.11.2026".into(),
+                ..Default::default()
+            };
+            let e = vec![
+                entry(0, "Explorer", true, true, "", 0),
+                entry(0, "Firefox", true, false, "3", 0),
+                entry(0, "Terminal", false, false, "", 0),
+                entry(1, "Klasör", true, false, "", 0),
+                entry(2, "", false, false, "", 0),
+                entry(2, "Saat", false, false, "", 2),
+                entry(2, "Çöp", false, false, "", 3),
+            ];
+            v.set_d(d);
+            v.set_p(p);
+            v.set_entries(ModelRc::new(VecModel::from(e)));
+            v.set_bar_width(1100.0);
+            v.set_bar_height(48.0);
+            let w = v.as_weak();
+            let _t = infra::dispatch::delay(std::time::Duration::from_millis(700), move || {
+                if let Some(v) = w.upgrade() {
+                    infra::snapshot::save(v.window(), &path);
+                }
+                let _ = slint::quit_event_loop();
+            });
+            v.run()
+        }
         "search" => {
             use slint::{ModelRc, VecModel};
             let v = NotchPanelPreview::new()?;
