@@ -43,8 +43,13 @@
      `notch_feature_cards.rs` (güncelleme kartı, bildirim kuyruğu, sesli komut), `voice_reply_window.rs`,
      `notch_line_window.rs`. Geliştirici kipi: `koy.exe --notch [--quit-after N]`. Not: arayüz iş parçacığında OLE
      `main` başında başlatılır (winit sürükle-bırak ister). Gerçek masaüstünde görsel doğrulama ve ince ayar bekliyor.
-   - Sıradaki: Dock (~8.5k satır), Settings/KoyWindow (~11.7k), Extensions, Rules, Wizard, `app.rs` (App.xaml.cs:
-     özellikleri, kısayolları, tepsiyi ve güncelleme kartı → Ayarlar bağlantısını kurar) ve main.
+   - Dock tamam (kod): `features/dock/` — görünüm modelleri (dock, girdiler, sunum, simgeler, durum, tepsi), sıralama
+     yardımcısı, `ui/dock.slint` (kapsül, tam genişlik; önizlemelerle doğrulandı), `ui/dock_popups.slint` (tepsi, son
+     kullanılanlar, klasör paneli, DWM önizleme), yerel menüler (`infra/native_menu.rs`, atlama listesi, Başlat menüsü),
+     `dock_window.rs` (yerleşim, bölge, yaylar), `dock_feature.rs` (AppBar, görev çubuğu, tepsi barındırma, kenardan
+     açma). Gerçek masaüstünde doğrulama bekliyor. Not: açılır pencere yay animasyonu yok (saydamlık yok).
+   - Sıradaki: Settings/KoyWindow (~11.7k), Extensions, Rules, Wizard, `app.rs` (App.xaml.cs: özellikleri, kısayolları,
+     tepsiyi, dock hook'larını ve güncelleme kartı → Ayarlar bağlantısını kurar) ve main.
    - Desen: C# ViewModel → Rust struct (`Rc`), görünüm durumu Slint bileşen özelliklerine / global'lere yazılır; olaylar
      arka plandan `dispatch::post` ile, Rc'ye `UiRef` ile ulaşılır. Pencereler `ThemeManager::install` ile temaya bağlanır.
    - Açık: otomatik güncelleme (C# Velopack) — paketleme kararıyla; UiScalePercent menüde `ui-scale` ile, diğer
