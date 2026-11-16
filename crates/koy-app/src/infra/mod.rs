@@ -1,5 +1,6 @@
 //! Uygulama altyapısı: arayüz iş parçacığı, gizli ileti pencereleri, sistem olayları, tek örnek kilidi.
 
+pub mod clipboard_text;
 pub mod dispatch;
 pub mod file_dialog;
 pub mod image_decode;
