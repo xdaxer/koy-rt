@@ -10,8 +10,9 @@ pub enum WifiAccess {
 }
 
 /// Tarama sonucunda listede ne gösterileceği.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum WifiListState {
+    #[default]
     Loading,
     Ready,
     /// Wi-Fi radyosu kapalı.
