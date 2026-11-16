@@ -5,6 +5,7 @@ pub mod dispatch;
 pub mod file_dialog;
 pub mod image_decode;
 pub mod message_window;
+pub mod native_menu;
 pub mod native_window;
 pub mod observable;
 pub mod ole_dnd;

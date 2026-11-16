@@ -183,7 +183,7 @@ pub struct DockParts {
     pub media: Option<Arc<dyn IMediaService>>,
     pub tray: Option<Arc<dyn ITrayService>>,
     pub recent_files: Option<Arc<dyn koy_core::dock::IRecentFilesService>>,
-    pub jump_lists: Option<Arc<dyn IJumpListService>>,
+    pub jump_lists: Option<Arc<dyn IJumpListService + Send + Sync>>,
 }
 
 pub struct DockViewModel {
@@ -195,7 +195,7 @@ pub struct DockViewModel {
     tray: RefCell<Option<Arc<dyn ITrayService>>>,
     recent_files: Option<Arc<dyn koy_core::dock::IRecentFilesService>>,
     /// Uygulama simgesinin sağ tık menüsündeki atlama listesi; yalnız menü açılınca okunur.
-    pub jump_lists: Option<Arc<dyn IJumpListService>>,
+    pub jump_lists: Option<Arc<dyn IJumpListService + Send + Sync>>,
     pub status: Option<Rc<DockStatusViewModel>>,
     /// Başlat düğmesinin simgesi (düğme gizliyse `None`).
     pub start_icon: Option<StartIcon>,
