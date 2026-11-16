@@ -4,6 +4,7 @@
 
 mod features;
 mod infra;
+mod resources;
 mod shared_services;
 
 slint::include_modules!();

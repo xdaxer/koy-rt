@@ -1,0 +1,4090 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="0" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Shelf" xml:space="preserve">
+    <value>Shelf</value>
+  </data>
+  <data name="NoMediaPlaying" xml:space="preserve">
+    <value>No media playing</value>
+  </data>
+  <data name="ClearAll" xml:space="preserve">
+    <value>Clear All</value>
+  </data>
+  <data name="DragDropPrompt" xml:space="preserve">
+    <value>Drag and drop files or text</value>
+  </data>
+  <data name="Work" xml:space="preserve">
+    <value>Work</value>
+  </data>
+  <data name="ShortBreak" xml:space="preserve">
+    <value>Short Break</value>
+  </data>
+  <data name="LongBreak" xml:space="preserve">
+    <value>Long Break</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="WiFi" xml:space="preserve">
+    <value>Wi-Fi</value>
+  </data>
+  <data name="Bluetooth" xml:space="preserve">
+    <value>Bluetooth</value>
+  </data>
+  <data name="DoNotDisturb" xml:space="preserve">
+    <value>Do Not Disturb</value>
+  </data>
+  <data name="On" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="Off" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Charging" xml:space="preserve">
+    <value>Charging</value>
+  </data>
+  <data name="Loading" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="Reset" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="Start" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="NextPhase" xml:space="preserve">
+    <value>Next Phase</value>
+  </data>
+  <data name="Dock" xml:space="preserve">
+    <value>Dock</value>
+  </data>
+  <data name="LaunchNewInstance" xml:space="preserve">
+    <value>Open New Window</value>
+  </data>
+  <data name="Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="EndTask" xml:space="preserve">
+    <value>End Task</value>
+  </data>
+  <data name="DockJumpListRecent" xml:space="preserve">
+    <value>Recent</value>
+  </data>
+  <data name="DockJumpListFrequent" xml:space="preserve">
+    <value>Frequent</value>
+  </data>
+  <data name="DockJumpListTasks" xml:space="preserve">
+    <value>Tasks</value>
+  </data>
+  <data name="StartMenu" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="VolumeLevel" xml:space="preserve">
+    <value>Volume: {0}%</value>
+  </data>
+  <data name="VolumeMuted" xml:space="preserve">
+    <value>Volume: muted</value>
+  </data>
+  <data name="BatteryLevel" xml:space="preserve">
+    <value>Battery: {0}%</value>
+  </data>
+  <data name="BatteryCharging" xml:space="preserve">
+    <value>Charging</value>
+  </data>
+  <data name="BatteryOnBattery" xml:space="preserve">
+    <value>On battery</value>
+  </data>
+  <data name="BatteryLow" xml:space="preserve">
+    <value>Low battery</value>
+  </data>
+  <data name="BatteryFull" xml:space="preserve">
+    <value>Fully charged</value>
+  </data>
+  <data name="NetworkWiFi" xml:space="preserve">
+    <value>Wi-Fi: connected</value>
+  </data>
+  <data name="NetworkEthernet" xml:space="preserve">
+    <value>Ethernet: connected</value>
+  </data>
+  <data name="NetworkCellular" xml:space="preserve">
+    <value>Cellular: connected</value>
+  </data>
+  <data name="NetworkNoInternet" xml:space="preserve">
+    <value>No internet access</value>
+  </data>
+  <data name="NetworkDisconnected" xml:space="preserve">
+    <value>Not connected</value>
+  </data>
+  <data name="NetworkEthernetShort" xml:space="preserve">
+    <value>Ethernet</value>
+  </data>
+  <data name="NetworkCellularShort" xml:space="preserve">
+    <value>Cellular</value>
+  </data>
+  <data name="NotificationsButton" xml:space="preserve">
+    <value>Notifications</value>
+  </data>
+  <data name="NotificationsTooltip" xml:space="preserve">
+    <value>Open Notification Center</value>
+  </data>
+  <data name="HomeTimerLabel" xml:space="preserve">
+    <value>Timer {0}</value>
+  </data>
+  <data name="HomeStopwatchLabel" xml:space="preserve">
+    <value>Stopwatch {0}</value>
+  </data>
+  <data name="HomePomodoroLabel" xml:space="preserve">
+    <value>Pomodoro {0}</value>
+  </data>
+  <data name="PeekConnectionsTooltip" xml:space="preserve">
+    <value>Connections</value>
+  </data>
+  <data name="CalViewMonth" xml:space="preserve">
+    <value>Month</value>
+  </data>
+  <data name="CalViewWeek" xml:space="preserve">
+    <value>Week</value>
+  </data>
+  <data name="CalViewDay" xml:space="preserve">
+    <value>Day</value>
+  </data>
+  <data name="CalToolPomodoro" xml:space="preserve">
+    <value>Pomodoro</value>
+  </data>
+  <data name="CalToolTimer" xml:space="preserve">
+    <value>Timer</value>
+  </data>
+  <data name="CalToolStopwatch" xml:space="preserve">
+    <value>Stopwatch</value>
+  </data>
+  <data name="CalAddEvent" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="CalEventTitleHint" xml:space="preserve">
+    <value>New event</value>
+  </data>
+  <data name="CalEventTimeHint" xml:space="preserve">
+    <value>HH:mm</value>
+  </data>
+  <data name="CalNoEvents" xml:space="preserve">
+    <value>No events</value>
+  </data>
+  <data name="CalDeleteEvent" xml:space="preserve">
+    <value>Delete event</value>
+  </data>
+  <data name="CalToday" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="CalPrevious" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="CalNext" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="TimerDecrease" xml:space="preserve">
+    <value>Decrease</value>
+  </data>
+  <data name="TimerIncrease" xml:space="preserve">
+    <value>Increase</value>
+  </data>
+  <data name="TimerPresetMinutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="TimerPause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="TimerLap" xml:space="preserve">
+    <value>Lap</value>
+  </data>
+  <data name="TimerLapRow" xml:space="preserve">
+    <value>Lap {0}</value>
+  </data>
+  <data name="TimerDone" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="NavGeneral" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="NavNotch" xml:space="preserve">
+    <value>Notch</value>
+  </data>
+  <data name="NavDock" xml:space="preserve">
+    <value>Dock</value>
+  </data>
+  <data name="NavDisplays" xml:space="preserve">
+    <value>Displays</value>
+  </data>
+  <data name="NavAppearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="NavShortcuts" xml:space="preserve">
+    <value>Shortcuts</value>
+  </data>
+  <data name="NavDictation" xml:space="preserve">
+    <value>Dictation</value>
+  </data>
+  <data name="DictationSubtitle" xml:space="preserve">
+    <value>Run a coding assistant with your voice or a typed command</value>
+  </data>
+  <data name="NavPerformance" xml:space="preserve">
+    <value>Performance</value>
+  </data>
+  <data name="NavAbout" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="ExitKoy" xml:space="preserve">
+    <value>Exit Koy</value>
+  </data>
+  <data name="GeneralSubtitle" xml:space="preserve">
+    <value>Startup, language and updates</value>
+  </data>
+  <data name="NotchSubtitle" xml:space="preserve">
+    <value>Visibility, open panels and notch behavior</value>
+  </data>
+  <data name="DockSubtitle" xml:space="preserve">
+    <value>Layout, sizes and window management</value>
+  </data>
+  <data name="DisplaysSubtitle" xml:space="preserve">
+    <value>Each display's notch and dock are configured separately</value>
+  </data>
+  <data name="AppearanceSubtitle" xml:space="preserve">
+    <value>Theme, accent color and animations</value>
+  </data>
+  <data name="ShortcutsSubtitle" xml:space="preserve">
+    <value>Keyboard, mouse and wheel actions</value>
+  </data>
+  <data name="PerformanceSubtitle" xml:space="preserve">
+    <value>Memory usage and power saving</value>
+  </data>
+  <data name="AboutSubtitle" xml:space="preserve">
+    <value>Version and license details</value>
+  </data>
+  <data name="StartupHeader" xml:space="preserve">
+    <value>Startup</value>
+  </data>
+  <data name="RunAtStartupTitle" xml:space="preserve">
+    <value>Launch Koy on Windows startup</value>
+  </data>
+  <data name="HideWindowsTaskbarTitle" xml:space="preserve">
+    <value>Hide Windows taskbar</value>
+  </data>
+  <data name="HideWindowsTaskbarDesc" xml:space="preserve">
+    <value>Single dock bar on screen when Dock is active</value>
+  </data>
+  <data name="LanguageHeader" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="InterfaceLanguageTitle" xml:space="preserve">
+    <value>Interface language</value>
+  </data>
+  <data name="UpdatesHeader" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="AutoCheckUpdatesTitle" xml:space="preserve">
+    <value>Automatically check for updates</value>
+  </data>
+  <data name="ChannelTitle" xml:space="preserve">
+    <value>Update Channel</value>
+  </data>
+  <data name="CheckNow" xml:space="preserve">
+    <value>Check now</value>
+  </data>
+  <data name="WindowCloseNotice" xml:space="preserve">
+    <value>Closing this window hides settings. Koy keeps running. To exit completely, use Exit Koy.</value>
+  </data>
+  <data name="NotchHeader" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="NotchEnabledTitle" xml:space="preserve">
+    <value>Enable Notch</value>
+  </data>
+  <data name="VisibilityTitle" xml:space="preserve">
+    <value>Visibility mode</value>
+  </data>
+  <data name="VisFixed" xml:space="preserve">
+    <value>Fixed</value>
+  </data>
+  <data name="VisSmart" xml:space="preserve">
+    <value>Smart</value>
+  </data>
+  <data name="VisPeek" xml:space="preserve">
+    <value>Peek</value>
+  </data>
+  <data name="NotchEdgeLineTitle" xml:space="preserve">
+    <value>Line along the top edge</value>
+  </data>
+  <data name="NotchEdgeLineDesc" xml:space="preserve">
+    <value>A thin line on both sides of the notch; the notch opens out of it.</value>
+  </data>
+  <data name="NotchEdgeLineColorTitle" xml:space="preserve">
+    <value>Line color</value>
+  </data>
+  <data name="NotchEdgeLineColorNotch" xml:space="preserve">
+    <value>Notch color</value>
+  </data>
+  <data name="NotchEdgeLineColorAccent" xml:space="preserve">
+    <value>Accent color</value>
+  </data>
+  <data name="NotchEdgeLineThicknessDesc" xml:space="preserve">
+    <value>Type a value from 1 to 20 and press Enter.</value>
+  </data>
+  <data name="NotchEdgeLineThicknessTitle" xml:space="preserve">
+    <value>Line thickness</value>
+  </data>
+  <data name="HideInFullscreenTitle" xml:space="preserve">
+    <value>Hide in fullscreen apps</value>
+  </data>
+  <data name="IdleDisplayTitle" xml:space="preserve">
+    <value>Idle display</value>
+  </data>
+  <data name="IdleClockBattery" xml:space="preserve">
+    <value>Clock, battery &amp; connections</value>
+  </data>
+  <data name="IdleClockOnly" xml:space="preserve">
+    <value>Clock only</value>
+  </data>
+  <data name="IdleRingClockDay" xml:space="preserve">
+    <value>Ring &amp; day</value>
+  </data>
+  <data name="IdleRingClockDayDesc" xml:space="preserve">
+    <value>Battery ring on the left, day and time on the right. Date and connections appear when you hover.</value>
+  </data>
+  <data name="IdleNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="OpenBehaviorTitle" xml:space="preserve">
+    <value>Open behavior</value>
+  </data>
+  <data name="OpenOnHover" xml:space="preserve">
+    <value>On hover</value>
+  </data>
+  <data name="OpenOnClick" xml:space="preserve">
+    <value>On click</value>
+  </data>
+  <data name="PanelsHeader" xml:space="preserve">
+    <value>Active panels</value>
+  </data>
+  <data name="PanelMusicTitle" xml:space="preserve">
+    <value>Music</value>
+  </data>
+  <data name="PanelCalendarTitle" xml:space="preserve">
+    <value>Calendar</value>
+  </data>
+  <data name="PanelShelfTitle" xml:space="preserve">
+    <value>Shelf (Drag &amp; drop)</value>
+  </data>
+  <data name="PanelControlCenterTitle" xml:space="preserve">
+    <value>Control Center</value>
+  </data>
+  <data name="PanelStatusTitle" xml:space="preserve">
+    <value>Status (Battery, weather)</value>
+  </data>
+  <data name="DockGeneralHeader" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="DockEnabledTitle" xml:space="preserve">
+    <value>Enable Dock</value>
+  </data>
+  <data name="DockStyleTitle" xml:space="preserve">
+    <value>Dock style</value>
+  </data>
+  <data name="StyleCapsule" xml:space="preserve">
+    <value>Floating capsule</value>
+  </data>
+  <data name="StyleFullWidth" xml:space="preserve">
+    <value>Full-width glass</value>
+  </data>
+  <data name="DockIconAlignmentTitle" xml:space="preserve">
+    <value>Icon alignment</value>
+  </data>
+  <data name="DockIconAlignLeft" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="DockIconAlignCenter" xml:space="preserve">
+    <value>Center</value>
+  </data>
+  <data name="DockIconAlignRight" xml:space="preserve">
+    <value>Right</value>
+  </data>
+  <data name="DockProximityTitle" xml:space="preserve">
+    <value>When a window nears the dock</value>
+  </data>
+  <data name="ProxDockDown" xml:space="preserve">
+    <value>Dock down</value>
+  </data>
+  <data name="ProxReserve" xml:space="preserve">
+    <value>Reserve space</value>
+  </data>
+  <data name="ProxDodge" xml:space="preserve">
+    <value>Dodge windows</value>
+  </data>
+  <data name="ProxAlwaysHidden" xml:space="preserve">
+    <value>Always hidden</value>
+  </data>
+  <data name="ProxAlwaysFloating" xml:space="preserve">
+    <value>Always floating</value>
+  </data>
+  <data name="ProxReserveDesc" xml:space="preserve">
+    <value>The dock is always visible; windows end above it, like the Windows taskbar.</value>
+  </data>
+  <data name="ProxDockDownDesc" xml:space="preserve">
+    <value>The dock floats; when a window gets close it snaps to the screen bottom and thins out. It stays visible over maximized windows and reserves no space.</value>
+  </data>
+  <data name="ProxDodgeDesc" xml:space="preserve">
+    <value>The dock hides only when a window gets close to it or is maximized; it returns when the mouse reaches the bottom edge, or when the window moves away.</value>
+  </data>
+  <data name="ProxAlwaysHiddenDesc" xml:space="preserve">
+    <value>The dock stays hidden whatever the windows do, until the mouse reaches the bottom edge.</value>
+  </data>
+  <data name="ProxAlwaysFloatingDesc" xml:space="preserve">
+    <value>The dock always floats above the bottom edge: it never snaps down, hides or reserves space, even next to a maximized window. It hides only in full screen.</value>
+  </data>
+  <data name="DockSizeHeader" xml:space="preserve">
+    <value>Dimensions</value>
+  </data>
+  <data name="DockIconSizeTitle" xml:space="preserve">
+    <value>Icon size</value>
+  </data>
+  <data name="SizeSmall" xml:space="preserve">
+    <value>Small (24 px)</value>
+  </data>
+  <data name="SizeMedium" xml:space="preserve">
+    <value>Medium (28 px)</value>
+  </data>
+  <data name="SizeLarge" xml:space="preserve">
+    <value>Large (34 px)</value>
+  </data>
+  <data name="HoverMagnifyTitle" xml:space="preserve">
+    <value>Magnify icons on hover</value>
+  </data>
+  <data name="IndicatorStyleTitle" xml:space="preserve">
+    <value>Indicator style</value>
+  </data>
+  <data name="IndicatorDot" xml:space="preserve">
+    <value>Dot</value>
+  </data>
+  <data name="IndicatorLine" xml:space="preserve">
+    <value>Line</value>
+  </data>
+  <data name="DockWindowBehaviorHeader" xml:space="preserve">
+    <value>Window behavior</value>
+  </data>
+  <data name="DockLeftClickTitle" xml:space="preserve">
+    <value>Click on a running app</value>
+  </data>
+  <data name="DockLeftClickDesc" xml:space="preserve">
+    <value>Minimize: click the active app to minimize it. Front: always bring it to front. Cycle: step through its windows. Previews: show window thumbnails.</value>
+  </data>
+  <data name="DockLeftClickMinimize" xml:space="preserve">
+    <value>Minimize</value>
+  </data>
+  <data name="DockLeftClickFront" xml:space="preserve">
+    <value>Front</value>
+  </data>
+  <data name="DockLeftClickCycle" xml:space="preserve">
+    <value>Cycle</value>
+  </data>
+  <data name="DockLeftClickThumbnails" xml:space="preserve">
+    <value>Previews</value>
+  </data>
+  <data name="DockMonitorScopeTitle" xml:space="preserve">
+    <value>Windows shown in the dock</value>
+  </data>
+  <data name="DockMonitorScopeDesc" xml:space="preserve">
+    <value>With several monitors, show only the windows that are on this dock's monitor. Minimized windows stay visible on every dock.</value>
+  </data>
+  <data name="DockMonitorScopeAll" xml:space="preserve">
+    <value>All monitors</value>
+  </data>
+  <data name="DockMonitorScopeCurrent" xml:space="preserve">
+    <value>This monitor</value>
+  </data>
+  <data name="StartButtonTitle" xml:space="preserve">
+    <value>Windows Start button</value>
+  </data>
+  <data name="DockStartIconTitle" xml:space="preserve">
+    <value>Start button icon</value>
+  </data>
+  <data name="DockStartIconKoy" xml:space="preserve">
+    <value>Koy</value>
+  </data>
+  <data name="DockStartIconWindows" xml:space="preserve">
+    <value>Windows</value>
+  </data>
+  <data name="DockStartIconCustom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="DockStartIconChoose" xml:space="preserve">
+    <value>Choose image...</value>
+  </data>
+  <data name="DockStartIconNoFile" xml:space="preserve">
+    <value>No image chosen</value>
+  </data>
+  <data name="DockStartIconPickTitle" xml:space="preserve">
+    <value>Choose a Start button icon</value>
+  </data>
+  <data name="DockStartIconPickFilter" xml:space="preserve">
+    <value>Images (*.png;*.jpg;*.jpeg;*.ico)|*.png;*.jpg;*.jpeg;*.ico</value>
+  </data>
+  <data name="FoldersSectionTitle" xml:space="preserve">
+    <value>Folders section (Downloads)</value>
+  </data>
+  <data name="TaskbarRecoveryHeader" xml:space="preserve">
+    <value>Taskbar recovery</value>
+  </data>
+  <data name="RestoreTaskbarTitle" xml:space="preserve">
+    <value>Restore Windows taskbar</value>
+  </data>
+  <data name="RestoreTaskbarDesc" xml:space="preserve">
+    <value>Makes Windows taskbar visible immediately if hidden</value>
+  </data>
+  <data name="ChannelStable" xml:space="preserve">
+    <value>Stable</value>
+  </data>
+  <data name="ChannelPreview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="LyricsSettingTitle" xml:space="preserve">
+    <value>Song lyrics</value>
+  </data>
+  <data name="LyricsSettingDesc" xml:space="preserve">
+    <value>Shows synced lyrics on the Home music card. While Home is open, the title and artist of what's playing are sent to LRCLIB once per track. .lrc files in Music\Lyrics are used first.</value>
+  </data>
+  <data name="MusicWaveformTitle" xml:space="preserve">
+    <value>Show album art and waveform when playing</value>
+  </data>
+  <data name="MusicCardStyleTitle" xml:space="preserve">
+    <value>Music card style</value>
+  </data>
+  <data name="MusicCardStyleDesc" xml:space="preserve">
+    <value>Plain keeps the fixed card. Album color tints it from the cover. Album art uses the cover as a dimmed backdrop. Grey covers always use the plain card.</value>
+  </data>
+  <data name="MusicCardStyleNeutral" xml:space="preserve">
+    <value>Plain</value>
+  </data>
+  <data name="MusicCardStyleTinted" xml:space="preserve">
+    <value>Album color</value>
+  </data>
+  <data name="MusicCardStyleArtwork" xml:space="preserve">
+    <value>Album art</value>
+  </data>
+  <data name="IndicatorsHeader" xml:space="preserve">
+    <value>Indicators</value>
+  </data>
+  <data name="VolumeOsdTitle" xml:space="preserve">
+    <value>Volume indicator</value>
+  </data>
+  <data name="VolumeOsdDesc" xml:space="preserve">
+    <value>Brief overlay when volume changes</value>
+  </data>
+  <data name="BrightnessOsdTitle" xml:space="preserve">
+    <value>Brightness indicator</value>
+  </data>
+  <data name="SectionsHeader" xml:space="preserve">
+    <value>Sections</value>
+  </data>
+  <data name="PrimaryScreenHeader" xml:space="preserve">
+    <value>Display 1 · primary · 1920×1080</value>
+  </data>
+  <data name="ScreenNotchTitle" xml:space="preserve">
+    <value>Notch</value>
+  </data>
+  <data name="ScreenDockTitle" xml:space="preserve">
+    <value>Dock</value>
+  </data>
+  <data name="ScreenDockWindowsOnlyTitle" xml:space="preserve">
+    <value>Show only windows from this display in dock</value>
+  </data>
+  <data name="NewDisplaysHeader" xml:space="preserve">
+    <value>New displays</value>
+  </data>
+  <data name="NewDisplayActionTitle" xml:space="preserve">
+    <value>On newly connected display</value>
+  </data>
+  <data name="NewDisplayBoth" xml:space="preserve">
+    <value>Notch and dock</value>
+  </data>
+  <data name="NewDisplayNotchOnly" xml:space="preserve">
+    <value>Notch only</value>
+  </data>
+  <data name="NewDisplayNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="MultiMonitorNotice" xml:space="preserve">
+    <value>When an app goes fullscreen on one display, Koy is hidden only on that display. Other displays remain unaffected.</value>
+  </data>
+  <data name="ThemeHeader" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="ThemeTitle" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="ThemeSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="ThemeDark" xml:space="preserve">
+    <value>Dark</value>
+  </data>
+  <data name="ThemeLight" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="AccentColorTitle" xml:space="preserve">
+    <value>Accent color</value>
+  </data>
+  <data name="UseWindowsAccentTitle" xml:space="preserve">
+    <value>Use Windows accent color</value>
+  </data>
+  <data name="MaterialTitle" xml:space="preserve">
+    <value>Material</value>
+  </data>
+  <data name="MaterialDesc" xml:space="preserve">
+    <value>Frosted is 86% opaque, Glass 72%; there is no blur. The Koy window, the open notch, the dock and menus follow it. The closed notch always stays solid.</value>
+  </data>
+  <data name="MaterialFrosted" xml:space="preserve">
+    <value>Frosted</value>
+  </data>
+  <data name="MaterialGlass" xml:space="preserve">
+    <value>Glass</value>
+  </data>
+  <data name="NotchFollowsMaterialTitle" xml:space="preserve">
+    <value>Open notch follows the material</value>
+  </data>
+  <data name="NotchFollowsMaterialDesc" xml:space="preserve">
+    <value>When off, the open notch stays solid while the window and dock can be see-through.</value>
+  </data>
+  <data name="ReadabilityGuardTitle" xml:space="preserve">
+    <value>Readability guard</value>
+  </data>
+  <data name="ReadabilityGuardDesc" xml:space="preserve">
+    <value>On a light wallpaper, Glass moves up to Frosted (or Solid if needed) so secondary text keeps 4.5:1 contrast. The wallpaper is measured once, and again when it changes.</value>
+  </data>
+  <data name="MaterialSolid" xml:space="preserve">
+    <value>Solid</value>
+  </data>
+  <data name="CornerRadiusTitle" xml:space="preserve">
+    <value>Corner radius</value>
+  </data>
+  <data name="MotionHeader" xml:space="preserve">
+    <value>Motion</value>
+  </data>
+  <data name="AnimationTitle" xml:space="preserve">
+    <value>Animation speed</value>
+  </data>
+  <data name="AnimGentle" xml:space="preserve">
+    <value>Gentle</value>
+  </data>
+  <data name="AnimNormal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="AnimFast" xml:space="preserve">
+    <value>Fast</value>
+  </data>
+  <data name="AnimOff" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="ReduceMotionTitle" xml:space="preserve">
+    <value>Respect Windows "reduce motion" setting</value>
+  </data>
+  <data name="KeyboardHeader" xml:space="preserve">
+    <value>Keyboard</value>
+  </data>
+  <data name="ShortcutToggleNotch" xml:space="preserve">
+    <value>Toggle Notch</value>
+  </data>
+  <data name="ShortcutOpenShelf" xml:space="preserve">
+    <value>Open Shelf</value>
+  </data>
+  <data name="ShortcutToggleDock" xml:space="preserve">
+    <value>Toggle Dock</value>
+  </data>
+  <data name="ShortcutOpenMenu" xml:space="preserve">
+    <value>Koy menu</value>
+  </data>
+  <data name="ShortcutOpenSearch" xml:space="preserve">
+    <value>Open search</value>
+  </data>
+  <data name="ShortcutOpenSearchClipboard" xml:space="preserve">
+    <value>Search clipboard text</value>
+  </data>
+  <data name="ShortcutVoiceCommand" xml:space="preserve">
+    <value>Voice command (harness)</value>
+  </data>
+  <data name="ShortcutOpenKoyWindow" xml:space="preserve">
+    <value>Open Koy settings window</value>
+  </data>
+  <data name="CornersHeader" xml:space="preserve">
+    <value>Screen corners</value>
+  </data>
+  <data name="CornersHint" xml:space="preserve">
+    <value>Rest the pointer in a screen corner to run an action. No corner is set by default; while all are "None" nothing is tracked. A corner never fires while a mouse button is held.</value>
+  </data>
+  <data name="CornerActionNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="CornerActionOpenNotch" xml:space="preserve">
+    <value>Open / close Notch</value>
+  </data>
+  <data name="CornerActionOpenSearch" xml:space="preserve">
+    <value>Open search</value>
+  </data>
+  <data name="CornerActionOpenKoyWindow" xml:space="preserve">
+    <value>Open Koy settings</value>
+  </data>
+  <data name="CornerActionToggleDock" xml:space="preserve">
+    <value>Show / hide Dock</value>
+  </data>
+  <data name="CornerDwellTitle" xml:space="preserve">
+    <value>Hold time in the corner</value>
+  </data>
+  <data name="CornerFullscreenTitle" xml:space="preserve">
+    <value>Off while a full-screen app is active</value>
+  </data>
+  <data name="VoiceHeader" xml:space="preserve">
+    <value>VOICE COMMAND &amp; HARNESS</value>
+  </data>
+  <data name="VoiceHarnessTitle" xml:space="preserve">
+    <value>Coding Assistant (Harness)</value>
+  </data>
+  <data name="VoiceHarnessDesc" xml:space="preserve">
+    <value>CLI tool that runs your command. Ctrl+Alt+V opens a box in the notch and starts Windows voice typing (Win+H): speak in your keyboard language, such as Turkish or English, or just type. Voice typing uses Microsoft's online speech recognition.</value>
+  </data>
+  <data name="VoiceHarnessCustom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="VoicePermissionTitle" xml:space="preserve">
+    <value>Claude permissions</value>
+  </data>
+  <data name="VoicePermissionDesc" xml:space="preserve">
+    <value>Voice commands run headless, so Claude cannot ask for approval. Read-only (default) blocks creating or changing files. Edits allows file edits only. Auto lets Claude approve safe actions itself and block risky ones.</value>
+  </data>
+  <data name="VoicePermissionAuto" xml:space="preserve">
+    <value>Auto</value>
+  </data>
+  <data name="VoicePermissionAcceptEdits" xml:space="preserve">
+    <value>Edits</value>
+  </data>
+  <data name="VoicePermissionReadOnly" xml:space="preserve">
+    <value>Read-only</value>
+  </data>
+  <data name="VoiceReplyTitle" xml:space="preserve">
+    <value>Voice command reply</value>
+  </data>
+  <data name="VoiceReplyOpenFile" xml:space="preserve">
+    <value>Open as file</value>
+  </data>
+  <data name="VoiceReplyClose" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="VoiceModelTitle" xml:space="preserve">
+    <value>Claude model</value>
+  </data>
+  <data name="VoiceModelDesc" xml:space="preserve">
+    <value>Model the voice command runs on. Default uses the model Claude Code is set to. Only applies to Claude.</value>
+  </data>
+  <data name="VoiceModelDefault" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="VoiceCustomCommandTitle" xml:space="preserve">
+    <value>Custom Command Template</value>
+  </data>
+  <data name="VoiceCustomCommandDesc" xml:space="preserve">
+    <value>Command template with optional {prompt} placeholder (e.g. gh copilot suggest "{prompt}").</value>
+  </data>
+  <data name="VoiceWorkingDirTitle" xml:space="preserve">
+    <value>Working Directory</value>
+  </data>
+  <data name="VoiceWorkingDirDesc" xml:space="preserve">
+    <value>Execution directory for CLI commands (leave blank for user profile).</value>
+  </data>
+  <data name="SearchPlaceholder" xml:space="preserve">
+    <value>Search…</value>
+  </data>
+  <data name="SearchEmptyHint" xml:space="preserve">
+    <value>Type to search. ? shows what you can do.</value>
+  </data>
+  <data name="SearchSearching" xml:space="preserve">
+    <value>Searching…</value>
+  </data>
+  <data name="SearchConfirmRun" xml:space="preserve">
+    <value>Run: {0}. Press Enter again to confirm</value>
+  </data>
+  <data name="SearchConfirmHint" xml:space="preserve">
+    <value>Press Enter again to confirm</value>
+  </data>
+  <data name="SearchHelpTip" xml:space="preserve">
+    <value>Show usage help</value>
+  </data>
+  <data name="SearchHistoryTip" xml:space="preserve">
+    <value>Recent searches</value>
+  </data>
+  <data name="SearchPinTip" xml:space="preserve">
+    <value>Keep open</value>
+  </data>
+  <data name="SearchConfigureTip" xml:space="preserve">
+    <value>Configure search</value>
+  </data>
+  <data name="SearchRecentQueries" xml:space="preserve">
+    <value>Recent searches</value>
+  </data>
+  <data name="SearchActRemove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="SearchActCopy" xml:space="preserve">
+    <value>Copy</value>
+  </data>
+  <data name="SearchActOpenFolder" xml:space="preserve">
+    <value>Open folder</value>
+  </data>
+  <data name="SearchActRunInTerminal" xml:space="preserve">
+    <value>Run in terminal</value>
+  </data>
+  <data name="SearchActRequestClose" xml:space="preserve">
+    <value>Ask to close</value>
+  </data>
+  <data name="SearchHintCopy" xml:space="preserve">
+    <value>Press Enter to copy</value>
+  </data>
+  <data name="SearchRunCommand" xml:space="preserve">
+    <value>Run {0}</value>
+  </data>
+  <data name="SearchOpen" xml:space="preserve">
+    <value>Open {0}</value>
+  </data>
+  <data name="SearchGoTo" xml:space="preserve">
+    <value>Go to {0}</value>
+  </data>
+  <data name="SearchSendMail" xml:space="preserve">
+    <value>Send email to {0}</value>
+  </data>
+  <data name="SearchWebFor" xml:space="preserve">
+    <value>Search {0} for {1}</value>
+  </data>
+  <data name="SearchCloseProcess" xml:space="preserve">
+    <value>Close {0}</value>
+  </data>
+  <data name="SearchActTerminate" xml:space="preserve">
+    <value>Terminate (force)</value>
+  </data>
+  <data name="SearchProcessId" xml:space="preserve">
+    <value>Process ID: {0}</value>
+  </data>
+  <data name="SearchCatApps" xml:space="preserve">
+    <value>Applications</value>
+  </data>
+  <data name="SearchCatWindows" xml:space="preserve">
+    <value>Windows</value>
+  </data>
+  <data name="SearchCatCalculator" xml:space="preserve">
+    <value>Calculator</value>
+  </data>
+  <data name="SearchCatSession" xml:space="preserve">
+    <value>Session</value>
+  </data>
+  <data name="SearchCatShell" xml:space="preserve">
+    <value>Command line</value>
+  </data>
+  <data name="SearchCatLocations" xml:space="preserve">
+    <value>Locations</value>
+  </data>
+  <data name="SearchCatPlaces" xml:space="preserve">
+    <value>Places</value>
+  </data>
+  <data name="SearchCatRecent" xml:space="preserve">
+    <value>Recent documents</value>
+  </data>
+  <data name="SearchCatFiles" xml:space="preserve">
+    <value>Files</value>
+  </data>
+  <data name="SearchCatAudio" xml:space="preserve">
+    <value>Audio</value>
+  </data>
+  <data name="SearchCatImages" xml:space="preserve">
+    <value>Images</value>
+  </data>
+  <data name="SearchCatVideos" xml:space="preserve">
+    <value>Videos</value>
+  </data>
+  <data name="SearchCatSpreadsheets" xml:space="preserve">
+    <value>Spreadsheets</value>
+  </data>
+  <data name="SearchCatPresentations" xml:space="preserve">
+    <value>Presentations</value>
+  </data>
+  <data name="SearchCatFolders" xml:space="preserve">
+    <value>Folders</value>
+  </data>
+  <data name="SearchCatDocuments" xml:space="preserve">
+    <value>Documents</value>
+  </data>
+  <data name="SearchCatArchives" xml:space="preserve">
+    <value>Archives</value>
+  </data>
+  <data name="SearchCatTexts" xml:space="preserve">
+    <value>Texts</value>
+  </data>
+  <data name="SearchCatWeb" xml:space="preserve">
+    <value>Web search</value>
+  </data>
+  <data name="SearchCatBookmarks" xml:space="preserve">
+    <value>Bookmarks</value>
+  </data>
+  <data name="SearchCatProcesses" xml:space="preserve">
+    <value>Processes</value>
+  </data>
+  <data name="SearchCatClipboard" xml:space="preserve">
+    <value>Clipboard</value>
+  </data>
+  <data name="SearchCatDateTime" xml:space="preserve">
+    <value>Date and time</value>
+  </data>
+  <data name="SearchCatUnits" xml:space="preserve">
+    <value>Unit converter</value>
+  </data>
+  <data name="SearchCatColor" xml:space="preserve">
+    <value>Color converter</value>
+  </data>
+  <data name="SearchCatHelp" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="SearchKwPlaces" xml:space="preserve">
+    <value>places</value>
+  </data>
+  <data name="SearchKwKill" xml:space="preserve">
+    <value>kill</value>
+  </data>
+  <data name="SearchKwHelp" xml:space="preserve">
+    <value>help</value>
+  </data>
+  <data name="SearchKwBookmarks" xml:space="preserve">
+    <value>bookmarks</value>
+  </data>
+  <data name="SearchKwDate" xml:space="preserve">
+    <value>date;today</value>
+  </data>
+  <data name="SearchKwTime" xml:space="preserve">
+    <value>time</value>
+  </data>
+  <data name="SearchKwLock" xml:space="preserve">
+    <value>lock;lock screen</value>
+  </data>
+  <data name="SearchKwSleep" xml:space="preserve">
+    <value>sleep;suspend</value>
+  </data>
+  <data name="SearchKwSignOut" xml:space="preserve">
+    <value>logout;log out;sign out</value>
+  </data>
+  <data name="SearchKwSwitchUser" xml:space="preserve">
+    <value>switch user;new session</value>
+  </data>
+  <data name="SearchKwRestart" xml:space="preserve">
+    <value>restart;reboot</value>
+  </data>
+  <data name="SearchKwShutdown" xml:space="preserve">
+    <value>shutdown;shut down;power off</value>
+  </data>
+  <data name="SearchCmdLock" xml:space="preserve">
+    <value>Lock</value>
+  </data>
+  <data name="SearchCmdSleep" xml:space="preserve">
+    <value>Sleep</value>
+  </data>
+  <data name="SearchCmdSignOut" xml:space="preserve">
+    <value>Log out</value>
+  </data>
+  <data name="SearchCmdSwitchUser" xml:space="preserve">
+    <value>Switch user</value>
+  </data>
+  <data name="SearchCmdRestart" xml:space="preserve">
+    <value>Restart</value>
+  </data>
+  <data name="SearchCmdShutdown" xml:space="preserve">
+    <value>Shut down</value>
+  </data>
+  <data name="SearchPlaceHome" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="SearchPlaceDesktop" xml:space="preserve">
+    <value>Desktop</value>
+  </data>
+  <data name="SearchPlaceDocuments" xml:space="preserve">
+    <value>Documents</value>
+  </data>
+  <data name="SearchPlaceDownloads" xml:space="preserve">
+    <value>Downloads</value>
+  </data>
+  <data name="SearchPlaceMusic" xml:space="preserve">
+    <value>Music</value>
+  </data>
+  <data name="SearchPlacePictures" xml:space="preserve">
+    <value>Pictures</value>
+  </data>
+  <data name="SearchPlaceVideos" xml:space="preserve">
+    <value>Videos</value>
+  </data>
+  <data name="SearchPlaceDevices" xml:space="preserve">
+    <value>Devices</value>
+  </data>
+  <data name="SearchExampleApp" xml:space="preserve">
+    <value>notepad</value>
+  </data>
+  <data name="SearchExampleWindow" xml:space="preserve">
+    <value>report</value>
+  </data>
+  <data name="SearchExampleDocument" xml:space="preserve">
+    <value>report</value>
+  </data>
+  <data name="SearchExampleWeb" xml:space="preserve">
+    <value>cats</value>
+  </data>
+  <data name="SearchExampleClipboard" xml:space="preserve">
+    <value>copied text</value>
+  </data>
+  <data name="SearchSyntaxApps" xml:space="preserve">
+    <value>Finds installed applications.</value>
+  </data>
+  <data name="SearchSyntaxWindows" xml:space="preserve">
+    <value>Switches to an open window.</value>
+  </data>
+  <data name="SearchSyntaxCalc" xml:space="preserve">
+    <value>Calculates an expression. Enter puts the result in the box.</value>
+  </data>
+  <data name="SearchSyntaxCalcFunctions" xml:space="preserve">
+    <value>Math functions: sqrt, sin, cos, tan, ln, log, abs.</value>
+  </data>
+  <data name="SearchSyntaxCalcBase" xml:space="preserve">
+    <value>Shows the result in hex, bin or oct.</value>
+  </data>
+  <data name="SearchSyntaxSession" xml:space="preserve">
+    <value>Lock, sleep, log out, switch user, restart or shut down.</value>
+  </data>
+  <data name="SearchSyntaxShell" xml:space="preserve">
+    <value>Runs a command found on PATH.</value>
+  </data>
+  <data name="SearchSyntaxLocations" xml:space="preserve">
+    <value>Opens a file or folder path.</value>
+  </data>
+  <data name="SearchSyntaxLocationsUrl" xml:space="preserve">
+    <value>Opens a web address.</value>
+  </data>
+  <data name="SearchSyntaxPlaces" xml:space="preserve">
+    <value>Lists known folders and drives.</value>
+  </data>
+  <data name="SearchSyntaxRecent" xml:space="preserve">
+    <value>Finds recently used documents.</value>
+  </data>
+  <data name="SearchSyntaxFiles" xml:space="preserve">
+    <value>Searches file names in the Windows index.</value>
+  </data>
+  <data name="SearchSyntaxWeb" xml:space="preserve">
+    <value>Searches {0}.</value>
+  </data>
+  <data name="SearchSyntaxWebBang" xml:space="preserve">
+    <value>Same search with ! syntax.</value>
+  </data>
+  <data name="SearchSyntaxBookmarks" xml:space="preserve">
+    <value>Lists browser bookmarks.</value>
+  </data>
+  <data name="SearchSyntaxKill" xml:space="preserve">
+    <value>Terminates matching processes.</value>
+  </data>
+  <data name="SearchSyntaxClipboard" xml:space="preserve">
+    <value>Finds text in clipboard history.</value>
+  </data>
+  <data name="SearchSyntaxDate" xml:space="preserve">
+    <value>Shows today's date.</value>
+  </data>
+  <data name="SearchSyntaxTime" xml:space="preserve">
+    <value>Shows the current time.</value>
+  </data>
+  <data name="SearchSyntaxUnits" xml:space="preserve">
+    <value>Converts length, mass, temperature, data size and speed. Enter copies the number.</value>
+  </data>
+  <data name="SearchSyntaxUnitsData" xml:space="preserve">
+    <value>Data sizes use 1000 (kb, mb, gb); write kib, mib, gib for 1024.</value>
+  </data>
+  <data name="SearchSyntaxColor" xml:space="preserve">
+    <value>Shows a color as HEX, RGB and HSL. Enter copies a row.</value>
+  </data>
+  <data name="SearchSettingsHeader" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="SearchRetainTitle" xml:space="preserve">
+    <value>Keep last search</value>
+  </data>
+  <data name="SearchRetainDesc" xml:space="preserve">
+    <value>The last search comes back selected when the panel opens.</value>
+  </data>
+  <data name="SearchHistoryTitle" xml:space="preserve">
+    <value>Search history</value>
+  </data>
+  <data name="SearchHistoryOff" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="SearchHistorySuggest" xml:space="preserve">
+    <value>Suggest</value>
+  </data>
+  <data name="SearchHistoryComplete" xml:space="preserve">
+    <value>Autocomplete</value>
+  </data>
+  <data name="SearchClearHistoryTitle" xml:space="preserve">
+    <value>Clear search history</value>
+  </data>
+  <data name="SearchClearHistoryButton" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="SearchSourcesHeader" xml:space="preserve">
+    <value>Search sources</value>
+  </data>
+  <data name="SearchCatSpecialChars" xml:space="preserve">
+    <value>Special characters</value>
+  </data>
+  <data name="SearchCatSpellCheck" xml:space="preserve">
+    <value>Spell check</value>
+  </data>
+  <data name="SearchCatDictionary" xml:space="preserve">
+    <value>Dictionary</value>
+  </data>
+  <data name="SearchCatJumpList" xml:space="preserve">
+    <value>App actions</value>
+  </data>
+  <data name="SearchCatStore" xml:space="preserve">
+    <value>Microsoft Store</value>
+  </data>
+  <data name="SearchKwSpecialChars" xml:space="preserve">
+    <value>char;sym;symbol;sembol;özel</value>
+  </data>
+  <data name="SearchKwSpellCheck" xml:space="preserve">
+    <value>spell;yazim;yazım</value>
+  </data>
+  <data name="SearchKwDictionary" xml:space="preserve">
+    <value>dict;def;define;sozluk;sözlük;tdk</value>
+  </data>
+  <data name="SearchKwStore" xml:space="preserve">
+    <value>store;msstore;magaza;mağaza</value>
+  </data>
+  <data name="SearchSpellCorrect" xml:space="preserve">
+    <value>Spelling is correct</value>
+  </data>
+  <data name="SearchSpellNoSuggestions" xml:space="preserve">
+    <value>No spelling suggestions found</value>
+  </data>
+  <data name="SearchSpellSuggestionFor" xml:space="preserve">
+    <value>Suggestion for "{0}"</value>
+  </data>
+  <data name="SearchDictWebFor" xml:space="preserve">
+    <value>Look up "{0}" online</value>
+  </data>
+  <data name="SearchActOpenWeb" xml:space="preserve">
+    <value>Open on web</value>
+  </data>
+  <data name="SearchStoreFor" xml:space="preserve">
+    <value>Search Microsoft Store for "{0}"</value>
+  </data>
+  <data name="SearchSyntaxSpecialChars" xml:space="preserve">
+    <value>Special characters and symbols</value>
+  </data>
+  <data name="SearchSyntaxSpellCheck" xml:space="preserve">
+    <value>Check spelling and copy suggestion</value>
+  </data>
+  <data name="SearchSyntaxDictionary" xml:space="preserve">
+    <value>Look up word definition</value>
+  </data>
+  <data name="SearchSyntaxJumpList" xml:space="preserve">
+    <value>App jump list tasks and recent items</value>
+  </data>
+  <data name="SearchSyntaxStore" xml:space="preserve">
+    <value>Search Microsoft Store</value>
+  </data>
+  <data name="ShortcutPlayPause" xml:space="preserve">
+    <value>Music: play / pause</value>
+  </data>
+  <data name="KeySpace" xml:space="preserve">
+    <value>Space</value>
+  </data>
+  <data name="ShortcutsNotice" xml:space="preserve">
+    <value>Click a box and press the new combination to change it. Esc cancels, Backspace removes the shortcut. A shortcut held by another app is shown as an error on its row.</value>
+  </data>
+  <data name="MouseHeader" xml:space="preserve">
+    <value>Mouse</value>
+  </data>
+  <data name="WheelActionTitle" xml:space="preserve">
+    <value>Mouse wheel on Notch</value>
+  </data>
+  <data name="WheelSwitchPanel" xml:space="preserve">
+    <value>Switch panel</value>
+  </data>
+  <data name="WheelVolume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="MiddleClickTitle" xml:space="preserve">
+    <value>Middle-click on Dock</value>
+  </data>
+  <data name="MidClickNewWindow" xml:space="preserve">
+    <value>New window</value>
+  </data>
+  <data name="MidClickClose" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="MemoryUsageTitle" xml:space="preserve">
+    <value>Memory usage</value>
+  </data>
+  <data name="BudgetDesc" xml:space="preserve">
+    <value>Target 100-150 MB, up to 200 MB accepted</value>
+  </data>
+  <data name="BatteryHeader" xml:space="preserve">
+    <value>Battery</value>
+  </data>
+  <data name="BatteryReduceMotion" xml:space="preserve">
+    <value>Reduce animations on battery saver</value>
+  </data>
+  <data name="DataHeader" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="WeatherRefreshTitle" xml:space="preserve">
+    <value>Weather refresh rate</value>
+  </data>
+  <data name="Interval30m" xml:space="preserve">
+    <value>Every 30 minutes</value>
+  </data>
+  <data name="Interval1h" xml:space="preserve">
+    <value>Every 1 hour</value>
+  </data>
+  <data name="IntervalStartupOnly" xml:space="preserve">
+    <value>On startup only</value>
+  </data>
+  <data name="IdleNotice" xml:space="preserve">
+    <value>Koy uses 0% CPU when idle. Timers only run when their respective panel is open.</value>
+  </data>
+  <data name="DiagnosticInfoTitle" xml:space="preserve">
+    <value>Information for bug reporting</value>
+  </data>
+  <data name="CopyDiagnosticsAction" xml:space="preserve">
+    <value>Copy diagnostics</value>
+  </data>
+  <data name="TroubleshootingHeader" xml:space="preserve">
+    <value>Troubleshooting</value>
+  </data>
+  <data name="RestoreTaskbarDesc2" xml:space="preserve">
+    <value>If taskbar went missing</value>
+  </data>
+  <data name="RestoreButton" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="ResetSettingsTitle" xml:space="preserve">
+    <value>Reset all settings to default</value>
+  </data>
+  <data name="ResetButton" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="LinksHeader" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="SourceCodeTitle" xml:space="preserve">
+    <value>Source code</value>
+  </data>
+  <data name="OpenGitHubAction" xml:space="preserve">
+    <value>Open on GitHub</value>
+  </data>
+  <data name="OpenKoyWindowAction" xml:space="preserve">
+    <value>Open Koy window</value>
+  </data>
+  <data name="MonitorSummary" xml:space="preserve">
+    <value>Running on {0} displays</value>
+  </data>
+  <data name="PauseOneHourAction" xml:space="preserve">
+    <value>Pause for 1 hour</value>
+  </data>
+  <data name="ResumePauseAction" xml:space="preserve">
+    <value>Resume</value>
+  </data>
+  <data name="ExitKoyAction" xml:space="preserve">
+    <value>Exit Koy</value>
+  </data>
+  <data name="ShortcutPressKeys" xml:space="preserve">
+    <value>Press a combination…</value>
+  </data>
+  <data name="ShortcutNone" xml:space="preserve">
+    <value>Not set</value>
+  </data>
+  <data name="ShortcutReset" xml:space="preserve">
+    <value>Reset to default</value>
+  </data>
+  <data name="ShortcutErrInvalid" xml:space="preserve">
+    <value>This key can't be used as a shortcut.</value>
+  </data>
+  <data name="ShortcutErrReserved" xml:space="preserve">
+    <value>Windows reserves this shortcut, choose another combination.</value>
+  </data>
+  <data name="ShortcutErrDuplicate" xml:space="preserve">
+    <value>Already used for "{0}".</value>
+  </data>
+  <data name="ShortcutErrInUse" xml:space="preserve">
+    <value>Another app is using this shortcut, it could not be registered.</value>
+  </data>
+  <data name="ShortcutErrFailed" xml:space="preserve">
+    <value>The shortcut could not be registered.</value>
+  </data>
+  <data name="ShortcutWarnTyping" xml:space="preserve">
+    <value>This key is captured in every app, so you can't type it while this shortcut is set.</value>
+  </data>
+  <data name="PomodoroHeader" xml:space="preserve">
+    <value>Pomodoro</value>
+  </data>
+  <data name="PomodoroWorkTitle" xml:space="preserve">
+    <value>Work duration (min)</value>
+  </data>
+  <data name="PomodoroShortBreakTitle" xml:space="preserve">
+    <value>Short break (min)</value>
+  </data>
+  <data name="PomodoroLongBreakTitle" xml:space="preserve">
+    <value>Long break (min)</value>
+  </data>
+  <data name="WindowMinimize" xml:space="preserve">
+    <value>Minimize</value>
+  </data>
+  <data name="WindowHide" xml:space="preserve">
+    <value>Hide window</value>
+  </data>
+  <data name="WindowHideTip" xml:space="preserve">
+    <value>Hide window (Koy keeps running)</value>
+  </data>
+  <data name="ThemeDesc" xml:space="preserve">
+    <value>System follows the Windows app theme and updates as soon as it changes. The Koy window follows it; the notch and dock keep their own dark look.</value>
+  </data>
+  <data name="AccentColorDesc2" xml:space="preserve">
+    <value>Used on switches, selected items and primary buttons. Also used for the dock and notch accents (active indicator, Koy button, switches, sliders).</value>
+  </data>
+  <data name="UseWindowsAccentDesc" xml:space="preserve">
+    <value>Uses the Windows accent color; the color choice above is disabled.</value>
+  </data>
+  <data name="SurfaceHeader" xml:space="preserve">
+    <value>Surface</value>
+  </data>
+  <data name="CornerRadiusDesc" xml:space="preserve">
+    <value>Corners of the Koy window, setup wizard and menu. The notch and dock are not affected.</value>
+  </data>
+  <data name="CornerSharp" xml:space="preserve">
+    <value>Sharp</value>
+  </data>
+  <data name="CornerStandard" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="CornerRound" xml:space="preserve">
+    <value>Round</value>
+  </data>
+  <data name="AnimationDesc" xml:space="preserve">
+    <value>Page transitions, hover and switch motion. When off, everything is instant.</value>
+  </data>
+  <data name="ReduceMotionDesc" xml:space="preserve">
+    <value>If animations are off in Windows, Koy turns motion off too.</value>
+  </data>
+  <data name="MotionTogglesTitle" xml:space="preserve">
+    <value>Individual animations</value>
+  </data>
+  <data name="MotionTogglesDesc" xml:space="preserve">
+    <value>Turn off a single animation; it then jumps straight to its final state.</value>
+  </data>
+  <data name="MotionTogglesDisabledHint" xml:space="preserve">
+    <value>These have no effect while the overall animation setting is off.</value>
+  </data>
+  <data name="MotionNotchOpenClose" xml:space="preserve">
+    <value>Notch open and close</value>
+  </data>
+  <data name="MotionDockMagnify" xml:space="preserve">
+    <value>Dock magnification</value>
+  </data>
+  <data name="MotionFolderPanel" xml:space="preserve">
+    <value>Dock folder panel</value>
+  </data>
+  <data name="MotionOsd" xml:space="preserve">
+    <value>Volume, brightness and notification pop-ups</value>
+  </data>
+  <data name="MotionBadgeBounce" xml:space="preserve">
+    <value>Badge bounce</value>
+  </data>
+  <data name="MotionTabTransitions" xml:space="preserve">
+    <value>Notch tab transitions</value>
+  </data>
+  <data name="ClockHeader" xml:space="preserve">
+    <value>Clock</value>
+  </data>
+  <data name="ClockHourFormatTitle" xml:space="preserve">
+    <value>Time format</value>
+  </data>
+  <data name="ClockHourFormatDesc" xml:space="preserve">
+    <value>Automatic follows the interface language.</value>
+  </data>
+  <data name="ClockFormatAuto" xml:space="preserve">
+    <value>Automatic</value>
+  </data>
+  <data name="ClockFormat12" xml:space="preserve">
+    <value>12-hour</value>
+  </data>
+  <data name="ClockFormat24" xml:space="preserve">
+    <value>24-hour</value>
+  </data>
+  <data name="ClockShowSecondsTitle" xml:space="preserve">
+    <value>Show seconds</value>
+  </data>
+  <data name="ClockShowSecondsDesc" xml:space="preserve">
+    <value>In the notch clock. Updates every second only while the notch is visible.</value>
+  </data>
+  <data name="ClockFirstDayTitle" xml:space="preserve">
+    <value>First day of the week</value>
+  </data>
+  <data name="ClockFirstDayDesc" xml:space="preserve">
+    <value>Used by the calendar month grid and week numbers.</value>
+  </data>
+  <data name="ClockFirstDayMonday" xml:space="preserve">
+    <value>Monday</value>
+  </data>
+  <data name="ClockFirstDaySunday" xml:space="preserve">
+    <value>Sunday</value>
+  </data>
+  <data name="ClockFirstDaySaturday" xml:space="preserve">
+    <value>Saturday</value>
+  </data>
+  <data name="ClockShowWeekNumberTitle" xml:space="preserve">
+    <value>Show week number</value>
+  </data>
+  <data name="ClockShowWeekNumberDesc" xml:space="preserve">
+    <value>Next to the selected day in the calendar.</value>
+  </data>
+  <data name="ClockCustomDateTitle" xml:space="preserve">
+    <value>Custom date format</value>
+  </data>
+  <data name="ClockCustomDateDesc" xml:space="preserve">
+    <value>Date next to the clock in ring mode, e.g. dd.MM.yyyy. Leave empty for the default.</value>
+  </data>
+  <data name="ClockCustomDateInvalid" xml:space="preserve">
+    <value>This format is not valid and was not saved.</value>
+  </data>
+  <data name="CalendarWeekNumber" xml:space="preserve">
+    <value>Week {0}</value>
+  </data>
+  <data name="UnitsHeader" xml:space="preserve">
+    <value>Units</value>
+  </data>
+  <data name="UnitTemperatureTitle" xml:space="preserve">
+    <value>Temperature</value>
+  </data>
+  <data name="UnitCelsius" xml:space="preserve">
+    <value>Celsius</value>
+  </data>
+  <data name="UnitFahrenheit" xml:space="preserve">
+    <value>Fahrenheit</value>
+  </data>
+  <data name="UnitCelsiusSuffix" xml:space="preserve">
+    <value>°C</value>
+  </data>
+  <data name="UnitFahrenheitSuffix" xml:space="preserve">
+    <value>°F</value>
+  </data>
+  <data name="ClockShowDateTitle" xml:space="preserve">
+    <value>Show date next to the time</value>
+  </data>
+  <data name="ClockShowDateDesc" xml:space="preserve">
+    <value>Adds the short date after the clock in the collapsed and peeking notch. Off by default.</value>
+  </data>
+  <data name="ClockSecondTimeZoneTitle" xml:space="preserve">
+    <value>Second time zone</value>
+  </data>
+  <data name="ClockSecondTimeZoneDesc" xml:space="preserve">
+    <value>Shows a small second clock line in the peeking and open notch.</value>
+  </data>
+  <data name="ClockSecondTimeZoneNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="UnitWindTitle" xml:space="preserve">
+    <value>Wind speed</value>
+  </data>
+  <data name="UnitWindKmh" xml:space="preserve">
+    <value>km/h</value>
+  </data>
+  <data name="UnitWindMs" xml:space="preserve">
+    <value>m/s</value>
+  </data>
+  <data name="UnitWindMph" xml:space="preserve">
+    <value>mph</value>
+  </data>
+  <data name="UnitWindKnots" xml:space="preserve">
+    <value>knots</value>
+  </data>
+  <data name="WeatherWindTooltip" xml:space="preserve">
+    <value>Wind {0}</value>
+  </data>
+  <data name="UnitNetworkSpeedTitle" xml:space="preserve">
+    <value>Network speed</value>
+  </data>
+  <data name="UnitNetworkSpeedDesc" xml:space="preserve">
+    <value>Bytes (MB/s) or bits (Mb/s) on the System page.</value>
+  </data>
+  <data name="UnitBytes" xml:space="preserve">
+    <value>Bytes</value>
+  </data>
+  <data name="UnitBits" xml:space="preserve">
+    <value>Bits</value>
+  </data>
+  <data name="SettingsSearchPlaceholder" xml:space="preserve">
+    <value>Search settings</value>
+  </data>
+  <data name="SettingsSearchNoResult" xml:space="preserve">
+    <value>No matching setting.</value>
+  </data>
+  <data name="SettingsShowChangedOnly" xml:space="preserve">
+    <value>Show changed only</value>
+  </data>
+  <data name="SettingsNoChangedOnPage" xml:space="preserve">
+    <value>No changed settings on this page</value>
+  </data>
+  <data name="SettingsNoChangedOnPageDesc" xml:space="preserve">
+    <value>All settings on this page are set to their default values.</value>
+  </data>
+  <data name="SettingsResetPage" xml:space="preserve">
+    <value>Restore defaults</value>
+  </data>
+  <data name="SettingsResetPageConfirm" xml:space="preserve">
+    <value>Restore this page to defaults?</value>
+  </data>
+  <data name="SettingsResetPageDone" xml:space="preserve">
+    <value>Page restored to defaults.</value>
+  </data>
+  <data name="FontSectionTitle" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="FontFamilyLabel" xml:space="preserve">
+    <value>Font</value>
+  </data>
+  <data name="ClockFontLabel" xml:space="preserve">
+    <value>Clock font</value>
+  </data>
+  <data name="FontSizeLabel" xml:space="preserve">
+    <value>Text size</value>
+  </data>
+  <data name="FontWeightLabel" xml:space="preserve">
+    <value>Text weight</value>
+  </data>
+  <data name="FontWeightNormal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="FontWeightMedium" xml:space="preserve">
+    <value>Medium</value>
+  </data>
+  <data name="FontWeightBold" xml:space="preserve">
+    <value>Bold</value>
+  </data>
+  <data name="UiScaleLabel" xml:space="preserve">
+    <value>Koy scale</value>
+  </data>
+  <data name="UiScaleDesc" xml:space="preserve">
+    <value>Size of this window and the tray menu. The notch keeps its size.</value>
+  </data>
+  <data name="FontDefault" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="DockNewTrayIconTitle" xml:space="preserve">
+    <value>New tray icons</value>
+  </data>
+  <data name="DockNewTrayIconDesc" xml:space="preserve">
+    <value>Apps without their own choice below follow this.</value>
+  </data>
+  <data name="TrayIconShow" xml:space="preserve">
+    <value>Show</value>
+  </data>
+  <data name="TrayIconHide" xml:space="preserve">
+    <value>Hide</value>
+  </data>
+  <data name="TrayAppsHeader" xml:space="preserve">
+    <value>Tray icons</value>
+  </data>
+  <data name="TrayAppsEmpty" xml:space="preserve">
+    <value>Open the dock tray once; apps with tray icons will be listed here.</value>
+  </data>
+  <data name="NavAdvanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="AdvancedSubtitle" xml:space="preserve">
+    <value>Every setting without its own control, straight from settings.json.</value>
+  </data>
+  <data name="AdvancedWarning" xml:space="preserve">
+    <value>For experienced users. Invalid values are never saved; a change rebuilds the notch and dock.</value>
+  </data>
+  <data name="DeveloperModeTitle" xml:space="preserve">
+    <value>Show advanced settings</value>
+  </data>
+  <data name="DeveloperModeDesc" xml:space="preserve">
+    <value>Adds the advanced configuration tab to the sidebar</value>
+  </data>
+  <data name="AdvancedFilterPlaceholder" xml:space="preserve">
+    <value>Search setting or key...</value>
+  </data>
+  <data name="AdvancedFilterHint" xml:space="preserve">
+    <value>Filter by key</value>
+  </data>
+  <data name="AdvancedDefault" xml:space="preserve">
+    <value>Default: {0}</value>
+  </data>
+  <data name="AdvancedInvalid" xml:space="preserve">
+    <value>Not a valid value for this setting; nothing was saved.</value>
+  </data>
+  <data name="AdvancedResetRow" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="ApplyRevertPrompt" xml:space="preserve">
+    <value>Keep this change?</value>
+  </data>
+  <data name="ApplyRevertKeep" xml:space="preserve">
+    <value>Keep</value>
+  </data>
+  <data name="ApplyRevertRevert" xml:space="preserve">
+    <value>Revert</value>
+  </data>
+  <data name="SettingsFileInvalid" xml:space="preserve">
+    <value>settings.json was changed but could not be read. Koy keeps the last valid settings.</value>
+  </data>
+  <data name="OpenOnDragOver" xml:space="preserve">
+    <value>On drag</value>
+  </data>
+  <data name="NotchOpenDelayTitle" xml:space="preserve">
+    <value>Open delay</value>
+  </data>
+  <data name="NotchOpenDelayDesc" xml:space="preserve">
+    <value>Wait before opening on hover or on drag. Clicking always opens at once.</value>
+  </data>
+  <data name="NotchCloseDelayTitle" xml:space="preserve">
+    <value>Close delay after the pointer leaves</value>
+  </data>
+  <data name="NotchTabBarTitle" xml:space="preserve">
+    <value>Tab bar</value>
+  </data>
+  <data name="NotchTabBarDesc" xml:space="preserve">
+    <value>When hidden, switch pages with the mouse wheel or shortcuts.</value>
+  </data>
+  <data name="NotchTabBarIconLabel" xml:space="preserve">
+    <value>Icon and name</value>
+  </data>
+  <data name="NotchTabBarIcon" xml:space="preserve">
+    <value>Icon only</value>
+  </data>
+  <data name="NotchTabBarHidden" xml:space="preserve">
+    <value>Hidden</value>
+  </data>
+  <data name="NotchTabOrderTitle" xml:space="preserve">
+    <value>Tab order</value>
+  </data>
+  <data name="NotchTabMoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="NotchTabMoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="AccentBlue" xml:space="preserve">
+    <value>Blue</value>
+  </data>
+  <data name="AccentPurple" xml:space="preserve">
+    <value>Purple</value>
+  </data>
+  <data name="AccentPink" xml:space="preserve">
+    <value>Pink</value>
+  </data>
+  <data name="AccentOrange" xml:space="preserve">
+    <value>Orange</value>
+  </data>
+  <data name="AccentGreen" xml:space="preserve">
+    <value>Green</value>
+  </data>
+  <data name="AccentTeal" xml:space="preserve">
+    <value>Teal</value>
+  </data>
+  <data name="UpdateChecking" xml:space="preserve">
+    <value>Checking…</value>
+  </data>
+  <data name="UpdateCheckFailed" xml:space="preserve">
+    <value>The check failed. Check your connection and try again.</value>
+  </data>
+  <data name="UpdateNotInstalled" xml:space="preserve">
+    <value>Update checks only work in an installed build.</value>
+  </data>
+  <data name="UpdateLastCheck" xml:space="preserve">
+    <value>Last check: {0}</value>
+  </data>
+  <data name="UpdateNeverChecked" xml:space="preserve">
+    <value>Not checked yet</value>
+  </data>
+  <data name="UpdateToday" xml:space="preserve">
+    <value>today {0}</value>
+  </data>
+  <data name="AboutVersionLine" xml:space="preserve">
+    <value>Version {0} · GPLv3</value>
+  </data>
+  <data name="UpdateStateUpToDate" xml:space="preserve">
+    <value>up to date</value>
+  </data>
+  <data name="UpdateStateFailed" xml:space="preserve">
+    <value>check failed</value>
+  </data>
+  <data name="UpdateStateUnknown" xml:space="preserve">
+    <value>updates not checked</value>
+  </data>
+  <data name="LastCheckTitle" xml:space="preserve">
+    <value>Update check</value>
+  </data>
+  <data name="ResetSettingsDesc" xml:space="preserve">
+    <value>Settings return to defaults. The Windows startup entry and taskbar state are not changed.</value>
+  </data>
+  <data name="ResetConfirmButton" xml:space="preserve">
+    <value>Confirm reset</value>
+  </data>
+  <data name="IdleDisplayRowTitle" xml:space="preserve">
+    <value>What to show</value>
+  </data>
+  <data name="OpenBehaviorRowTitle" xml:space="preserve">
+    <value>How the notch opens</value>
+  </data>
+  <data name="DisplayHeaderFormat" xml:space="preserve">
+    <value>DISPLAY {0} · {1}</value>
+  </data>
+  <data name="DisplayDetailsFormat" xml:space="preserve">
+    <value>{0}×{1} · scale {2}%</value>
+  </data>
+  <data name="DisplayPrimaryBadge" xml:space="preserve">
+    <value>Primary</value>
+  </data>
+  <data name="DisplaysIdentify" xml:space="preserve">
+    <value>Identify displays</value>
+  </data>
+  <data name="WizTitle" xml:space="preserve">
+    <value>Koy Setup</value>
+  </data>
+  <data name="WizStep1" xml:space="preserve">
+    <value>Step 1 / 4</value>
+  </data>
+  <data name="WizWelcomeTitle" xml:space="preserve">
+    <value>Welcome to Koy</value>
+  </data>
+  <data name="WizWelcomeBody" xml:space="preserve">
+    <value>A smart notch and a minimal floating dock for Windows 10 / 11. Let's set your preferences before you start.</value>
+  </data>
+  <data name="WizLangTitle" xml:space="preserve">
+    <value>Interface language</value>
+  </data>
+  <data name="WizLangDesc" xml:space="preserve">
+    <value>Choose the language used in the app.</value>
+  </data>
+  <data name="WizStep2" xml:space="preserve">
+    <value>Step 2 / 4</value>
+  </data>
+  <data name="WizLayoutTitle" xml:space="preserve">
+    <value>What should Koy show on screen?</value>
+  </data>
+  <data name="WizLayoutSub" xml:space="preserve">
+    <value>You can change this later from the Koy window.</value>
+  </data>
+  <data name="WizBothTitle" xml:space="preserve">
+    <value>Notch and dock</value>
+  </data>
+  <data name="WizBothDesc" xml:space="preserve">
+    <value>The Windows taskbar is hidden and the Koy dock takes its place.</value>
+  </data>
+  <data name="WizNotchTitle" xml:space="preserve">
+    <value>Notch only</value>
+  </data>
+  <data name="WizNotchDesc" xml:space="preserve">
+    <value>The Windows taskbar stays as it is.</value>
+  </data>
+  <data name="WizDockTitle" xml:space="preserve">
+    <value>Dock only</value>
+  </data>
+  <data name="WizDockDesc" xml:space="preserve">
+    <value>The notch is off; clock and battery sit at the right end of the dock.</value>
+  </data>
+  <data name="WizStep3" xml:space="preserve">
+    <value>Step 3 / 4</value>
+  </data>
+  <data name="WizStep4" xml:space="preserve">
+    <value>Step 4 / 4</value>
+  </data>
+  <data name="WizLocationTitle" xml:space="preserve">
+    <value>Use your location for weather?</value>
+  </data>
+  <data name="WizLocationBody" xml:space="preserve">
+    <value>The notch can show the weather. Your location is read once when Koy starts (at most once a day) and stays on this computer; only rounded coordinates are sent to Open-Meteo for the forecast and to OpenStreetMap for the city name. You can change this later in Settings.</value>
+  </data>
+  <data name="WizLocationYes" xml:space="preserve">
+    <value>Yes, use my location</value>
+  </data>
+  <data name="WizLocationYesDesc" xml:space="preserve">
+    <value>Windows may ask for permission.</value>
+  </data>
+  <data name="WizLocationNo" xml:space="preserve">
+    <value>Not now</value>
+  </data>
+  <data name="WizLocationNoDesc" xml:space="preserve">
+    <value>Weather stays hidden until you pick a city or turn location on in Settings.</value>
+  </data>
+  <data name="WizLocating" xml:space="preserve">
+    <value>Getting your location…</value>
+  </data>
+  <data name="WeatherHeader" xml:space="preserve">
+    <value>Weather</value>
+  </data>
+  <data name="WeatherUseLocationTitle" xml:space="preserve">
+    <value>Use my location for weather</value>
+  </data>
+  <data name="WeatherUseLocationDesc" xml:space="preserve">
+    <value>Read once when Koy starts, at most once a day. Windows may ask for permission.</value>
+  </data>
+  <data name="WeatherCityTitle" xml:space="preserve">
+    <value>City</value>
+  </data>
+  <data name="WeatherCityDesc" xml:space="preserve">
+    <value>Used when location is off or unavailable. Search and pick one.</value>
+  </data>
+  <data name="WeatherSearchHint" xml:space="preserve">
+    <value>City name</value>
+  </data>
+  <data name="WeatherSearchButton" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="WeatherNoResults" xml:space="preserve">
+    <value>No results</value>
+  </data>
+  <data name="WeatherSearching" xml:space="preserve">
+    <value>Searching…</value>
+  </data>
+  <data name="WeatherStatusNone" xml:space="preserve">
+    <value>No location chosen: weather is hidden in the notch.</value>
+  </data>
+  <data name="WeatherStatusDevice" xml:space="preserve">
+    <value>Using your device location.</value>
+  </data>
+  <data name="WeatherStatusCity" xml:space="preserve">
+    <value>Showing weather for {0}.</value>
+  </data>
+  <data name="WeatherStatusWorking" xml:space="preserve">
+    <value>Getting your location…</value>
+  </data>
+  <data name="WeatherStatusDenied" xml:space="preserve">
+    <value>Location access is blocked in Windows. Pick a city instead, or allow it in Windows Settings.</value>
+  </data>
+  <data name="WeatherStatusFailed" xml:space="preserve">
+    <value>Your location could not be found. Pick a city instead.</value>
+  </data>
+  <data name="WeatherClear" xml:space="preserve">
+    <value>Remove location</value>
+  </data>
+  <data name="WeatherOpenLocationSettings" xml:space="preserve">
+    <value>Windows location settings</value>
+  </data>
+  <data name="AboutWeatherTitle" xml:space="preserve">
+    <value>Weather data</value>
+  </data>
+  <data name="AboutWeatherLink" xml:space="preserve">
+    <value>Weather data by Open-Meteo.com</value>
+  </data>
+  <data name="AboutWeatherLicense" xml:space="preserve">
+    <value>Licensed under CC BY 4.0</value>
+  </data>
+  <data name="WizDoneTitle" xml:space="preserve">
+    <value>All set!</value>
+  </data>
+  <data name="WizDoneBody" xml:space="preserve">
+    <value>Your choices have been applied. You can change settings anytime from the menu at the bottom right or the Koy window.</value>
+  </data>
+  <data name="WizStartupTitle" xml:space="preserve">
+    <value>Start Koy when Windows starts</value>
+  </data>
+  <data name="WizStartupDesc" xml:space="preserve">
+    <value>Run automatically in the background when your computer starts.</value>
+  </data>
+  <data name="WizBack" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="WizContinue" xml:space="preserve">
+    <value>Continue</value>
+  </data>
+  <data name="WizStart" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="VisibilityDesc" xml:space="preserve">
+    <value>Fixed: always visible. Smart: hides when a window covers it and returns when the mouse comes. Peek: stays hidden until the mouse reaches the screen edge or a media event happens.</value>
+  </data>
+  <data name="ExitKoyConfirm" xml:space="preserve">
+    <value>Confirm exit</value>
+  </data>
+  <data name="UninstallTitle" xml:space="preserve">
+    <value>Uninstall Koy</value>
+  </data>
+  <data name="UninstallRowDesc" xml:space="preserve">
+    <value>Removes Koy from this computer. Your taskbar comes back.</value>
+  </data>
+  <data name="UninstallOnlyInstalled" xml:space="preserve">
+    <value>Only available in the installed version.</value>
+  </data>
+  <data name="UninstallAction" xml:space="preserve">
+    <value>Uninstall Koy</value>
+  </data>
+  <data name="UninstallDialogTitle" xml:space="preserve">
+    <value>Uninstall Koy?</value>
+  </data>
+  <data name="UninstallDialogIntro" xml:space="preserve">
+    <value>This will happen:</value>
+  </data>
+  <data name="UninstallItemApp" xml:space="preserve">
+    <value>The app files, shortcuts and the start-with-Windows entry are removed.</value>
+  </data>
+  <data name="UninstallItemTaskbar" xml:space="preserve">
+    <value>The Windows taskbar returns right away.</value>
+  </data>
+  <data name="UninstallKeepSettings" xml:space="preserve">
+    <value>Keep my settings</value>
+  </data>
+  <data name="UninstallKeepSettingsDesc" xml:space="preserve">
+    <value>If you reinstall Koy later, your preferences and shelf are still there.</value>
+  </data>
+  <data name="UninstallDeleteWarn" xml:space="preserve">
+    <value>Your settings and shelf items are deleted too. This cannot be undone.</value>
+  </data>
+  <data name="UninstallConfirm" xml:space="preserve">
+    <value>Uninstall</value>
+  </data>
+  <data name="UninstallFailed" xml:space="preserve">
+    <value>The uninstaller could not be started. Koy is still installed; you can remove it from Windows Settings &gt; Installed apps.</value>
+  </data>
+  <data name="RadioNotFound" xml:space="preserve">
+    <value>Not found</value>
+  </data>
+  <data name="RadioNoAccess" xml:space="preserve">
+    <value>No access</value>
+  </data>
+  <data name="RadioDisabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="RadioToggleFailed" xml:space="preserve">
+    <value>Couldn't change</value>
+  </data>
+  <data name="RadioOpenSettingsHint" xml:space="preserve">
+    <value>Can't be changed from Koy. Click to open Windows settings.</value>
+  </data>
+  <data name="RadioPrivacyHint" xml:space="preserve">
+    <value>Koy isn't allowed to control radios. Click to open privacy settings.</value>
+  </data>
+  <data name="OpenInSettings" xml:space="preserve">
+    <value>Open in Settings</value>
+  </data>
+  <data name="TabMusic" xml:space="preserve">
+    <value>Music</value>
+  </data>
+  <data name="TabControlCenter" xml:space="preserve">
+    <value>Controls</value>
+  </data>
+  <data name="TabStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="TabCalendar" xml:space="preserve">
+    <value>Calendar</value>
+  </data>
+  <data name="TabShelf" xml:space="preserve">
+    <value>Shelf</value>
+  </data>
+  <data name="DockShowTrayTitle" xml:space="preserve">
+    <value>Show system tray in the dock</value>
+  </data>
+  <data name="DockShowTrayDesc" xml:space="preserve">
+    <value>While the Windows taskbar is hidden, background apps’ icons (Discord, OneDrive…) open from a button on the dock</value>
+  </data>
+  <data name="DockSmallTrayTitle" xml:space="preserve">
+    <value>Small tray</value>
+  </data>
+  <data name="DockSmallTrayDesc" xml:space="preserve">
+    <value>The tray button becomes a narrow arrow to the right of the Koy menu button. The same tray panel opens from it.</value>
+  </data>
+  <data name="DockDownloads" xml:space="preserve">
+    <value>Downloads folder</value>
+  </data>
+  <data name="DockKoyMenu" xml:space="preserve">
+    <value>Koy menu</value>
+  </data>
+  <data name="ProxFullAlwaysShow" xml:space="preserve">
+    <value>Always show</value>
+  </data>
+  <data name="ProxFullAutoHide" xml:space="preserve">
+    <value>Auto-hide</value>
+  </data>
+  <data name="ProxFullAlwaysShowDesc" xml:space="preserve">
+    <value>The bar is always visible; windows end right above it, like the Windows taskbar.</value>
+  </data>
+  <data name="ProxFullAutoHideDesc" xml:space="preserve">
+    <value>The bar appears when the pointer reaches the bottom edge. No screen space is reserved.</value>
+  </data>
+  <data name="SystemTray" xml:space="preserve">
+    <value>System tray</value>
+  </data>
+  <data name="TrayEmpty" xml:space="preserve">
+    <value>No tray icons</value>
+  </data>
+  <data name="DockEdgeRevealTitle" xml:space="preserve">
+    <value>Open from the bottom edge</value>
+  </data>
+  <data name="DockEdgeRevealDesc" xml:space="preserve">
+    <value>When a maximized window hides the dock, moving the pointer to the bottom edge brings it back. Never in games or full-screen video.</value>
+  </data>
+  <data name="DockShowRecentsTitle" xml:space="preserve">
+    <value>Recent files</value>
+  </data>
+  <data name="DockShowRecentsDesc" xml:space="preserve">
+    <value>A stack button in the dock lists the last 10 files you opened (Windows Recent folder).</value>
+  </data>
+  <data name="RecentFiles" xml:space="preserve">
+    <value>Recent files</value>
+  </data>
+  <data name="RecentEmpty" xml:space="preserve">
+    <value>No recent files</value>
+  </data>
+  <data name="TabHome" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="TabFocus" xml:space="preserve">
+    <value>Focus</value>
+  </data>
+  <data name="GreetMorning" xml:space="preserve">
+    <value>Good morning</value>
+  </data>
+  <data name="GreetAfternoon" xml:space="preserve">
+    <value>Good afternoon</value>
+  </data>
+  <data name="GreetEvening" xml:space="preserve">
+    <value>Good evening</value>
+  </data>
+  <data name="GreetNight" xml:space="preserve">
+    <value>Good night</value>
+  </data>
+  <data name="WeatherPlaceDevice" xml:space="preserve">
+    <value>My location</value>
+  </data>
+  <data name="WeatherNoLocation" xml:space="preserve">
+    <value>No location set for weather</value>
+  </data>
+  <data name="WeatherPickLocation" xml:space="preserve">
+    <value>Choose location</value>
+  </data>
+  <data name="PanelFocusTitle" xml:space="preserve">
+    <value>Focus</value>
+  </data>
+  <data name="FocusTabFocus" xml:space="preserve">
+    <value>Focus</value>
+  </data>
+  <data name="FocusTabBreak" xml:space="preserve">
+    <value>Break</value>
+  </data>
+  <data name="FocusTabTimer" xml:space="preserve">
+    <value>Timer</value>
+  </data>
+  <data name="FocusTabStopwatch" xml:space="preserve">
+    <value>Stopwatch</value>
+  </data>
+  <data name="FocusRound" xml:space="preserve">
+    <value>Round {0} / {1}</value>
+  </data>
+  <data name="FocusSessions" xml:space="preserve">
+    <value>Completed sessions</value>
+  </data>
+  <data name="FocusPause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="FocusSkip" xml:space="preserve">
+    <value>Skip to next phase</value>
+  </data>
+  <data name="FocusLap" xml:space="preserve">
+    <value>Lap</value>
+  </data>
+  <data name="FocusLapsEmpty" xml:space="preserve">
+    <value>Start the stopwatch to add laps</value>
+  </data>
+  <data name="FocusDurations" xml:space="preserve">
+    <value>Focus {0} min · Break {1} min · Long break {2} min</value>
+  </data>
+  <data name="FocusShorter" xml:space="preserve">
+    <value>Shorten</value>
+  </data>
+  <data name="FocusLonger" xml:space="preserve">
+    <value>Lengthen</value>
+  </data>
+  <data name="FocusElapsed" xml:space="preserve">
+    <value>Elapsed</value>
+  </data>
+  <data name="FocusCountdown" xml:space="preserve">
+    <value>Countdown</value>
+  </data>
+  <data name="FocusTimeUp" xml:space="preserve">
+    <value>Time is up</value>
+  </data>
+  <data name="HomeMinutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="HomeUnderMinute" xml:space="preserve">
+    <value>under 1 min</value>
+  </data>
+  <data name="HomeLeft" xml:space="preserve">
+    <value>{0} · {1} left</value>
+  </data>
+  <data name="HomeElapsed" xml:space="preserve">
+    <value>{0} · {1} elapsed</value>
+  </data>
+  <data name="NotchNotifications" xml:space="preserve">
+    <value>Open Notification Center</value>
+  </data>
+  <data name="NotchPin" xml:space="preserve">
+    <value>Keep notch open</value>
+  </data>
+  <data name="ShelfCount" xml:space="preserve">
+    <value>{0} items</value>
+  </data>
+  <data name="ShelfDropHere" xml:space="preserve">
+    <value>Drop here</value>
+  </data>
+  <data name="ShelfClear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="ControlVolume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="ControlBrightness" xml:space="preserve">
+    <value>Brightness</value>
+  </data>
+  <data name="BrightnessUnavailable" xml:space="preserve">
+    <value>Brightness can't be set on this screen.</value>
+  </data>
+  <data name="MusicPrevious" xml:space="preserve">
+    <value>Previous</value>
+  </data>
+  <data name="MusicNext" xml:space="preserve">
+    <value>Next</value>
+  </data>
+  <data name="MusicPlayPause" xml:space="preserve">
+    <value>Play / Pause</value>
+  </data>
+  <data name="TabClipboard" xml:space="preserve">
+    <value>Clipboard</value>
+  </data>
+  <data name="TabSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="PanelClipboardTitle" xml:space="preserve">
+    <value>Clipboard</value>
+  </data>
+  <data name="PanelClipboardDesc" xml:space="preserve">
+    <value>Shows the Clipboard tab (needs clipboard history).</value>
+  </data>
+  <data name="PanelSystemTitle" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="ClipboardHistoryTitle" xml:space="preserve">
+    <value>Clipboard history</value>
+  </data>
+  <data name="ClipboardHistoryDesc" xml:space="preserve">
+    <value>Remembers copied text (last 50) while on. Off: the clipboard is not listened to and the Clipboard tab is hidden. Pinned items are saved on disk as plain text.</value>
+  </data>
+  <data name="ClipSearch" xml:space="preserve">
+    <value>Search clipboard</value>
+  </data>
+  <data name="ClipFilterAll" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="ClipFilterPinned" xml:space="preserve">
+    <value>Pinned</value>
+  </data>
+  <data name="ClipFilterLink" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="ClipFilterColor" xml:space="preserve">
+    <value>Colors</value>
+  </data>
+  <data name="ClipFilterCode" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="ClipClear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="ClipKindText" xml:space="preserve">
+    <value>Text</value>
+  </data>
+  <data name="ClipKindLink" xml:space="preserve">
+    <value>Link</value>
+  </data>
+  <data name="ClipKindColor" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="ClipKindCode" xml:space="preserve">
+    <value>Code</value>
+  </data>
+  <data name="ClipPinnedLabel" xml:space="preserve">
+    <value>pinned</value>
+  </data>
+  <data name="ClipCopied" xml:space="preserve">
+    <value>Copied</value>
+  </data>
+  <data name="ClipCopyBack" xml:space="preserve">
+    <value>Copy back to clipboard</value>
+  </data>
+  <data name="ClipPin" xml:space="preserve">
+    <value>Pin</value>
+  </data>
+  <data name="ClipUnpin" xml:space="preserve">
+    <value>Unpin</value>
+  </data>
+  <data name="ClipDelete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="ClipEmpty" xml:space="preserve">
+    <value>Nothing copied yet</value>
+  </data>
+  <data name="ClipNoMatch" xml:space="preserve">
+    <value>No matching items</value>
+  </data>
+  <data name="ClipFooter" xml:space="preserve">
+    <value>Text, links, colors and code only; last 50 items; pinned items stay.</value>
+  </data>
+  <data name="AgeNow" xml:space="preserve">
+    <value>now</value>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>{0} h</value>
+  </data>
+  <data name="AgeDays" xml:space="preserve">
+    <value>{0} d</value>
+  </data>
+  <data name="SystemProcessor" xml:space="preserve">
+    <value>processor</value>
+  </data>
+  <data name="SystemMemory" xml:space="preserve">
+    <value>memory</value>
+  </data>
+  <data name="SystemTopProcess" xml:space="preserve">
+    <value>Top: {0}</value>
+  </data>
+  <data name="SystemNoNetwork" xml:space="preserve">
+    <value>No network</value>
+  </data>
+  <data name="SystemKoySelf" xml:space="preserve">
+    <value>Koy itself</value>
+  </data>
+  <data name="HomeCpu" xml:space="preserve">
+    <value>CPU</value>
+  </data>
+  <data name="HomeRam" xml:space="preserve">
+    <value>RAM</value>
+  </data>
+  <data name="QuickLaunchTitle" xml:space="preserve">
+    <value>Quick launch</value>
+  </data>
+  <data name="QuickLaunchAdd" xml:space="preserve">
+    <value>Add a file or app to quick launch</value>
+  </data>
+  <data name="QuickLaunchRemove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="QuickLaunchPickTitle" xml:space="preserve">
+    <value>Add to quick launch</value>
+  </data>
+  <data name="QuickLaunchPickFilter" xml:space="preserve">
+    <value>Apps and shortcuts|*.exe;*.lnk;*.bat;*.cmd|All files|*.*</value>
+  </data>
+  <data name="QuickLaunchPickFolderTitle" xml:space="preserve">
+    <value>Select folder</value>
+  </data>
+  <data name="QuickLaunchAddFile" xml:space="preserve">
+    <value>Add app or file…</value>
+  </data>
+  <data name="QuickLaunchAddFolder" xml:space="preserve">
+    <value>Add folder…</value>
+  </data>
+  <data name="TaskToday" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="TaskThisWeek" xml:space="preserve">
+    <value>This week</value>
+  </data>
+  <data name="TaskThisMonth" xml:space="preserve">
+    <value>This month</value>
+  </data>
+  <data name="TaskScopeDay" xml:space="preserve">
+    <value>Day</value>
+  </data>
+  <data name="TaskScopeWeek" xml:space="preserve">
+    <value>Week</value>
+  </data>
+  <data name="TaskScopeMonth" xml:space="preserve">
+    <value>Month</value>
+  </data>
+  <data name="TaskAdd" xml:space="preserve">
+    <value>Add task</value>
+  </data>
+  <data name="TaskAddButton" xml:space="preserve">
+    <value>Add the task</value>
+  </data>
+  <data name="TaskTimeHint" xml:space="preserve">
+    <value>HH:mm</value>
+  </data>
+  <data name="TaskTimeInvalid" xml:space="preserve">
+    <value>Enter a time like 14:30</value>
+  </data>
+  <data name="TaskNow" xml:space="preserve">
+    <value>now</value>
+  </data>
+  <data name="TaskDelete" xml:space="preserve">
+    <value>Delete the task</value>
+  </data>
+  <data name="TaskToggle" xml:space="preserve">
+    <value>Mark as done / not done</value>
+  </data>
+  <data name="TaskEmpty" xml:space="preserve">
+    <value>No tasks yet</value>
+  </data>
+  <data name="WifiConnectedSecure" xml:space="preserve">
+    <value>Connected, secured</value>
+  </data>
+  <data name="WifiConnectedOpen" xml:space="preserve">
+    <value>Connected, open network</value>
+  </data>
+  <data name="WifiSaved" xml:space="preserve">
+    <value>Saved</value>
+  </data>
+  <data name="WifiHidden" xml:space="preserve">
+    <value>Hidden network</value>
+  </data>
+  <data name="WifiConnecting" xml:space="preserve">
+    <value>Connecting…</value>
+  </data>
+  <data name="WifiConnect" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="WifiDisconnect" xml:space="preserve">
+    <value>Disconnect</value>
+  </data>
+  <data name="WifiPasswordHint" xml:space="preserve">
+    <value>Network password</value>
+  </data>
+  <data name="WifiErrPassword" xml:space="preserve">
+    <value>Wrong password</value>
+  </data>
+  <data name="WifiErrNotAvailable" xml:space="preserve">
+    <value>The network isn't reachable right now</value>
+  </data>
+  <data name="WifiErrTimeout" xml:space="preserve">
+    <value>Timed out</value>
+  </data>
+  <data name="WifiErrUnsupported" xml:space="preserve">
+    <value>This security type isn't supported</value>
+  </data>
+  <data name="WifiErrAccess" xml:space="preserve">
+    <value>Wi-Fi access was denied</value>
+  </data>
+  <data name="WifiErrFailed" xml:space="preserve">
+    <value>Couldn't connect</value>
+  </data>
+  <data name="WifiRadioOff" xml:space="preserve">
+    <value>Wi-Fi is off</value>
+  </data>
+  <data name="WifiNoAdapter" xml:space="preserve">
+    <value>No Wi-Fi adapter found</value>
+  </data>
+  <data name="WifiNoAccess" xml:space="preserve">
+    <value>Wi-Fi access isn't allowed. Allow desktop apps in Settings &gt; Privacy &gt; Location.</value>
+  </data>
+  <data name="WifiLocationBlocked" xml:space="preserve">
+    <value>Network names are hidden: Windows shows Wi-Fi names to desktop apps only with location access. Turn on "Let desktop apps access your location" in Settings &gt; Privacy &gt; Location.</value>
+  </data>
+  <data name="WifiEmpty" xml:space="preserve">
+    <value>No networks found nearby</value>
+  </data>
+  <data name="WifiScanFailed" xml:space="preserve">
+    <value>Couldn't scan for networks</value>
+  </data>
+  <data name="WifiLocationLink" xml:space="preserve">
+    <value>Open location settings</value>
+  </data>
+  <data name="WifiMoreSettings" xml:space="preserve">
+    <value>More Wi-Fi settings</value>
+  </data>
+  <data name="BluetoothMoreSettings" xml:space="preserve">
+    <value>More Bluetooth settings</value>
+  </data>
+  <data name="BluetoothConnected" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="BluetoothDisconnected" xml:space="preserve">
+    <value>Disconnected</value>
+  </data>
+  <data name="BluetoothNotConnected" xml:space="preserve">
+    <value>Not connected</value>
+  </data>
+  <data name="BluetoothConnect" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="BluetoothDisconnect" xml:space="preserve">
+    <value>Disconnect</value>
+  </data>
+  <data name="BluetoothConnecting" xml:space="preserve">
+    <value>Connecting…</value>
+  </data>
+  <data name="BluetoothDisconnecting" xml:space="preserve">
+    <value>Disconnecting…</value>
+  </data>
+  <data name="BluetoothErrConnect" xml:space="preserve">
+    <value>Couldn't connect</value>
+  </data>
+  <data name="BluetoothErrDisconnect" xml:space="preserve">
+    <value>Couldn't disconnect</value>
+  </data>
+  <data name="BluetoothErrUnsupported" xml:space="preserve">
+    <value>Koy can't connect to this device; use Windows settings</value>
+  </data>
+  <data name="BluetoothOpenSettingsHint" xml:space="preserve">
+    <value>Click to open Windows Bluetooth settings</value>
+  </data>
+  <data name="BluetoothRadioOff" xml:space="preserve">
+    <value>Bluetooth is off</value>
+  </data>
+  <data name="BluetoothNotFound" xml:space="preserve">
+    <value>Bluetooth not found</value>
+  </data>
+  <data name="BluetoothEmpty" xml:space="preserve">
+    <value>No paired devices</value>
+  </data>
+  <data name="BluetoothConnectedDevices" xml:space="preserve">
+    <value>Connected devices</value>
+  </data>
+  <data name="BluetoothNoConnected" xml:space="preserve">
+    <value>No connected devices</value>
+  </data>
+  <data name="ControlBack" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="ControlOpenWifiList" xml:space="preserve">
+    <value>Show Wi-Fi networks</value>
+  </data>
+  <data name="ControlOpenBluetoothList" xml:space="preserve">
+    <value>Show Bluetooth devices</value>
+  </data>
+  <data name="AboutPlaceTitle" xml:space="preserve">
+    <value>Place name</value>
+  </data>
+  <data name="AboutPlaceLicense" xml:space="preserve">
+    <value>City name for your device location, © OpenStreetMap contributors (ODbL)</value>
+  </data>
+  <data name="AboutPlaceLink" xml:space="preserve">
+    <value>OpenStreetMap</value>
+  </data>
+  <data name="OpenWebsiteAction" xml:space="preserve">
+    <value>Open website</value>
+  </data>
+  <data name="AboutSiteTitle" xml:space="preserve">
+    <value>Project website</value>
+  </data>
+  <data name="AboutSiteDesc" xml:space="preserve">
+    <value>Screenshots, downloads and news at koyhq.github.io/koy.</value>
+  </data>
+  <data name="AboutThanksTitle" xml:space="preserve">
+    <value>Thanks and inspiration</value>
+  </data>
+  <data name="AboutThanksDesc" xml:space="preserve">
+    <value>Koy grew from the ideas of two projects. No code, images or text were taken from either.</value>
+  </data>
+  <data name="AboutNectarTitle" xml:space="preserve">
+    <value>Nectar</value>
+  </data>
+  <data name="AboutNectarDesc" xml:space="preserve">
+    <value>The idea of a spring-animated notch at the top of the screen.</value>
+  </data>
+  <data name="AboutSeelenTitle" xml:space="preserve">
+    <value>Seelen UI</value>
+  </data>
+  <data name="AboutSeelenDesc" xml:space="preserve">
+    <value>A floating dock that replaces the taskbar, and smart placement near windows.</value>
+  </data>
+  <data name="UpdateReadyOnExit" xml:space="preserve">
+    <value>A new version was downloaded and will install when Koy closes. Check now to install it immediately.</value>
+  </data>
+  <data name="UpdateStateReady" xml:space="preserve">
+    <value>update ready</value>
+  </data>
+  <data name="DockFolder" xml:space="preserve">
+    <value>Folder</value>
+  </data>
+  <data name="DockFolderRename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="DockFolderDissolve" xml:space="preserve">
+    <value>Dissolve folder</value>
+  </data>
+  <data name="DockAddItem" xml:space="preserve">
+    <value>Add item</value>
+  </data>
+  <data name="DockAddSeparator" xml:space="preserve">
+    <value>Separator</value>
+  </data>
+  <data name="DockAddSpacer" xml:space="preserve">
+    <value>Spacer</value>
+  </data>
+  <data name="DockAddClock" xml:space="preserve">
+    <value>Clock</value>
+  </data>
+  <data name="DockAddTrash" xml:space="preserve">
+    <value>Recycle Bin</value>
+  </data>
+  <data name="DockAddCustom" xml:space="preserve">
+    <value>Custom button...</value>
+  </data>
+  <data name="DockItemClock" xml:space="preserve">
+    <value>Clock</value>
+  </data>
+  <data name="DockItemTrash" xml:space="preserve">
+    <value>Recycle Bin</value>
+  </data>
+  <data name="DockItemCustom" xml:space="preserve">
+    <value>Custom button</value>
+  </data>
+  <data name="DockItemCustomPick" xml:space="preserve">
+    <value>Choose what the button opens</value>
+  </data>
+  <data name="DockItemRemove" xml:space="preserve">
+    <value>Remove from dock</value>
+  </data>
+  <data name="DockItemMoveLeft" xml:space="preserve">
+    <value>Move left</value>
+  </data>
+  <data name="DockItemMoveRight" xml:space="preserve">
+    <value>Move right</value>
+  </data>
+  <data name="UpdateAvailableBadge" xml:space="preserve">
+    <value>New version: {0}</value>
+  </data>
+  <data name="UpdateCardTitle" xml:space="preserve">
+    <value>Koy {0} available</value>
+  </data>
+  <data name="UpdateCardSubtitle" xml:space="preserve">
+    <value>Ready to update</value>
+  </data>
+  <data name="UpdateCardAction" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="UpdateCardDismiss" xml:space="preserve">
+    <value>Dismiss</value>
+  </data>
+  <data name="UpdateModalTitle" xml:space="preserve">
+    <value>New Version Available</value>
+  </data>
+  <data name="UpdateModalIntro" xml:space="preserve">
+    <value>Koy {0} is available. Would you like to download and update now?</value>
+  </data>
+  <data name="UpdateModalHighlights" xml:space="preserve">
+    <value>Highlights:</value>
+  </data>
+  <data name="UpdateNow" xml:space="preserve">
+    <value>Update Now</value>
+  </data>
+  <data name="UpdateLater" xml:space="preserve">
+    <value>Later</value>
+  </data>
+  <data name="UpdateDownloading" xml:space="preserve">
+    <value>Downloading update… {0}%</value>
+  </data>
+  <data name="WhatsNewTitle" xml:space="preserve">
+    <value>Updated to Koy {0}</value>
+  </data>
+  <data name="WhatsNewIntro" xml:space="preserve">
+    <value>Here's what's new in this release:</value>
+  </data>
+  <data name="WhatsNewDone" xml:space="preserve">
+    <value>Got it</value>
+  </data>
+  <data name="PrivacyIndicatorTitle" xml:space="preserve">
+    <value>Microphone and camera indicator</value>
+  </data>
+  <data name="PrivacyIndicatorDesc" xml:space="preserve">
+    <value>Shows a coloured dot on the notch when an app uses the camera or microphone.</value>
+  </data>
+  <data name="PrivacyTooltipCamAndMic" xml:space="preserve">
+    <value>Camera ({0}) and microphone ({1}) in use</value>
+  </data>
+  <data name="PrivacyTooltipCam" xml:space="preserve">
+    <value>Camera in use ({0})</value>
+  </data>
+  <data name="PrivacyTooltipMic" xml:space="preserve">
+    <value>Microphone in use ({0})</value>
+  </data>
+  <data name="WeatherCondClear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="WeatherCondMostlyClear" xml:space="preserve">
+    <value>Mostly clear</value>
+  </data>
+  <data name="WeatherCondPartlyCloudy" xml:space="preserve">
+    <value>Partly cloudy</value>
+  </data>
+  <data name="WeatherCondOvercast" xml:space="preserve">
+    <value>Overcast</value>
+  </data>
+  <data name="WeatherCondFog" xml:space="preserve">
+    <value>Foggy</value>
+  </data>
+  <data name="WeatherCondRimeFog" xml:space="preserve">
+    <value>Rime fog</value>
+  </data>
+  <data name="WeatherCondLightDrizzle" xml:space="preserve">
+    <value>Light drizzle</value>
+  </data>
+  <data name="WeatherCondModerateDrizzle" xml:space="preserve">
+    <value>Moderate drizzle</value>
+  </data>
+  <data name="WeatherCondDenseDrizzle" xml:space="preserve">
+    <value>Dense drizzle</value>
+  </data>
+  <data name="WeatherCondFreezingDrizzle" xml:space="preserve">
+    <value>Freezing drizzle</value>
+  </data>
+  <data name="WeatherCondLightRain" xml:space="preserve">
+    <value>Light rain</value>
+  </data>
+  <data name="WeatherCondRain" xml:space="preserve">
+    <value>Rain</value>
+  </data>
+  <data name="WeatherCondHeavyRain" xml:space="preserve">
+    <value>Heavy rain</value>
+  </data>
+  <data name="WeatherCondFreezingRain" xml:space="preserve">
+    <value>Freezing rain</value>
+  </data>
+  <data name="WeatherCondLightSnow" xml:space="preserve">
+    <value>Light snow</value>
+  </data>
+  <data name="WeatherCondSnow" xml:space="preserve">
+    <value>Snow</value>
+  </data>
+  <data name="WeatherCondHeavySnow" xml:space="preserve">
+    <value>Heavy snow</value>
+  </data>
+  <data name="WeatherCondSnowGrains" xml:space="preserve">
+    <value>Snow grains</value>
+  </data>
+  <data name="WeatherCondLightShowers" xml:space="preserve">
+    <value>Light showers</value>
+  </data>
+  <data name="WeatherCondShowers" xml:space="preserve">
+    <value>Showers</value>
+  </data>
+  <data name="WeatherCondHeavyShowers" xml:space="preserve">
+    <value>Heavy showers</value>
+  </data>
+  <data name="WeatherCondLightSnowShowers" xml:space="preserve">
+    <value>Light snow showers</value>
+  </data>
+  <data name="WeatherCondHeavySnowShowers" xml:space="preserve">
+    <value>Heavy snow showers</value>
+  </data>
+  <data name="WeatherCondThunderstorm" xml:space="preserve">
+    <value>Thunderstorm</value>
+  </data>
+  <data name="WeatherCondHailStorm" xml:space="preserve">
+    <value>Thunderstorm with hail</value>
+  </data>
+  <data name="WeatherCondUnknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="DockNowPlayingTooltip" xml:space="preserve">
+    <value>Now playing (open the notch)</value>
+  </data>
+  <data name="DockShowTooltip" xml:space="preserve">
+    <value>Show the dock</value>
+  </data>
+  <data name="UnknownTrack" xml:space="preserve">
+    <value>Unknown track</value>
+  </data>
+  <data name="UnknownArtist" xml:space="preserve">
+    <value>Unknown artist</value>
+  </data>
+  <data name="MenuWindowTitle" xml:space="preserve">
+    <value>Koy Menu</value>
+  </data>
+  <data name="WizardWindowTitle" xml:space="preserve">
+    <value>Koy Setup</value>
+  </data>
+  <data name="PrivacyUnknownApp" xml:space="preserve">
+    <value>Unknown app</value>
+  </data>
+  <data name="StartItemInstalledApps" xml:space="preserve">
+    <value>Installed apps</value>
+  </data>
+  <data name="StartItemMobilityCenter" xml:space="preserve">
+    <value>Mobility Center</value>
+  </data>
+  <data name="StartItemPowerOptions" xml:space="preserve">
+    <value>Power Options</value>
+  </data>
+  <data name="StartItemEventViewer" xml:space="preserve">
+    <value>Event Viewer</value>
+  </data>
+  <data name="StartItemSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="StartItemDeviceManager" xml:space="preserve">
+    <value>Device Manager</value>
+  </data>
+  <data name="StartItemNetworkConnections" xml:space="preserve">
+    <value>Network Connections</value>
+  </data>
+  <data name="StartItemDiskManagement" xml:space="preserve">
+    <value>Disk Management</value>
+  </data>
+  <data name="StartItemComputerManagement" xml:space="preserve">
+    <value>Computer Management</value>
+  </data>
+  <data name="StartItemTerminal" xml:space="preserve">
+    <value>Terminal</value>
+  </data>
+  <data name="StartItemTerminalAdmin" xml:space="preserve">
+    <value>Terminal (Admin)</value>
+  </data>
+  <data name="StartItemTaskManager" xml:space="preserve">
+    <value>Task Manager</value>
+  </data>
+  <data name="StartItemSettings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="StartItemFileExplorer" xml:space="preserve">
+    <value>File Explorer</value>
+  </data>
+  <data name="StartItemSearch" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="StartItemRun" xml:space="preserve">
+    <value>Run</value>
+  </data>
+  <data name="StartItemShutDownOrSignOut" xml:space="preserve">
+    <value>Shut down or sign out</value>
+  </data>
+  <data name="StartItemSignOut" xml:space="preserve">
+    <value>Sign out</value>
+  </data>
+  <data name="StartItemSleep" xml:space="preserve">
+    <value>Sleep</value>
+  </data>
+  <data name="StartItemShutDown" xml:space="preserve">
+    <value>Shut down</value>
+  </data>
+  <data name="StartItemRestart" xml:space="preserve">
+    <value>Restart</value>
+  </data>
+  <data name="StartItemDesktop" xml:space="preserve">
+    <value>Desktop</value>
+  </data>
+  <data name="VoiceRunning" xml:space="preserve">
+    <value>{0} is running…</value>
+  </data>
+  <data name="VoiceCompleted" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="VoiceErrorInvalidCommand" xml:space="preserve">
+    <value>The custom command isn't valid. Check it in Koy › Dictation.</value>
+  </data>
+  <data name="VoiceErrorInvalidModel" xml:space="preserve">
+    <value>The model name “{0}” isn't valid. Check it in Koy › Dictation.</value>
+  </data>
+  <data name="VoiceErrorScriptNotSupported" xml:space="preserve">
+    <value>{0} is a .cmd or .bat script, which Koy can't start. Set the .exe path as a custom command.</value>
+  </data>
+  <data name="VoiceErrorCommandNotFound" xml:space="preserve">
+    <value>Couldn't find {0}. Make sure it's installed and on PATH.</value>
+  </data>
+  <data name="VoiceErrorTimeout" xml:space="preserve">
+    <value>The command took longer than {0} s and was stopped.</value>
+  </data>
+  <data name="VoiceErrorExitCode" xml:space="preserve">
+    <value>The command exited with code {0}.</value>
+  </data>
+  <data name="VoiceErrorStartFailed" xml:space="preserve">
+    <value>Couldn't start {0}.</value>
+  </data>
+  <data name="VoiceErrorUnexpected" xml:space="preserve">
+    <value>Something went wrong.</value>
+  </data>
+  <data name="LyricsToggle" xml:space="preserve">
+    <value>Lyrics on or off. When on, the playing title is looked up on LRCLIB.</value>
+  </data>
+  <data name="VoiceEditing" xml:space="preserve">
+    <value>Speak or type · Enter runs, Esc cancels</value>
+  </data>
+  <data name="VoiceReplyOpen" xml:space="preserve">
+    <value>Done · click for the full reply</value>
+  </data>
+  <data name="NotificationsTitle" xml:space="preserve">
+    <value>Show notifications on the notch</value>
+  </data>
+  <data name="NotificationsDesc" xml:space="preserve">
+    <value>Windows notifications appear as a card on the notch. Koy checks the notification list every 2 seconds while this is on.</value>
+  </data>
+  <data name="NotificationsNeedPermission" xml:space="preserve">
+    <value>Windows permission needed: allow Koy in Settings › Privacy &amp; security › Notifications.</value>
+  </data>
+  <data name="NotificationsHideBodyTitle" xml:space="preserve">
+    <value>Hide notification content</value>
+  </data>
+  <data name="NotificationsHideBodyDesc" xml:space="preserve">
+    <value>Cards show only the app name and the title, not the message text.</value>
+  </data>
+  <data name="NotificationTimeNow" xml:space="preserve">
+    <value>just now</value>
+  </data>
+  <data name="NotificationTimeMinutesAgo" xml:space="preserve">
+    <value>{0} min ago</value>
+  </data>
+  <data name="NotificationTimeHoursAgo" xml:space="preserve">
+    <value>{0} h ago</value>
+  </data>
+  <data name="FocusOn" xml:space="preserve">
+    <value>Focus on</value>
+  </data>
+  <data name="NotchStyleTitle" xml:space="preserve">
+    <value>Notch style</value>
+  </data>
+  <data name="NotchStyleDesc" xml:space="preserve">
+    <value>Pinned touches the top edge of the screen; Floating is a rounded island with a small gap above.</value>
+  </data>
+  <data name="NotchStylePinned" xml:space="preserve">
+    <value>Pinned to screen</value>
+  </data>
+  <data name="NotchStyleFloating" xml:space="preserve">
+    <value>Floating island</value>
+  </data>
+  <data name="DockItemChangeIcon" xml:space="preserve">
+    <value>Change icon...</value>
+  </data>
+  <data name="DockItemResetIcon" xml:space="preserve">
+    <value>Reset icon</value>
+  </data>
+  <data name="DockItemIconPickTitle" xml:space="preserve">
+    <value>Choose an icon for this app</value>
+  </data>
+  <data name="DockItemIconPickFilter" xml:space="preserve">
+    <value>Images (*.png;*.ico)|*.png;*.ico</value>
+  </data>
+  <data name="IconPackTitle" xml:space="preserve">
+    <value>Icon pack</value>
+  </data>
+  <data name="IconPackDesc" xml:space="preserve">
+    <value>Replace dock app icons with images from a folder. Name files like the shortcut: Firefox.png, Notepad.ico. Apps without a file keep their own icon.</value>
+  </data>
+  <data name="IconPackBuiltin" xml:space="preserve">
+    <value>Built-in</value>
+  </data>
+  <data name="IconPackFolder" xml:space="preserve">
+    <value>Folder</value>
+  </data>
+  <data name="IconPackFolderChoose" xml:space="preserve">
+    <value>Choose folder...</value>
+  </data>
+  <data name="IconPackFolderNone" xml:space="preserve">
+    <value>No folder chosen</value>
+  </data>
+  <data name="IconPackFolderPickTitle" xml:space="preserve">
+    <value>Choose an icon pack folder</value>
+  </data>
+  <data name="ProfilesHeader" xml:space="preserve">
+    <value>Profiles</value>
+  </data>
+  <data name="ProfilesSaveTitle" xml:space="preserve">
+    <value>Save current settings as a profile</value>
+  </data>
+  <data name="ProfilesSaveDesc" xml:space="preserve">
+    <value>Pick the parts to keep. A profile can be applied later or exported to a file. Machine-specific values (displays, weather location, pinned apps, local icon paths) are never included.</value>
+  </data>
+  <data name="ProfilesNameHint" xml:space="preserve">
+    <value>Profile name</value>
+  </data>
+  <data name="ProfilesSaveButton" xml:space="preserve">
+    <value>Save profile</value>
+  </data>
+  <data name="ProfilesExportCurrentButton" xml:space="preserve">
+    <value>Export to file...</value>
+  </data>
+  <data name="ProfilesImportButton" xml:space="preserve">
+    <value>Import from file...</value>
+  </data>
+  <data name="ProfilesImportPreviewTitle" xml:space="preserve">
+    <value>Import preview</value>
+  </data>
+  <data name="ProfilesImportMachineNote" xml:space="preserve">
+    <value>Nothing has been saved or changed yet. Machine-specific values are never imported.</value>
+  </data>
+  <data name="ProfilesImportSave" xml:space="preserve">
+    <value>Add to my profiles</value>
+  </data>
+  <data name="ProfilesImportApply" xml:space="preserve">
+    <value>Add and apply</value>
+  </data>
+  <data name="ProfilesEmpty" xml:space="preserve">
+    <value>No saved profiles yet.</value>
+  </data>
+  <data name="ProfilesApply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="ProfilesRename" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="ProfilesDuplicate" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="ProfilesExport" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="ProfilesDelete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="ProfilesRenameConfirm" xml:space="preserve">
+    <value>Rename</value>
+  </data>
+  <data name="ProfilesDeleteConfirm" xml:space="preserve">
+    <value>Delete profile</value>
+  </data>
+  <data name="ProfileSectionAppearance" xml:space="preserve">
+    <value>Appearance</value>
+  </data>
+  <data name="ProfileSectionDock" xml:space="preserve">
+    <value>Dock</value>
+  </data>
+  <data name="ProfileSectionNotch" xml:space="preserve">
+    <value>Notch</value>
+  </data>
+  <data name="ProfileSectionMusic" xml:space="preserve">
+    <value>Music</value>
+  </data>
+  <data name="ProfileSectionShortcuts" xml:space="preserve">
+    <value>Shortcuts</value>
+  </data>
+  <data name="ProfileSectionFocus" xml:space="preserve">
+    <value>Focus</value>
+  </data>
+  <data name="ProfileCorrupt" xml:space="preserve">
+    <value>This profile is damaged and cannot be applied.</value>
+  </data>
+  <data name="ProfileSaved" xml:space="preserve">
+    <value>Saved profile "{0}".</value>
+  </data>
+  <data name="ProfileApplied" xml:space="preserve">
+    <value>Applied profile "{0}".</value>
+  </data>
+  <data name="ProfileAppliedNoChange" xml:space="preserve">
+    <value>Profile "{0}" already matches your settings. Nothing changed.</value>
+  </data>
+  <data name="ProfileRenamed" xml:space="preserve">
+    <value>Renamed to "{0}".</value>
+  </data>
+  <data name="ProfileDeleted" xml:space="preserve">
+    <value>Deleted profile "{0}".</value>
+  </data>
+  <data name="ProfileExported" xml:space="preserve">
+    <value>Exported to {0}.</value>
+  </data>
+  <data name="ProfileExportFailed" xml:space="preserve">
+    <value>Could not write the file. Check the location and try again.</value>
+  </data>
+  <data name="ProfileExportDialogTitle" xml:space="preserve">
+    <value>Export profile</value>
+  </data>
+  <data name="ProfileImportDialogTitle" xml:space="preserve">
+    <value>Import profile</value>
+  </data>
+  <data name="ProfileFileFilter" xml:space="preserve">
+    <value>Koy profile (*.json)|*.json|All files (*.*)|*.*</value>
+  </data>
+  <data name="ProfileImportReadFailed" xml:space="preserve">
+    <value>Could not read the file.</value>
+  </data>
+  <data name="ProfileImportNoChanges" xml:space="preserve">
+    <value>Applying it would change nothing: your settings already match.</value>
+  </data>
+  <data name="ProfileImportChanges" xml:space="preserve">
+    <value>Applying it would change: {0}.</value>
+  </data>
+  <data name="ProfileImportErrorTooLarge" xml:space="preserve">
+    <value>The file is too large to be a Koy profile.</value>
+  </data>
+  <data name="ProfileImportErrorMalformedJson" xml:space="preserve">
+    <value>The file is not valid JSON.</value>
+  </data>
+  <data name="ProfileImportErrorNotAProfile" xml:space="preserve">
+    <value>This is not a Koy profile file.</value>
+  </data>
+  <data name="ProfileImportErrorUnsupportedFormatVersion" xml:space="preserve">
+    <value>This profile was made by a newer version of Koy. Update Koy and try again.</value>
+  </data>
+  <data name="ProfileImportErrorInvalidName" xml:space="preserve">
+    <value>The profile has an invalid name.</value>
+  </data>
+  <data name="ProfileImportErrorUnknownSection" xml:space="preserve">
+    <value>The profile contains a part this version does not know.</value>
+  </data>
+  <data name="ProfileImportErrorNoSections" xml:space="preserve">
+    <value>The profile contains no settings.</value>
+  </data>
+  <data name="ProfileImportErrorInvalidValues" xml:space="preserve">
+    <value>The profile contains values that are out of range. Nothing was imported.</value>
+  </data>
+  <data name="ProfileErrorInvalidName" xml:space="preserve">
+    <value>Enter a name up to 60 characters, without control characters.</value>
+  </data>
+  <data name="ProfileErrorDuplicateName" xml:space="preserve">
+    <value>A profile with this name already exists.</value>
+  </data>
+  <data name="ProfileErrorNoSections" xml:space="preserve">
+    <value>Select at least one part to include.</value>
+  </data>
+  <data name="ProfileErrorNotFound" xml:space="preserve">
+    <value>That profile no longer exists.</value>
+  </data>
+  <data name="ProfileErrorLimitReached" xml:space="preserve">
+    <value>You can keep up to 50 profiles. Delete one first.</value>
+  </data>
+  <data name="ProfileErrorCorruptProfile" xml:space="preserve">
+    <value>This profile is damaged and cannot be used.</value>
+  </data>
+  <data name="ProfileErrorSaveFailed" xml:space="preserve">
+    <value>Could not save the profile list. Check disk space and try again.</value>
+  </data>
+  <data name="IndicatorHighlight" xml:space="preserve">
+    <value>Highlight</value>
+  </data>
+  <data name="IndicatorColorTitle" xml:space="preserve">
+    <value>Indicator color</value>
+  </data>
+  <data name="ColorAccent" xml:space="preserve">
+    <value>Accent</value>
+  </data>
+  <data name="ColorNeutral" xml:space="preserve">
+    <value>Neutral</value>
+  </data>
+  <data name="ColorCustom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="ColorCustomHint" xml:space="preserve">
+    <value>Custom color as #RRGGBB (falls back to accent if invalid)</value>
+  </data>
+  <data name="IndicatorOnePerWindowTitle" xml:space="preserve">
+    <value>One dot per window</value>
+  </data>
+  <data name="IndicatorOnePerWindowDesc" xml:space="preserve">
+    <value>With the dot style, show a dot for each open window (up to three).</value>
+  </data>
+  <data name="DockBadgesHeader" xml:space="preserve">
+    <value>BADGES</value>
+  </data>
+  <data name="DockShowBadgesTitle" xml:space="preserve">
+    <value>Show badges</value>
+  </data>
+  <data name="BadgeStyleTitle" xml:space="preserve">
+    <value>Badge style</value>
+  </data>
+  <data name="BadgeNumber" xml:space="preserve">
+    <value>Number</value>
+  </data>
+  <data name="BadgeDotOnly" xml:space="preserve">
+    <value>Dot only</value>
+  </data>
+  <data name="BadgeCornerTitle" xml:space="preserve">
+    <value>Badge corner</value>
+  </data>
+  <data name="CornerTopLeft" xml:space="preserve">
+    <value>Top left</value>
+  </data>
+  <data name="CornerTopRight" xml:space="preserve">
+    <value>Top right</value>
+  </data>
+  <data name="CornerBottomLeft" xml:space="preserve">
+    <value>Bottom left</value>
+  </data>
+  <data name="CornerBottomRight" xml:space="preserve">
+    <value>Bottom right</value>
+  </data>
+  <data name="BadgeColorTitle" xml:space="preserve">
+    <value>Badge color</value>
+  </data>
+  <data name="RevealTriggerTitle" xml:space="preserve">
+    <value>Reveal trigger</value>
+  </data>
+  <data name="RevealTriggerDesc" xml:space="preserve">
+    <value>How a hidden dock comes back when the pointer reaches the bottom edge.</value>
+  </data>
+  <data name="RevealEdgeTouch" xml:space="preserve">
+    <value>Touch edge</value>
+  </data>
+  <data name="RevealEdgeHold" xml:space="preserve">
+    <value>Hold at edge</value>
+  </data>
+  <data name="RevealDelayTitle" xml:space="preserve">
+    <value>Hold time at the edge</value>
+  </data>
+  <data name="RevealDelayShort" xml:space="preserve">
+    <value>Short</value>
+  </data>
+  <data name="RevealDelayNormal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="RevealDelayLong" xml:space="preserve">
+    <value>Long</value>
+  </data>
+  <data name="HiddenEdgeLineTitle" xml:space="preserve">
+    <value>Line while hidden</value>
+  </data>
+  <data name="HiddenEdgeLineDesc" xml:space="preserve">
+    <value>Show a thin line at the bottom edge while the dock is hidden. Never shown over full-screen apps.</value>
+  </data>
+  <data name="RulesHeader" xml:space="preserve">
+    <value>Rules</value>
+  </data>
+  <data name="RulesAddTitle" xml:space="preserve">
+    <value>Switch profile per app</value>
+  </data>
+  <data name="RulesAddDesc" xml:space="preserve">
+    <value>While the app is in front, Koy applies the chosen profile; when you leave it, Koy goes back to what the profile changed. A rule is applied after the app has stayed in front for about a second. New rules start switched off. Applying a profile never changes the rules.</value>
+  </data>
+  <data name="RulesProcessHint" xml:space="preserve">
+    <value>App executable name, for example chrome.exe</value>
+  </data>
+  <data name="RulesPickRunning" xml:space="preserve">
+    <value>Pick from running apps</value>
+  </data>
+  <data name="RulesRefreshRunning" xml:space="preserve">
+    <value>Refresh list</value>
+  </data>
+  <data name="RulesProfileLabel" xml:space="preserve">
+    <value>Profile to apply</value>
+  </data>
+  <data name="RulesAddButton" xml:space="preserve">
+    <value>Add rule</value>
+  </data>
+  <data name="RulesEmpty" xml:space="preserve">
+    <value>No rules yet. Koy does not watch the foreground app until a rule is switched on.</value>
+  </data>
+  <data name="RulesUsesProfile" xml:space="preserve">
+    <value>Applies profile: {0}</value>
+  </data>
+  <data name="RulesMissingProfile" xml:space="preserve">
+    <value>(deleted profile)</value>
+  </data>
+  <data name="RulesAdvancedRule" xml:space="preserve">
+    <value>custom conditions</value>
+  </data>
+  <data name="RulesAdded" xml:space="preserve">
+    <value>Rule added. It is switched off; turn it on to use it.</value>
+  </data>
+  <data name="RulesSaveFailed" xml:space="preserve">
+    <value>Could not save the rules. Check disk space and try again.</value>
+  </data>
+  <data name="RulesErrorInvalidProcess" xml:space="preserve">
+    <value>Enter an executable name such as chrome.exe (no folder path).</value>
+  </data>
+  <data name="RulesErrorNoProfile" xml:space="preserve">
+    <value>Choose a profile first. Save one in the Profiles section above.</value>
+  </data>
+  <data name="RulesErrorLimitReached" xml:space="preserve">
+    <value>Too many rules. Delete one first.</value>
+  </data>
+  <data name="RulesErrorDuplicate" xml:space="preserve">
+    <value>There is already a rule for this app.</value>
+  </data>
+  <data name="RulesErrorNotFound" xml:space="preserve">
+    <value>That rule no longer exists.</value>
+  </data>
+  <data name="DockEdgeTitle" xml:space="preserve">
+    <value>Screen edge</value>
+  </data>
+  <data name="DockEdgeBottom" xml:space="preserve">
+    <value>Bottom</value>
+  </data>
+  <data name="DockEdgeTop" xml:space="preserve">
+    <value>Top</value>
+  </data>
+  <data name="DockEdgeLeft" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="DockEdgeRight" xml:space="preserve">
+    <value>Right</value>
+  </data>
+  <data name="DockLengthTitle" xml:space="preserve">
+    <value>Dock length</value>
+  </data>
+  <data name="DockEdgeOffsetTitle" xml:space="preserve">
+    <value>Distance from edge</value>
+  </data>
+  <data name="DockInnerPaddingTitle" xml:space="preserve">
+    <value>Inner padding</value>
+  </data>
+  <data name="DockIconSpacingTitle" xml:space="preserve">
+    <value>Icon spacing</value>
+  </data>
+  <data name="UserStyleHeader" xml:space="preserve">
+    <value>User style file</value>
+  </data>
+  <data name="UserStyleTitle" xml:space="preserve">
+    <value>Override theme values from a file</value>
+  </data>
+  <data name="UserStyleDesc" xml:space="preserve">
+    <value>Reads user-theme.json from the Koy folder and overrides allowed colors, sizes, corners and fonts. Nothing else in the file is used, and it cannot run code.</value>
+  </data>
+  <data name="UserStyleOpenFolder" xml:space="preserve">
+    <value>Open folder</value>
+  </data>
+  <data name="UserStyleReload" xml:space="preserve">
+    <value>Reload</value>
+  </data>
+  <data name="UserStyleStatusOff" xml:space="preserve">
+    <value>Off. The file is not read.</value>
+  </data>
+  <data name="UserStyleStatusNoFile" xml:space="preserve">
+    <value>No user-theme.json in the Koy folder yet. Use "Open folder" and add one.</value>
+  </data>
+  <data name="UserStyleStatusLoaded" xml:space="preserve">
+    <value>{0} applied, {1} ignored.</value>
+  </data>
+  <data name="UserStyleDiagMore" xml:space="preserve">
+    <value>... and {0} more problems.</value>
+  </data>
+  <data name="UserStyleDiagInvalidJson" xml:space="preserve">
+    <value>The file is empty or not valid JSON.</value>
+  </data>
+  <data name="UserStyleDiagNotAnObject" xml:space="preserve">
+    <value>The top level must be a JSON object of key-value pairs.</value>
+  </data>
+  <data name="UserStyleDiagFileTooLarge" xml:space="preserve">
+    <value>The file is larger than 64 KB and was not used.</value>
+  </data>
+  <data name="UserStyleDiagFileUnreadable" xml:space="preserve">
+    <value>The file could not be read.</value>
+  </data>
+  <data name="UserStyleDiagTooManyEntries" xml:space="preserve">
+    <value>Too many entries; the rest were ignored.</value>
+  </data>
+  <data name="UserStyleDiagUnknownToken" xml:space="preserve">
+    <value>Unknown key, ignored.</value>
+  </data>
+  <data name="UserStyleDiagDuplicateToken" xml:space="preserve">
+    <value>Duplicate key; the first value is used.</value>
+  </data>
+  <data name="UserStyleDiagWrongValueType" xml:space="preserve">
+    <value>Wrong kind of value for this key.</value>
+  </data>
+  <data name="UserStyleDiagValueTooLong" xml:space="preserve">
+    <value>Value is too long.</value>
+  </data>
+  <data name="UserStyleDiagBadColor" xml:space="preserve">
+    <value>Expected a color like #RRGGBB or #AARRGGBB.</value>
+  </data>
+  <data name="UserStyleDiagBadNumber" xml:space="preserve">
+    <value>Expected a number.</value>
+  </data>
+  <data name="UserStyleDiagBadQuad" xml:space="preserve">
+    <value>Expected one number or four separated by commas (e.g. 8 or 8,8,0,0).</value>
+  </data>
+  <data name="UserStyleDiagBadFontFamily" xml:space="preserve">
+    <value>Expected a plain font name.</value>
+  </data>
+  <data name="UserStyleDiagOutOfRange" xml:space="preserve">
+    <value>Value is outside the allowed range.</value>
+  </data>
+  <data name="LiveBgHeader" xml:space="preserve">
+    <value>Visuals</value>
+  </data>
+  <data name="LiveBgTargetTitle" xml:space="preserve">
+    <value>Live background</value>
+  </data>
+  <data name="LiveBgTargetDesc" xml:space="preserve">
+    <value>Animated or looping backdrop behind the open notch and/or the music card. Plays only while the notch is open.</value>
+  </data>
+  <data name="LiveBgTargetNone" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="LiveBgTargetNotch" xml:space="preserve">
+    <value>Notch</value>
+  </data>
+  <data name="LiveBgTargetMusicCard" xml:space="preserve">
+    <value>Music card</value>
+  </data>
+  <data name="LiveBgTargetBoth" xml:space="preserve">
+    <value>Both</value>
+  </data>
+  <data name="LiveBgSourceTitle" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="LiveBgSourceDesc" xml:space="preserve">
+    <value>A built-in ambient gradient or your own GIF, short video (MP4, WebM) or WebP image. Reduce motion and battery saver show a still first frame.</value>
+  </data>
+  <data name="LiveBgSourceAmbient" xml:space="preserve">
+    <value>Ambient</value>
+  </data>
+  <data name="LiveBgSourceFile" xml:space="preserve">
+    <value>File</value>
+  </data>
+  <data name="LiveBgPresetTitle" xml:space="preserve">
+    <value>Ambient preset</value>
+  </data>
+  <data name="LiveBgPresetDesc" xml:space="preserve">
+    <value>Slowly shifting dark colors. No file is loaded.</value>
+  </data>
+  <data name="LiveBgPresetAurora" xml:space="preserve">
+    <value>Aurora</value>
+  </data>
+  <data name="LiveBgPresetEmber" xml:space="preserve">
+    <value>Ember</value>
+  </data>
+  <data name="LiveBgPresetOcean" xml:space="preserve">
+    <value>Ocean</value>
+  </data>
+  <data name="LiveBgPresetDusk" xml:space="preserve">
+    <value>Dusk</value>
+  </data>
+  <data name="LiveBgPresetPlasma" xml:space="preserve">
+    <value>Plasma</value>
+  </data>
+  <data name="LiveBgPresetLava" xml:space="preserve">
+    <value>Lava lamp</value>
+  </data>
+  <data name="LiveBgPresetNebula" xml:space="preserve">
+    <value>Nebula</value>
+  </data>
+  <data name="LiveBgPresetSilk" xml:space="preserve">
+    <value>Silk</value>
+  </data>
+  <data name="LiveBgPresetNorthern" xml:space="preserve">
+    <value>Northern lights</value>
+  </data>
+  <data name="LiveBgPresetWaves" xml:space="preserve">
+    <value>Waves</value>
+  </data>
+  <data name="LiveBgPresetContour" xml:space="preserve">
+    <value>Contour lines</value>
+  </data>
+  <data name="LiveBgPresetHorizon" xml:space="preserve">
+    <value>Horizon</value>
+  </data>
+  <data name="LiveBgPresetUnderwater" xml:space="preserve">
+    <value>Underwater</value>
+  </data>
+  <data name="LiveBgPresetPearl" xml:space="preserve">
+    <value>Pearl</value>
+  </data>
+  <data name="LiveBgPresetNightSky" xml:space="preserve">
+    <value>Night sky</value>
+  </data>
+  <data name="LiveBgPresetFireflies" xml:space="preserve">
+    <value>Fireflies</value>
+  </data>
+  <data name="LiveBgPresetSnow" xml:space="preserve">
+    <value>Snow</value>
+  </data>
+  <data name="LiveBgPresetRain" xml:space="preserve">
+    <value>Rain</value>
+  </data>
+  <data name="LiveBgPresetBokeh" xml:space="preserve">
+    <value>Bokeh</value>
+  </data>
+  <data name="LiveBgPresetWarp" xml:space="preserve">
+    <value>Warp</value>
+  </data>
+  <data name="LiveBgPresetRipples" xml:space="preserve">
+    <value>Ripples</value>
+  </data>
+  <data name="LiveBgFileTitle" xml:space="preserve">
+    <value>Background file</value>
+  </data>
+  <data name="LiveBgFileChoose" xml:space="preserve">
+    <value>Choose file</value>
+  </data>
+  <data name="LiveBgNoFile" xml:space="preserve">
+    <value>No file chosen</value>
+  </data>
+  <data name="LiveBgPickTitle" xml:space="preserve">
+    <value>Choose a background</value>
+  </data>
+  <data name="LiveBgPickFilter" xml:space="preserve">
+    <value>Backgrounds ({0})|{0}</value>
+  </data>
+  <data name="LiveBgScrimTitle" xml:space="preserve">
+    <value>Dark overlay</value>
+  </data>
+  <data name="LiveBgScrimDesc" xml:space="preserve">
+    <value>Darkens the background so text stays readable (percent).</value>
+  </data>
+  <data name="LiveBgErrorMissing" xml:space="preserve">
+    <value>No file chosen.</value>
+  </data>
+  <data name="LiveBgErrorExtension" xml:space="preserve">
+    <value>Unsupported file type. Use GIF, MP4, WebM or WebP.</value>
+  </data>
+  <data name="LiveBgErrorNotLocal" xml:space="preserve">
+    <value>Only files on a local drive are supported (no network paths or links).</value>
+  </data>
+  <data name="LiveBgErrorEmpty" xml:space="preserve">
+    <value>The file is empty or cannot be read.</value>
+  </data>
+  <data name="LiveBgErrorTooLarge" xml:space="preserve">
+    <value>The file is too large (limit {0} MB).</value>
+  </data>
+  <data name="LiveBgErrorInvalid" xml:space="preserve">
+    <value>This file path is not valid.</value>
+  </data>
+  <data name="HomeCardSectionTitle" xml:space="preserve">
+    <value>Home cards</value>
+  </data>
+  <data name="HomeCardSectionDesc" xml:space="preserve">
+    <value>Choose which cards appear on the Home tab and their display order.</value>
+  </data>
+  <data name="HomeCardMusic" xml:space="preserve">
+    <value>Music / Now playing</value>
+  </data>
+  <data name="HomeCardHeadphoneBattery" xml:space="preserve">
+    <value>Connected audio / Battery</value>
+  </data>
+  <data name="HomeCardSystemNetwork" xml:space="preserve">
+    <value>System and network</value>
+  </data>
+  <data name="HomeCardQuickLaunch" xml:space="preserve">
+    <value>Quick launch</value>
+  </data>
+  <data name="HomeCardWeather" xml:space="preserve">
+    <value>Weather</value>
+  </data>
+  <data name="HomeCardTimers" xml:space="preserve">
+    <value>Timers</value>
+  </data>
+  <data name="HomeCardMoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="HomeCardMoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="VisualizerSectionTitle" xml:space="preserve">
+    <value>Audio visualizer</value>
+  </data>
+  <data name="VisualizerStyleTitle" xml:space="preserve">
+    <value>Visualizer style</value>
+  </data>
+  <data name="VisualizerStyleDesc" xml:space="preserve">
+    <value>Visual representation of the audio spectrum during playback.</value>
+  </data>
+  <data name="VisualizerStyleBars" xml:space="preserve">
+    <value>Bars</value>
+  </data>
+  <data name="VisualizerStyleWave" xml:space="preserve">
+    <value>Wave</value>
+  </data>
+  <data name="VisualizerStyleDots" xml:space="preserve">
+    <value>Dots</value>
+  </data>
+  <data name="VisualizerColorSourceTitle" xml:space="preserve">
+    <value>Visualizer color</value>
+  </data>
+  <data name="VisualizerColorSourceDesc" xml:space="preserve">
+    <value>Whether the spectrum follows the theme accent or album artwork.</value>
+  </data>
+  <data name="VisualizerColorSourceAccent" xml:space="preserve">
+    <value>Theme accent</value>
+  </data>
+  <data name="VisualizerColorSourceArtwork" xml:space="preserve">
+    <value>Album artwork</value>
+  </data>
+  <data name="VisualizerBarCountTitle" xml:space="preserve">
+    <value>Bar count</value>
+  </data>
+  <data name="VisualizerBarCountDesc" xml:space="preserve">
+    <value>Number of frequency bars displayed (between 3 and 16).</value>
+  </data>
+  <data name="DockGroupingModeTitle" xml:space="preserve">
+    <value>Window grouping</value>
+  </data>
+  <data name="DockGroupingModeDesc" xml:space="preserve">
+    <value>Group multiple windows of the same application into a single dock icon.</value>
+  </data>
+  <data name="DockGroupingModeNever" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="DockGroupingModeAlways" xml:space="preserve">
+    <value>Always</value>
+  </data>
+  <data name="DockGroupingModeWhenSpaceRunsOut" xml:space="preserve">
+    <value>When space runs out</value>
+  </data>
+  <data name="DockLabelModeTitle" xml:space="preserve">
+    <value>App labels</value>
+  </data>
+  <data name="DockLabelModeDesc" xml:space="preserve">
+    <value>Show application title labels beneath dock icons.</value>
+  </data>
+  <data name="DockLabelModeNever" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="DockLabelModeAlways" xml:space="preserve">
+    <value>Always</value>
+  </data>
+  <data name="DockLabelModeOnHover" xml:space="preserve">
+    <value>On hover</value>
+  </data>
+  <data name="NavExtensions" xml:space="preserve">
+    <value>Extensions</value>
+  </data>
+  <data name="ExtensionsSubtitle" xml:space="preserve">
+    <value>Themes, icon packs, live backgrounds and settings profiles. Packages contain data only and never run code.</value>
+  </data>
+  <data name="ExtFromFileHeader" xml:space="preserve">
+    <value>Local package</value>
+  </data>
+  <data name="ExtFromFileTitle" xml:space="preserve">
+    <value>Install from file</value>
+  </data>
+  <data name="ExtFromFileDesc" xml:space="preserve">
+    <value>Install a .koyext package from your computer. It goes through the same checks as store packages.</value>
+  </data>
+  <data name="ExtFromFileButton" xml:space="preserve">
+    <value>Install from file…</value>
+  </data>
+  <data name="ExtFileDialogTitle" xml:space="preserve">
+    <value>Choose an extension package</value>
+  </data>
+  <data name="ExtFileFilter" xml:space="preserve">
+    <value>Koy extension (*.koyext)|*.koyext|All files (*.*)|*.*</value>
+  </data>
+  <data name="ExtStoreHeader" xml:space="preserve">
+    <value>Store</value>
+  </data>
+  <data name="ExtSearchPlaceholder" xml:space="preserve">
+    <value>Search extensions</value>
+  </data>
+  <data name="ExtRefresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="ExtCategoryAll" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="ExtCategoryTheme" xml:space="preserve">
+    <value>Themes</value>
+  </data>
+  <data name="ExtCategoryIconPack" xml:space="preserve">
+    <value>Icon packs</value>
+  </data>
+  <data name="ExtCategoryBackground" xml:space="preserve">
+    <value>Backgrounds</value>
+  </data>
+  <data name="ExtCategoryProfile" xml:space="preserve">
+    <value>Profiles</value>
+  </data>
+  <data name="ExtFilterAll" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="ExtFilterInstalled" xml:space="preserve">
+    <value>Installed</value>
+  </data>
+  <data name="ExtFilterUpdates" xml:space="preserve">
+    <value>Updates</value>
+  </data>
+  <data name="ExtFilterUpdatesCount" xml:space="preserve">
+    <value>Updates ({0})</value>
+  </data>
+  <data name="ExtSortLabel" xml:space="preserve">
+    <value>Sort</value>
+  </data>
+  <data name="ExtSortNewest" xml:space="preserve">
+    <value>Newest</value>
+  </data>
+  <data name="ExtSortAlphabetical" xml:space="preserve">
+    <value>Alphabetical</value>
+  </data>
+  <data name="ExtSortMostDownloads" xml:space="preserve">
+    <value>Most downloaded</value>
+  </data>
+  <data name="ExtKindTheme" xml:space="preserve">
+    <value>Theme</value>
+  </data>
+  <data name="ExtKindIconPack" xml:space="preserve">
+    <value>Icon pack</value>
+  </data>
+  <data name="ExtKindBackground" xml:space="preserve">
+    <value>Background</value>
+  </data>
+  <data name="ExtKindProfile" xml:space="preserve">
+    <value>Profile</value>
+  </data>
+  <data name="ExtInstall" xml:space="preserve">
+    <value>Install</value>
+  </data>
+  <data name="ExtUpdate" xml:space="preserve">
+    <value>Update</value>
+  </data>
+  <data name="ExtApply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="ExtAddToProfiles" xml:space="preserve">
+    <value>Add to profiles</value>
+  </data>
+  <data name="ExtApplied" xml:space="preserve">
+    <value>Applied</value>
+  </data>
+  <data name="ExtDisable" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="ExtUninstall" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="ExtUninstallConfirmQuestion" xml:space="preserve">
+    <value>Remove this extension?</value>
+  </data>
+  <data name="ExtDetails" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="ExtOpenHomepage" xml:space="preserve">
+    <value>Open home page</value>
+  </data>
+  <data name="ExtOpenLinkFailed" xml:space="preserve">
+    <value>The link could not be opened.</value>
+  </data>
+  <data name="ExtVersionFormat" xml:space="preserve">
+    <value>v{0}</value>
+  </data>
+  <data name="ExtVersionUpdateFormat" xml:space="preserve">
+    <value>v{0} → v{1}</value>
+  </data>
+  <data name="ExtInstalledVersion" xml:space="preserve">
+    <value>Installed version: v{0}</value>
+  </data>
+  <data name="ExtUpdatedFormat" xml:space="preserve">
+    <value>Updated {0}</value>
+  </data>
+  <data name="ExtDownloadsFormat" xml:space="preserve">
+    <value>{0} downloads</value>
+  </data>
+  <data name="ExtInstalledFromFile" xml:space="preserve">
+    <value>Installed from a file.</value>
+  </data>
+  <data name="ExtLoading" xml:space="preserve">
+    <value>Loading the store…</value>
+  </data>
+  <data name="ExtEmpty" xml:space="preserve">
+    <value>No extensions match.</value>
+  </data>
+  <data name="ExtShowMore" xml:space="preserve">
+    <value>Show more ({0})</value>
+  </data>
+  <data name="ExtCountFormat" xml:space="preserve">
+    <value>{0} extensions</value>
+  </data>
+  <data name="ExtSkippedFormat" xml:space="preserve">
+    <value>{0} invalid entries skipped</value>
+  </data>
+  <data name="ExtGetMore" xml:space="preserve">
+    <value>Get more from the store…</value>
+  </data>
+  <data name="ExtInstalling" xml:space="preserve">
+    <value>Installing…</value>
+  </data>
+  <data name="ExtConfirmInstallTitle" xml:space="preserve">
+    <value>Install {0}?</value>
+  </data>
+  <data name="ExtConfirmUpdateTitle" xml:space="preserve">
+    <value>Update {0}?</value>
+  </data>
+  <data name="ExtConfirmKind" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="ExtConfirmVersion" xml:space="preserve">
+    <value>Version</value>
+  </data>
+  <data name="ExtConfirmAuthor" xml:space="preserve">
+    <value>Author</value>
+  </data>
+  <data name="ExtConfirmLicense" xml:space="preserve">
+    <value>License</value>
+  </data>
+  <data name="ExtConfirmSize" xml:space="preserve">
+    <value>Download size</value>
+  </data>
+  <data name="ExtConfirmFileSize" xml:space="preserve">
+    <value>File size</value>
+  </data>
+  <data name="ExtConfirmPermissions" xml:space="preserve">
+    <value>Permissions</value>
+  </data>
+  <data name="ExtConfirmNoPermissions" xml:space="preserve">
+    <value>None requested</value>
+  </data>
+  <data name="ExtConfirmDataOnly" xml:space="preserve">
+    <value>This package does not run code; it only contains data.</value>
+  </data>
+  <data name="ExtConfirmFileNote" xml:space="preserve">
+    <value>It comes from a file on your computer. Only install packages from sources you trust.</value>
+  </data>
+  <data name="ExtConfirmNotApplied" xml:space="preserve">
+    <value>Installing does not apply it. You can apply it afterwards.</value>
+  </data>
+  <data name="ExtInstalledOk" xml:space="preserve">
+    <value>{0} installed.</value>
+  </data>
+  <data name="ExtUpdatedOk" xml:space="preserve">
+    <value>{0} updated.</value>
+  </data>
+  <data name="ExtUpdatedAndAppliedOk" xml:space="preserve">
+    <value>{0} updated and applied again.</value>
+  </data>
+  <data name="ExtAppliedOk" xml:space="preserve">
+    <value>{0} applied.</value>
+  </data>
+  <data name="ExtDisabledOk" xml:space="preserve">
+    <value>{0} disabled.</value>
+  </data>
+  <data name="ExtUninstalledOk" xml:space="preserve">
+    <value>{0} removed.</value>
+  </data>
+  <data name="ExtUninstallFailed" xml:space="preserve">
+    <value>{0} could not be removed completely.</value>
+  </data>
+  <data name="ExtProfileAdded" xml:space="preserve">
+    <value>{0} was added to your profiles. Apply it from the Profiles section in General.</value>
+  </data>
+  <data name="ExtProfileAlready" xml:space="preserve">
+    <value>{0} is already in your profiles.</value>
+  </data>
+  <data name="ExtApplyNotInstalled" xml:space="preserve">
+    <value>This extension is no longer installed.</value>
+  </data>
+  <data name="ExtApplyFileError" xml:space="preserve">
+    <value>The files could not be updated. Check that the Koy folder is writable.</value>
+  </data>
+  <data name="ExtApplySaveFailed" xml:space="preserve">
+    <value>The settings could not be saved.</value>
+  </data>
+  <data name="ExtUnexpectedError" xml:space="preserve">
+    <value>Something went wrong. Please try again.</value>
+  </data>
+  <data name="ExtRegistrySaveFailed" xml:space="preserve">
+    <value>Koy could not record the change in its extension list. Nothing was changed.</value>
+  </data>
+  <data name="ExtApplyErrorInvalidPath" xml:space="preserve">
+    <value>The extension's files are missing or not usable.</value>
+  </data>
+  <data name="ExtIndexErrorNetwork" xml:space="preserve">
+    <value>The store could not be reached. Check your connection and press Refresh.</value>
+  </data>
+  <data name="ExtIndexErrorTooLarge" xml:space="preserve">
+    <value>The store catalog is too large to read.</value>
+  </data>
+  <data name="ExtIndexErrorMalformedJson" xml:space="preserve">
+    <value>The store catalog is damaged.</value>
+  </data>
+  <data name="ExtIndexErrorNotAStoreIndex" xml:space="preserve">
+    <value>The downloaded file is not a Koy store catalog.</value>
+  </data>
+  <data name="ExtIndexErrorUnsupportedFormatVersion" xml:space="preserve">
+    <value>The catalog needs a newer Koy. Update Koy to use the store.</value>
+  </data>
+  <data name="ExtIndexErrorTooManyItems" xml:space="preserve">
+    <value>The store catalog has too many entries.</value>
+  </data>
+  <data name="ExtIndexErrorCancelled" xml:space="preserve">
+    <value>Loading was cancelled.</value>
+  </data>
+  <data name="ExtInstallErrorNetwork" xml:space="preserve">
+    <value>The package could not be downloaded. Check your connection.</value>
+  </data>
+  <data name="ExtInstallErrorTimeout" xml:space="preserve">
+    <value>The download took too long and was stopped.</value>
+  </data>
+  <data name="ExtInstallErrorCancelled" xml:space="preserve">
+    <value>Installation was cancelled.</value>
+  </data>
+  <data name="ExtInstallErrorDownloadTooLarge" xml:space="preserve">
+    <value>The package is larger than the 25 MB limit.</value>
+  </data>
+  <data name="ExtInstallErrorHashMismatch" xml:space="preserve">
+    <value>The downloaded file does not match the catalog checksum and was discarded.</value>
+  </data>
+  <data name="ExtInstallErrorFileNotFound" xml:space="preserve">
+    <value>The file could not be found.</value>
+  </data>
+  <data name="ExtInstallErrorInvalidArchive" xml:space="preserve">
+    <value>The file is not a valid .koyext package.</value>
+  </data>
+  <data name="ExtInstallErrorUnsafePath" xml:space="preserve">
+    <value>The package contains an unsafe file path and was rejected.</value>
+  </data>
+  <data name="ExtInstallErrorDuplicateEntry" xml:space="preserve">
+    <value>The package lists the same file twice and was rejected.</value>
+  </data>
+  <data name="ExtInstallErrorTooManyFiles" xml:space="preserve">
+    <value>The package contains too many files.</value>
+  </data>
+  <data name="ExtInstallErrorExtractedTooLarge" xml:space="preserve">
+    <value>The package is too large once unpacked.</value>
+  </data>
+  <data name="ExtInstallErrorFileTooLarge" xml:space="preserve">
+    <value>A file inside the package is too large.</value>
+  </data>
+  <data name="ExtInstallErrorDisallowedFile" xml:space="preserve">
+    <value>The package contains a file type that is not allowed for this kind of extension.</value>
+  </data>
+  <data name="ExtInstallErrorMissingManifest" xml:space="preserve">
+    <value>The package has no manifest.json.</value>
+  </data>
+  <data name="ExtInstallErrorMissingPayload" xml:space="preserve">
+    <value>The package is missing its main file.</value>
+  </data>
+  <data name="ExtInstallErrorMultiplePayloads" xml:space="preserve">
+    <value>The package contains more than one main file.</value>
+  </data>
+  <data name="ExtInstallErrorInvalidManifest" xml:space="preserve">
+    <value>The package manifest is not valid.</value>
+  </data>
+  <data name="ExtInstallErrorManifestMismatch" xml:space="preserve">
+    <value>The package does not match its catalog entry (id, version or type).</value>
+  </data>
+  <data name="ExtInstallErrorCapabilitiesNotAllowed" xml:space="preserve">
+    <value>The package asks for permissions. Only data-only packages can be installed.</value>
+  </data>
+  <data name="ExtInstallErrorInvalidPayload" xml:space="preserve">
+    <value>The package content is not valid for its type.</value>
+  </data>
+  <data name="ExtInstallErrorTooManyInstalled" xml:space="preserve">
+    <value>Too many extensions are installed. Remove one first.</value>
+  </data>
+  <data name="ExtInstallErrorKindConflict" xml:space="preserve">
+    <value>Another extension of a different type already uses this id.</value>
+  </data>
+  <data name="ExtInstallErrorIoError" xml:space="preserve">
+    <value>A file could not be written. Check disk space and folder permissions.</value>
+  </data>
+  <data name="HomeToday" xml:space="preserve">
+    <value>Today</value>
+  </data>
+  <data name="HomeTomorrow" xml:space="preserve">
+    <value>Tomorrow</value>
+  </data>
+  <data name="HomeEventNow" xml:space="preserve">
+    <value>now</value>
+  </data>
+  <data name="HomeEventInMinutes" xml:space="preserve">
+    <value>in {0} min</value>
+  </data>
+  <data name="HomeEventInHours" xml:space="preserve">
+    <value>in {0} h {1} min</value>
+  </data>
+  <data name="HomeEventInDays" xml:space="preserve">
+    <value>in {0} days</value>
+  </data>
+  <data name="HomeNextUp" xml:space="preserve">
+    <value>UP NEXT</value>
+  </data>
+  <data name="HomeNoEvents" xml:space="preserve">
+    <value>No upcoming events.</value>
+  </data>
+  <data name="HomeFocusStart" xml:space="preserve">
+    <value>Start focus</value>
+  </data>
+  <data name="MusicLive" xml:space="preserve">
+    <value>LIVE</value>
+  </data>
+  <data name="NotchPageMusic" xml:space="preserve">
+    <value>Music</value>
+  </data>
+  <data name="NotchPageHome" xml:space="preserve">
+    <value>Home</value>
+  </data>
+  <data name="CalAccountsHeader" xml:space="preserve">
+    <value>Calendar accounts</value>
+  </data>
+  <data name="CalPrivacyTitle" xml:space="preserve">
+    <value>Read-only and local storage</value>
+  </data>
+  <data name="CalPrivacyDesc" xml:space="preserve">
+    <value>Koy requests read-only calendar access via OAuth 2.0 PKCE. Tokens are encrypted with Windows DPAPI on this device and events are cached locally for offline use.</value>
+  </data>
+  <data name="CalGoogleTitle" xml:space="preserve">
+    <value>Google Calendar</value>
+  </data>
+  <data name="CalGoogleClientId" xml:space="preserve">
+    <value>Google OAuth Client ID</value>
+  </data>
+  <data name="CalOutlookTitle" xml:space="preserve">
+    <value>Outlook Calendar</value>
+  </data>
+  <data name="CalOutlookClientId" xml:space="preserve">
+    <value>Outlook OAuth Client ID</value>
+  </data>
+  <data name="CalClientIdHint" xml:space="preserve">
+    <value>Optional: your own OAuth Client ID (Koy's client is used when empty)</value>
+  </data>
+  <data name="CalGoogleClientSecret" xml:space="preserve">
+    <value>Google OAuth Client Secret</value>
+  </data>
+  <data name="CalClientSecretHint" xml:space="preserve">
+    <value>Client secret Google issued for your own Client ID</value>
+  </data>
+  <data name="CalComingSoon" xml:space="preserve">
+    <value>Coming soon</value>
+  </data>
+  <data name="CalConnectButton" xml:space="preserve">
+    <value>Connect</value>
+  </data>
+  <data name="CalDisconnectButton" xml:space="preserve">
+    <value>Disconnect</value>
+  </data>
+  <data name="CalSyncNowButton" xml:space="preserve">
+    <value>Sync now</value>
+  </data>
+  <data name="CalStatusConnected" xml:space="preserve">
+    <value>Connected (read-only)</value>
+  </data>
+  <data name="CalStatusConnectedAs" xml:space="preserve">
+    <value>Connected as {0}</value>
+  </data>
+  <data name="CalStatusDisconnected" xml:space="preserve">
+    <value>Not connected</value>
+  </data>
+  <data name="CalSyncing" xml:space="preserve">
+    <value>Syncing calendars…</value>
+  </data>
+  <data name="CalSyncDone" xml:space="preserve">
+    <value>Calendars synced.</value>
+  </data>
+  <data name="CalSyncOfflineCache" xml:space="preserve">
+    <value>Offline or unavailable; showing last cached events.</value>
+  </data>
+  <data name="CalSyncFailed" xml:space="preserve">
+    <value>Calendar sync failed.</value>
+  </data>
+  <data name="CalClientIdRequired" xml:space="preserve">
+    <value>This build has no built-in calendar client. Enter your own OAuth Client ID.</value>
+  </data>
+  <data name="CalAuthorizing" xml:space="preserve">
+    <value>Waiting for browser sign-in…</value>
+  </data>
+  <data name="CalConnectFailed" xml:space="preserve">
+    <value>Sign-in failed: {0}</value>
+  </data>
+  <data name="CalConnectedDone" xml:space="preserve">
+    <value>Calendar account connected.</value>
+  </data>
+  <data name="CalDisconnectedDone" xml:space="preserve">
+    <value>Calendar account disconnected.</value>
+  </data>
+  <data name="WizCalendarPrivacyTitle" xml:space="preserve">
+    <value>Optional calendar sync privacy</value>
+  </data>
+  <data name="WizCalendarPrivacyDesc" xml:space="preserve">
+    <value>Connecting Google or Outlook in Settings is optional and strictly read-only. Tokens are encrypted on your device via Windows DPAPI and cached locally for offline viewing.</value>
+  </data>
+  <data name="SubTabGeneralSystem" xml:space="preserve">
+    <value>System &amp; units</value>
+  </data>
+  <data name="SubTabGeneralProfiles" xml:space="preserve">
+    <value>Profiles</value>
+  </data>
+  <data name="SubTabGeneralRules" xml:space="preserve">
+    <value>App rules</value>
+  </data>
+  <data name="SubTabNotchBehavior" xml:space="preserve">
+    <value>Behavior &amp; indicators</value>
+  </data>
+  <data name="SubTabNotchVisuals" xml:space="preserve">
+    <value>Visuals &amp; effects</value>
+  </data>
+  <data name="SubTabNotchPanels" xml:space="preserve">
+    <value>Panels &amp; services</value>
+  </data>
+  <data name="SubTabNotchSearch" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="SubTabDockBehavior" xml:space="preserve">
+    <value>Layout &amp; behavior</value>
+  </data>
+  <data name="SubTabDockAppearance" xml:space="preserve">
+    <value>Icons &amp; badges</value>
+  </data>
+  <data name="SubTabDockSections" xml:space="preserve">
+    <value>Sections &amp; tray</value>
+  </data>
+  <data name="SubTabAppearanceTheme" xml:space="preserve">
+    <value>Theme &amp; surface</value>
+  </data>
+  <data name="SubTabAppearanceScaleMotion" xml:space="preserve">
+    <value>Scale, icons &amp; motion</value>
+  </data>
+  <data name="LiveBgBuiltinHeader" xml:space="preserve">
+    <value>Built-in notch animations</value>
+  </data>
+  <data name="LiveBgKindVideo" xml:space="preserve">
+    <value>Video loop</value>
+  </data>
+  <data name="LiveBgPresetNebulaFlow" xml:space="preserve">
+    <value>Nebula flow</value>
+  </data>
+  <data name="LiveBgPresetLiquidGold" xml:space="preserve">
+    <value>Liquid gold</value>
+  </data>
+  <data name="LiveBgPresetDeepOcean" xml:space="preserve">
+    <value>Deep ocean</value>
+  </data>
+  <data name="LiveBgPresetVelvetAurora" xml:space="preserve">
+    <value>Velvet aurora</value>
+  </data>
+  <data name="LiveBgKindEffect" xml:space="preserve">
+    <value>Code effect</value>
+  </data>
+  <data name="LiveBgKindAmbient" xml:space="preserve">
+    <value>Ambient</value>
+  </data>
+</root>
+

@@ -1,3 +1,6 @@
+import { Theme } from "theme.slint";
+export { Theme }
+
 export component Probe inherits Window {
     no-frame: true;
     background: transparent;
@@ -5,8 +8,8 @@ export component Probe inherits Window {
     width: 200px;
     height: 36px;
     Rectangle {
-        background: #000000;
+        background: Theme.notch-surface;
         border-radius: 18px;
-        Text { text: "Koy"; color: white; }
+        Text { text: "Koy"; color: Theme.notch-text; font-family: Theme.notch-font; }
     }
 }
