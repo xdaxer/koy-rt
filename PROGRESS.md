@@ -36,11 +36,15 @@
      `infra/file_dialog.rs`), ControlCenter (radyo döşemeleri, ses, parlaklık, Wi-Fi sayfası, Bluetooth), Search (22 kaynak,
      `infra/clipboard_text.rs`), OSD, LiveBackgroundState, NotchViewModel. `ui/notch.slint`: çentik yüzeyi, kapalı / göz atma
      yerleşimi, açık çentik üst satırı (derleniyor, henüz görsel doğrulanmadı).
-   - Sıradaki: notch_shape.rs (yol + SetWindowRgn ile şekil kırpma; yazılım çizici saydam pencere desteklemiyor), yay
-     animasyonu, NotchWindow (Rust) + Home/ControlCenter/Search/OSD/Kart Slint görünümleri, NotchFeature. Sonra (eski not:
-     Music, ControlCenter, Focus/Tasks, Shelf, Calendar, SystemInfo, QuickLaunch,
-     ClipboardPanel, Search, OSD → NotchViewModel → NotchWindow → NotchFeature), sonra Dock, Settings/KoyWindow, Extensions,
-     Rules, Wizard, Home, `app.rs` (App.xaml.cs) ve main.
+   - Çentik tamam (kod): `notch_shape.rs` (yol + SetWindowRgn), Slint görünümleri (Ana/müzik, Kontrol Merkezi + Wi-Fi /
+     Bluetooth sayfaları, Arama, OSD/kart; önizlemelerle doğrulandı), `ui/notch_window.slint`, `notch_window.rs` (yaylar,
+     bölge, fare / tekerlek / sürükle-bırak, etkinleştirme), `notch_window_binding.rs` (sayfa modellerine canlı bağlama),
+     `notch_feature.rs` (ekran başına pencere, servisler, tam ekran / kenar, kısayollar, OSD olayları),
+     `notch_feature_cards.rs` (güncelleme kartı, bildirim kuyruğu, sesli komut), `voice_reply_window.rs`,
+     `notch_line_window.rs`. Geliştirici kipi: `koy.exe --notch [--quit-after N]`. Not: arayüz iş parçacığında OLE
+     `main` başında başlatılır (winit sürükle-bırak ister). Gerçek masaüstünde görsel doğrulama ve ince ayar bekliyor.
+   - Sıradaki: Dock (~8.5k satır), Settings/KoyWindow (~11.7k), Extensions, Rules, Wizard, `app.rs` (App.xaml.cs:
+     özellikleri, kısayolları, tepsiyi ve güncelleme kartı → Ayarlar bağlantısını kurar) ve main.
    - Desen: C# ViewModel → Rust struct (`Rc`), görünüm durumu Slint bileşen özelliklerine / global'lere yazılır; olaylar
      arka plandan `dispatch::post` ile, Rc'ye `UiRef` ile ulaşılır. Pencereler `ThemeManager::install` ile temaya bağlanır.
    - Açık: otomatik güncelleme (C# Velopack) — paketleme kararıyla; UiScalePercent menüde `ui-scale` ile, diğer

@@ -71,6 +71,7 @@ pub(super) struct WindowState {
     pub vm: Rc<NotchViewModel>,
     pub visibility: Arc<VisibilityController>,
     pub controller: Arc<NotchController>,
+    pub line: Option<Rc<super::notch_line_window::NotchLineWindow>>,
     visibility_sub: Option<Subscription>,
 }
 
@@ -84,6 +85,9 @@ impl WindowState {
     fn dispose(mut self) {
         if let Some(s) = self.visibility_sub.take() {
             self.visibility.changed().unsubscribe(s);
+        }
+        if let Some(l) = &self.line {
+            l.close();
         }
         self.binding.dispose();
         self.host.dispose();
@@ -494,6 +498,24 @@ impl Inner {
             });
         });
         me.attach_osd(&vm);
+        let line = if settings.notch.edge_line {
+            super::notch_line_window::NotchLineWindow::new(monitor.clone(), settings.notch.edge_line_color, settings.notch.edge_line_thickness)
+        } else {
+            None
+        };
+        if let Some(l) = &line {
+            l.show();
+            // Çizgi tam ekran algılamasında yok sayılır.
+            let ui = Rc::downgrade(me);
+            let lw = Rc::downgrade(l);
+            slint::Timer::single_shot(Duration::from_millis(200), move || {
+                if let (Some(me), Some(l)) = (ui.upgrade(), lw.upgrade())
+                    && l.hwnd() != 0
+                {
+                    me.fullscreen.ignored_handles().insert(l.hwnd());
+                }
+            });
+        }
         // Yerel tanıtıcı gelince: görünürlük denetleyicisi ve tam ekran algılayıcı onu tanır, sınırlar hesaplanır
         // (C# `SourceInitialized`).
         {
@@ -523,6 +545,7 @@ impl Inner {
             vm,
             visibility,
             controller,
+            line,
             visibility_sub: Some(visibility_sub),
         });
     }
@@ -582,6 +605,9 @@ impl Inner {
             if hwnd != 0 {
                 me.fullscreen.ignored_handles().remove(&hwnd);
             }
+            if let Some(l) = w.line.as_ref().filter(|l| l.hwnd() != 0) {
+                me.fullscreen.ignored_handles().remove(&l.hwnd());
+            }
             w.dispose();
         }
         let top = NotchStyle::top_offset_dip(me.settings.borrow().notch.style);
@@ -593,6 +619,9 @@ impl Inner {
                     let w = &windows[i];
                     *w.monitor.lock().unwrap_or_else(|e| e.into_inner()) = m.clone();
                     w.host.set_target_monitor(Some(m.clone()));
+                    if let Some(l) = &w.line {
+                        l.place(m.clone());
+                    }
                     w.vm.control_center.refresh_brightness();
                     update_notch_bounds(&w.host.window, &w.visibility, &m, top);
                 }
@@ -610,15 +639,25 @@ impl Inner {
             w.visibility.update_foreground_window(info.handle, info.bounds);
             let hwnd = w.host.hwnd();
             if (!is_fullscreen || !hide_in_fullscreen) && hwnd != 0 && info.handle != hwnd && !FullscreenDetector::is_screen_clipping_host(info.handle) {
+                // Önce çizgi, sonra çentik: çentik çizginin üstünde kalır.
+                if let Some(l) = &w.line {
+                    l.reassert_topmost();
+                }
                 WindowStyles::reassert_topmost(hwnd);
             }
         }
         self.update_edge_timer();
     }
 
-    fn on_visibility_changed(&self, _source: &Arc<VisibilityController>) {
-        // Kenar çizgisi penceresi henüz yok: görünürlüğü yalnız kenar zamanlayıcısını etkiler.
-        let _ = NotchEdgeLine::is_visible(false, false);
+    fn on_visibility_changed(&self, source: &Arc<VisibilityController>) {
+        let hide = self.settings.borrow().notch.hide_in_fullscreen;
+        for w in self.windows.borrow().iter() {
+            if Arc::ptr_eq(&w.visibility, source)
+                && let Some(l) = &w.line
+            {
+                l.set_line_visible(NotchEdgeLine::is_visible(w.visibility.is_fullscreen(), hide));
+            }
+        }
         self.update_edge_timer();
     }
 

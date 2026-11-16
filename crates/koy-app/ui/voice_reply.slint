@@ -1,0 +1,82 @@
+// Karşılığı: koy/src/App/Features/Notch/VoiceReplyWindow.cs. Sesli komutun yanıtının tamamı: başlık + Kapat, komut,
+// araç / süre satırı, seçilebilir ve kaydırılabilir yanıt, "Dosyada aç". Odak çalmaz; Esc ile kapanır.
+
+import { Theme } from "theme.slint";
+import { TextEdit } from "std-widgets.slint";
+
+component Chip inherits Rectangle {
+    in property <string> text;
+    callback clicked;
+    border-radius: 8px;
+    background: Theme.bg-control;
+    width: label.preferred-width + 20px;
+    height: label.preferred-height + 8px;
+    label := Text { text: root.text; font-size: 11px; font-weight: 600; color: Theme.text-primary; }
+    TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+export component VoiceReplyWindow inherits Window {
+    in property <string> title-text;
+    in property <string> close-text;
+    in property <string> open-file-text;
+    in property <string> prompt;
+    in property <string> info;
+    in property <string> body;
+    callback close();
+    callback open-file();
+    title: "Koy";
+    no-frame: true;
+    always-on-top: true;
+    width: 480px;
+    max-height: 380px;
+    background: Theme.bg-window;
+    FocusScope {
+        key-pressed(e) => {
+            if e.text == Key.Escape { root.close(); return accept; }
+            reject
+        }
+        Rectangle {
+            border-radius: 16px;
+            border-width: 1px;
+            border-color: Theme.border-strong;
+            background: Theme.bg-window;
+            VerticalLayout {
+                padding-left: 16px;
+                padding-right: 16px;
+                padding-top: 12px;
+                padding-bottom: 14px;
+                HorizontalLayout {
+                    padding-bottom: 6px;
+                    Text { horizontal-stretch: 1; vertical-alignment: center; text: root.title-text; font-size: 12px; font-weight: 600; color: Theme.text-primary; }
+                    Chip { text: root.close-text; clicked => { root.close(); } }
+                }
+                Text { text: root.prompt; font-size: 11px; color: Theme.text-secondary; overflow: elide; }
+                Text { text: root.info; font-size: 10px; color: Theme.text-muted; }
+                Rectangle { height: 8px; }
+                TextEdit {
+                    text: root.body;
+                    read-only: true;
+                    wrap: word-wrap;
+                    font-size: 12px;
+                    min-height: 60px;
+                    max-height: 240px;
+                    preferred-height: 240px;
+                }
+                HorizontalLayout {
+                    padding-top: 10px;
+                    alignment: start;
+                    Chip { text: root.open-file-text; clicked => { root.open-file(); } }
+                }
+            }
+        }
+    }
+}
+
+// Karşılığı: koy/src/App/Features/Notch/NotchLineWindow.cs. Ekranın üst kenarı boyunca ince çizgi (tıklama geçirir).
+export component NotchLineWindow inherits Window {
+    in property <color> line;
+    title: "Koy";
+    no-frame: true;
+    always-on-top: true;
+    background: line;
+}
