@@ -1,0 +1,116 @@
+// Karşılığı: koy/src/App/Features/SystemInfo/SystemPanel.xaml. İşlemci ve bellek halkaları, ağ ve Koy belleği.
+
+import { Theme } from "theme.slint";
+import { ArcRing } from "arc_ring.slint";
+
+export struct SystemStatsData {
+    cpu-progress: float,
+    cpu-text: string,
+    top-process-text: string,
+    ram-progress: float,
+    ram-text: string,
+    memory-detail-text: string,
+    network-name: string,
+    download-text: string,
+    upload-text: string,
+    koy-memory-text: string,
+}
+
+export global SystemText {
+    in property <string> processor;
+    in property <string> memory;
+    in property <string> koy-self;
+}
+
+component RingCard inherits Rectangle {
+    in property <float> progress;
+    in property <string> value;
+    in property <string> label;
+    in property <string> detail;
+    border-radius: 22px;
+    background: Theme.notch-system-card;
+    horizontal-stretch: 1;
+    min-width: 0px;
+    VerticalLayout {
+        alignment: center;
+        Rectangle {
+            width: 108px;
+            height: 108px;
+            ArcRing { progress: progress; thickness: 9px; track: Theme.notch-system-track; fill: Theme.notch-accent-system; }
+            VerticalLayout {
+                alignment: center;
+                Text {
+                    text: value;
+                    font-size: 24px;
+                    font-weight: 700;
+                    color: Theme.notch-text;
+                    font-family: Theme.notch-font;
+                    horizontal-alignment: center;
+                }
+                Text {
+                    text: label;
+                    font-size: 10px;
+                    color: Theme.notch-system-soft;
+                    font-family: Theme.notch-font;
+                    horizontal-alignment: center;
+                }
+            }
+        }
+        Text {
+            text: detail;
+            font-size: 11px;
+            color: Theme.notch-system-soft;
+            font-family: Theme.notch-font;
+            horizontal-alignment: center;
+            overflow: elide;
+            max-width: 170px;
+        }
+    }
+}
+
+export component SystemPanel inherits Rectangle {
+    in property <SystemStatsData> data;
+    HorizontalLayout {
+        spacing: 10px;
+        RingCard {
+            progress: data.cpu-progress;
+            value: data.cpu-text;
+            label: SystemText.processor;
+            detail: data.top-process-text;
+        }
+        RingCard {
+            progress: data.ram-progress;
+            value: data.ram-text;
+            label: SystemText.memory;
+            detail: data.memory-detail-text;
+        }
+        VerticalLayout {
+            spacing: 8px;
+            horizontal-stretch: 1;
+            min-width: 0px;
+            Rectangle {
+                border-radius: 18px;
+                background: Theme.notch-net-card;
+                vertical-stretch: 1;
+                VerticalLayout {
+                    padding: 12px;
+                    spacing: 4px;
+                    alignment: center;
+                    Text { text: data.network-name; font-size: 12px; font-weight: 700; color: Theme.notch-text; overflow: elide; font-family: Theme.notch-font; }
+                    Text { text: data.download-text; font-size: 12px; color: Theme.notch-net-soft; font-family: Theme.notch-font; }
+                    Text { text: data.upload-text; font-size: 12px; color: Theme.notch-net-soft; font-family: Theme.notch-font; }
+                }
+            }
+            Rectangle {
+                border-radius: 18px;
+                background: Theme.notch-card;
+                VerticalLayout {
+                    padding: 12px;
+                    spacing: 2px;
+                    Text { text: SystemText.koy-self; font-size: 11px; color: Theme.notch-muted; font-family: Theme.notch-font; }
+                    Text { text: data.koy-memory-text; font-size: 14px; font-weight: 700; color: Theme.notch-text; font-family: Theme.notch-font; }
+                }
+            }
+        }
+    }
+}

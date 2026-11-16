@@ -1,0 +1,52 @@
+// Karşılığı: koy/src/App/Features/Focus/ArcRing.cs. Odak halkası: soluk bir iz üstüne, tepeden saat yönünde
+// `progress` kadar dolu yay. Yalnız değer değişince yeniden çizilir; kendi animasyonu yoktur.
+
+export component ArcRing inherits Rectangle {
+    in property <float> progress;
+    in property <length> thickness: 8px;
+    in property <color> track;
+    in property <color> fill;
+    property <float> size: min(self.width, self.height) / 1px;
+    property <float> t: thickness / 1px;
+    property <float> radius: (size - t) / 2;
+    property <float> cx: self.width / 2px;
+    property <float> cy: self.height / 2px;
+    property <float> p: clamp(progress, 0, 1);
+    property <angle> sweep: p * 360deg;
+    property <float> ex: cx + radius * sin(sweep);
+    property <float> ey: cy - radius * cos(sweep);
+
+    if radius > 0: Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: root.width / 1px;
+        viewbox-height: root.height / 1px;
+        commands: "M " + (cx - radius) + " " + cy + " A " + radius + " " + radius + " 0 1 1 " + (cx + radius) + " " + cy
+            + " A " + radius + " " + radius + " 0 1 1 " + (cx - radius) + " " + cy;
+        stroke: track;
+        stroke-width: thickness;
+        fill: transparent;
+    }
+    if radius > 0 && p > 0 && p < 0.999: Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: root.width / 1px;
+        viewbox-height: root.height / 1px;
+        commands: "M " + cx + " " + (cy - radius) + " A " + radius + " " + radius + " 0 " + (p > 0.5 ? "1" : "0") + " 1 " + ex + " " + ey;
+        stroke: fill;
+        stroke-width: thickness;
+        stroke-line-cap: round;
+        fill: transparent;
+    }
+    if radius > 0 && p >= 0.999: Path {
+        width: 100%;
+        height: 100%;
+        viewbox-width: root.width / 1px;
+        viewbox-height: root.height / 1px;
+        commands: "M " + (cx - radius) + " " + cy + " A " + radius + " " + radius + " 0 1 1 " + (cx + radius) + " " + cy
+            + " A " + radius + " " + radius + " 0 1 1 " + (cx - radius) + " " + cy;
+        stroke: fill;
+        stroke-width: thickness;
+        fill: transparent;
+    }
+}

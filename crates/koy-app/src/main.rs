@@ -66,6 +66,34 @@ fn dev_snapshot(view: &str, path: String) -> Result<(), slint::PlatformError> {
             let _t = save_after(v.as_weak(), path);
             v.run()
         }
+        "system" => {
+            let v = NotchPanelPreview::new()?;
+            ThemeManager::install(&v);
+            v.global::<SystemText>().set_processor(resources::strings::Strings::get("SystemProcessor").into());
+            v.global::<SystemText>().set_memory(resources::strings::Strings::get("SystemMemory").into());
+            v.global::<SystemText>().set_koy_self(resources::strings::Strings::get("SystemKoySelf").into());
+            v.set_panel("system".into());
+            v.set_sys(SystemStatsData {
+                cpu_progress: 0.37,
+                cpu_text: "%37".into(),
+                top_process_text: "En çok: chrome".into(),
+                ram_progress: 0.62,
+                ram_text: "%62".into(),
+                memory_detail_text: "9,9 / 16 GB".into(),
+                network_name: "Ev Wi-Fi".into(),
+                download_text: "↓ 1,2 MB/sn".into(),
+                upload_text: "↑ 84 KB/sn".into(),
+                koy_memory_text: "41 MB".into(),
+            });
+            let w = v.as_weak();
+            let _t = infra::dispatch::delay(std::time::Duration::from_millis(700), move || {
+                if let Some(v) = w.upgrade() {
+                    infra::snapshot::save(v.window(), &path);
+                }
+                let _ = slint::quit_event_loop();
+            });
+            v.run()
+        }
         _ => {
             let p = Probe::new()?;
             ThemeManager::install(&p);

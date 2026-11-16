@@ -4,7 +4,8 @@ import { Motion, ToggleSwitch, KoyButton, ButtonKind, Segmented, KoyComboBox, Ko
 import { NotchInput, NotchSwitch, NotchRowButton, NotchPillButton, NotchPlainButton, NotchPassword } from "notch_controls.slint";
 import { SagAltMenuWindow, MenuText } from "menu.slint";
 import { WeatherGlyph } from "status.slint";
-export { Theme, Motion, SagAltMenuWindow, MenuText }
+import { SystemPanel, SystemStatsData, SystemText } from "system_panel.slint";
+export { Theme, Motion, SagAltMenuWindow, MenuText, SystemText, SystemStatsData }
 
 // Bileşen denetimi: kontrol kitaplığının derlendiğini ve çizildiğini doğrulayan önizleme penceresi.
 export component Probe inherits Window {
@@ -28,5 +29,18 @@ export component Probe inherits Window {
             NavItem { icon: Icons.settings; text: "Genel"; checked: true; }
             LinkButton { text: "Daha fazla"; }
         }
+    }
+}
+
+// Geliştirici önizlemesi: çentik panellerini koyu çentik yüzeyinde çizer (`koy --snapshot <panel> <png>`).
+export component NotchPanelPreview inherits Window {
+    in property <string> panel;
+    in property <SystemStatsData> sys;
+    width: 640px;
+    height: 230px;
+    background: Theme.notch-surface;
+    VerticalLayout {
+        padding: 16px;
+        if panel == "system": SystemPanel { data: sys; }
     }
 }
