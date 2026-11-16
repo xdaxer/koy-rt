@@ -104,6 +104,56 @@ fn dev_snapshot(view: &str, path: String) -> Result<(), slint::PlatformError> {
             });
             v.run()
         }
+        "notch" | "notch-music" | "notch-peek" | "notch-ring" => {
+            use features::notch::notch_shape::{ShapeSpec, path_commands};
+            let v = NotchShapePreview::new()?;
+            ThemeManager::install(&v);
+            let (w, h, r) = match view {
+                "notch-music" => (280.0, 34.0, 18.0),
+                "notch-peek" => (300.0, 38.0, 20.0),
+                _ => (236.0, 34.0, 18.0),
+            };
+            let mut d = NotchData::default();
+            d.surface = slint::Color::from_argb_encoded(0xFF0A_0A0B);
+            d.state = if view == "notch-peek" { 1 } else { 0 };
+            d.show_collapsed_layout = view != "notch-peek";
+            d.show_peek_layout = view == "notch-peek";
+            d.clock_time = "14:32".into();
+            d.show_idle_classic_clock = view != "notch-ring";
+            d.show_idle_battery = view == "notch";
+            d.has_battery = true;
+            d.battery_fill_width = 11.0;
+            d.show_idle_radio = view == "notch";
+            d.wifi_present = true;
+            d.wifi_on = true;
+            d.bluetooth_present = true;
+            d.bluetooth_on = false;
+            d.is_idle_ring = view == "notch-ring";
+            d.show_idle_ring = view == "notch-ring";
+            d.battery_ring_path = koy_core::notch::IdleDisplayFormat::arc_path(64, 18.0, 7.25).into();
+            d.battery_ring_color = slint::Color::from_argb_encoded(0xFF4A_DE80);
+            d.battery_percent_text = "%64".into();
+            d.idle_day_time = "Pzt 14:32".into();
+            d.is_music_playing = view == "notch-music";
+            d.music_title = "Bohemian Rhapsody".into();
+            d.music_artist = "Queen".into();
+            d.show_music_waveform = true;
+            d.waveform_bars = slint::ModelRc::new(slint::VecModel::from(vec![6.0f32, 12.0, 14.0, 10.0, 5.0]));
+            d.waveform_color = slint::Color::from_argb_encoded(0xFF4A_DE80);
+            v.set_d(d);
+            v.set_shape_width((w as f32) * 1.0);
+            v.set_shape_height(h as f32);
+            let cmd = path_commands(&ShapeSpec { left: (640.0 - w) / 2.0, top: 0.0, width: w, height: h, corner_radius: r, ear_radius: 12.0 });
+            v.set_shape_path(cmd.into());
+            let w = v.as_weak();
+            let _t = infra::dispatch::delay(std::time::Duration::from_millis(700), move || {
+                if let Some(v) = w.upgrade() {
+                    infra::snapshot::save(v.window(), &path);
+                }
+                let _ = slint::quit_event_loop();
+            });
+            v.run()
+        }
         "calendar" | "calweek" => {
             use features::calendar::{calendar_binding, calendar_view_model::CalendarViewModel, shared_events::SharedEvents};
             let v = NotchPanelPreview::new()?;
