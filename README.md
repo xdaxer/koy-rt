@@ -3,8 +3,8 @@
 [Koy](https://github.com/koyhq/koy)'un Rust ile yeniden yazımı. Koy, Windows 10 ve 11 için hafif bir **çentik** (ekranın
 üst ortasında yay animasyonlu ada) ve görev çubuğunun yerine geçen bir **dock**'tur. Özgün sürüm C# + WPF ile yazılmıştır.
 
-> **Durum: erken aşama, henüz çalışan bir uygulama değil.** Şu an çekirdek mantık (Core) taşınmış ve testleriyle
-> doğrulanmış durumda. Windows servisleri (Platform) ve arayüz (App) henüz taşınmadı. Kullanmak için
+> **Durum: erken aşama, henüz çalışan bir uygulama değil.** Şu an çekirdek mantık (Core) ve Windows servisleri (Platform)
+> taşınmış ve testleriyle doğrulanmış durumda. Arayüz (App) henüz taşınmadı. Kullanmak için
 > [Koy'un C# sürümünü](https://github.com/koyhq/koy/releases) indirin.
 
 ## Amaç
@@ -25,7 +25,7 @@ C# sürümünün kuralları burada da geçerlidir:
 | Katman | C# karşılığı | Durum |
 |---|---|---|
 | `koy-core` | `src/Core` (saf mantık, ~30 bin satır) | Tamamı taşındı, testleriyle: 2516 test |
-| `koy-platform` | `src/Platform` (Win32/WinRT servisleri) | Başladı: görev çubuğu güvenliği, gözcü başlatıcı, kriptografik rastgelelik |
+| `koy-platform` | `src/Platform` (Win32/WinRT servisleri) | Tamam: bütün Win32/WinRT servisleri (60 test) |
 | `koy-watchdog` | `src/Watchdog` | Taşındı |
 | arayüz | `src/App` (WPF) | Başlamadı; arayüz çatısı seçiliyor (aday: [Slint](https://slint.dev), yazılımla çizim) |
 

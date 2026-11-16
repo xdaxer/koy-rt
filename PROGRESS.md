@@ -14,14 +14,11 @@
 | core | extensions (+store) | ✅ | 249 test. Elle yazılmış inflate (RFC 1951) ve ZIP okuyucu; Unicode Cf/Cn tablosu gömülü. `IExtensionStoreClient` uygulaması Platform'da |
 | **core** | **TAMAM** | ✅ | **Çalışma alanı: 2516 test yeşil, uyarısız** |
 
-| platform | net (WinHTTP istemcisi), weather, lyrics, calendar, extensions, search, security, registry/locale/com yardımcıları, shell (taskbar + watchdog) | ✅ | Ajansız, sırayla taşınıyor. Kalan: shell'in geri kalanı, jump_list, start_menu, shelf, bluetooth, wireless, radio, display, audio, media, voice, clipboard, privacy, system_stats, notifications |
+| platform | net (WinHTTP), weather, lyrics, calendar, extensions, search, security, registry/locale/wmi yardımcıları, jump_list, start_menu, shelf, radio, wireless, network, power, diagnostics, bluetooth, display, audio, media, voice, clipboard, privacy, system_stats, notifications, shell (tamamı) | ✅ | **TAMAM**: 60 test yeşil, uyarısız. Sapmalar: PNG sıkıştırmasız zlib (yeni crate yok); FocusAssist olay bağlantısı kurucuda; WindowTracker başlık bildirimi `post` ile; WMI `System.Management` yerine doğrudan COM |
 
 ## Sıradaki adımlar (oturum yarıda kalırsa buradan devam)
 1. ✅ Dalga 1 (yaprak modüller) ve ✅ merkez grubu (hub): bütünleşik, testler yeşil.
 2. ✅ Dalga 3: notifications, system_stats, bluetooth, extensions, updates, start_menu.
 3. Ortak temizlik: `Guid` tekleştir, `iso_time` (calendar + extensions) ve `to_string_fixed` (units + system_stats) kopyalarını birleştir, feature kapılarını kaldır (tek crate, kapısız), `cargo test` tamamı yeşil.
-4. **Platform** (`koy-platform`, `windows` crate, ~12k satır C#): Shell ✅ (taskbar + watchdog launcher), security ✅
-   (BCryptGenRandom). Kalan: Shell'in geri kalanı (WindowTracker, TrayHostService, AppBar, IconHelper…), Search, JumpList,
-   Bluetooth, Display, Audio, Extensions, Clipboard, Media, Calendar, Privacy, SystemStats, Wireless, Weather, Radio, Voice,
-   Notifications, Shelf, StartMenu, Power, Network, Lyrics, Diagnostics.
+4. ✅ **Platform** (`koy-platform`): bütün C# Platform servisleri taşındı.
 5. **Arayüz**: karar bekliyor (öneri: Slint, yazılımla çizim). Sonra App katmanı (WPF ~35k satır).
