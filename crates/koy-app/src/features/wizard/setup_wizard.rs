@@ -76,6 +76,7 @@ impl SetupWizard {
             if let Some(w) = weak.upgrade() {
                 let hwnd = native_window::hwnd_of(w.window());
                 if hwnd != 0 {
+                    native_window::center_on_cursor_monitor(hwnd);
                     native_window::activate(hwnd);
                 }
             }

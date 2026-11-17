@@ -87,6 +87,33 @@ pub fn set_topmost(hwnd: isize) {
 }
 
 /// Pencereyi öne alır ve etkinleştirir (C# `Activate()`).
+/// Pencereyi imlecin bulunduğu ekranın çalışma alanında ortalar (WPF `WindowStartupLocation="CenterScreen"`).
+pub fn center_on_cursor_monitor(hwnd: isize) {
+    use windows::Win32::Graphics::Gdi::{GetMonitorInfoW, MONITOR_DEFAULTTONEAREST, MONITORINFO, MonitorFromPoint};
+    if hwnd == 0 {
+        return;
+    }
+    // SAFETY: salt okunur sorgular ve kendi penceremizin konumu.
+    unsafe {
+        let mut pt = POINT::default();
+        let _ = GetCursorPos(&mut pt);
+        let mon = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+        let mut mi = MONITORINFO { cbSize: std::mem::size_of::<MONITORINFO>() as u32, ..Default::default() };
+        if !GetMonitorInfoW(mon, &mut mi).as_bool() {
+            return;
+        }
+        let mut r = RECT::default();
+        if GetWindowRect(h(hwnd), &mut r).is_err() {
+            return;
+        }
+        let (w, ht) = (r.right - r.left, r.bottom - r.top);
+        let wa = mi.rcWork;
+        let x = wa.left + ((wa.right - wa.left) - w).max(0) / 2;
+        let y = wa.top + ((wa.bottom - wa.top) - ht).max(0) / 2;
+        let _ = SetWindowPos(h(hwnd), None, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+}
+
 pub fn activate(hwnd: isize) {
     if hwnd != 0 {
         // SAFETY: ön plan isteği.

@@ -4,7 +4,7 @@
 //! yapılan değişiklik pencereye yansır. Görünüm modeline `Tr` (metinler), `S` (anahtarlı ayar satırları), `SL`
 //! (listeler) ve `KoyWindowData` (sayfa, arama) küreselleriyle bağlanır.
 
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 use std::time::Duration;
 
@@ -44,6 +44,8 @@ pub struct KoyWindowHost {
     calendar: Rc<CalendarAccountsViewModel>,
     watcher: RefCell<Option<UserStyleWatcher>>,
     style_watcher: RefCell<Option<UserStyleWatcher>>,
+    /// İlk gösterimde ortalandı mı (sonra kullanıcının taşıdığı yer korunur).
+    centered: Cell<bool>,
     revert_timer: slint::Timer,
     highlight_timer: slint::Timer,
 }
@@ -77,6 +79,7 @@ impl KoyWindowHost {
             calendar,
             watcher: RefCell::new(None),
             style_watcher: RefCell::new(None),
+            centered: Cell::new(false),
             revert_timer: slint::Timer::default(),
             highlight_timer: slint::Timer::default(),
         });
@@ -1001,11 +1004,15 @@ impl KoyWindowHost {
                 Some(UserStyleWatcher::new(crate::resources::theme_manager::ThemeManager::reload_user_style_if_changed));
         }
         let weak = self.window.as_weak();
+        let center = !self.centered.replace(true);
         // Yerel pencere olay döngüsü dönünce oluşur; öne getirme biraz sonra.
         slint::Timer::single_shot(Duration::from_millis(30), move || {
             if let Some(w) = weak.upgrade() {
                 let hwnd = native_window::hwnd_of(w.window());
                 if hwnd != 0 {
+                    if center {
+                        native_window::center_on_cursor_monitor(hwnd);
+                    }
                     native_window::activate(hwnd);
                 }
             }
