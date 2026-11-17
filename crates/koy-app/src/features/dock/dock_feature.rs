@@ -377,7 +377,10 @@ impl Inner {
                 if let Some((t, ..)) = &svc.tracker {
                     t.register_shell_hook(hwnd);
                     let tracker = Arc::clone(t);
-                    host.set_shell_hook(t.shell_hook_message(), move |wp, lp| tracker.handle_shell_hook_message(wp, lp));
+                    host.set_shell_hook(t.shell_hook_message(), move |wp, lp| {
+                        crate::infra::trace::bump(&crate::infra::trace::DOCK_SHELL);
+                        tracker.handle_shell_hook_message(wp, lp)
+                    });
                 }
                 if let Some(ab) = &svc.app_bar {
                     let edge = me.settings().dock.edge;

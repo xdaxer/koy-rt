@@ -312,6 +312,11 @@ impl WindowTracker {
         const HSHELL_REDRAW: i32 = 6;
         const HSHELL_FLASH: i32 = 0x8006;
         const HSHELL_RUDEAPPACTIVATED: i32 = 0x8004;
+        // Koy'un kendi pencereleri yoksayılır (WinEvent kancasıyla aynı kural): dock yeniden çizildikçe gelen
+        // HSHELL_REDRAW listeyi yeniden kurdurur, o da dock'u yeniden çizdirir; kendini besleyen döngü oluşur.
+        if matches!(wparam as i32, HSHELL_WINDOWCREATED | HSHELL_REDRAW | HSHELL_FLASH) && lparam != 0 && window_pid(HWND(lparam as *mut _)) == std::process::id() {
+            return;
+        }
         match wparam as i32 {
             HSHELL_FLASH => {
                 self.inner.window_flashing.invoke(&lparam);

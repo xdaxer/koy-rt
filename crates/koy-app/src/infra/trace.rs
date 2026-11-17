@@ -12,6 +12,8 @@ pub static DOCK_RESIZE: AtomicU64 = AtomicU64::new(0);
 pub static DOCK_FRAME: AtomicU64 = AtomicU64::new(0);
 pub static DOCK_REGION: AtomicU64 = AtomicU64::new(0);
 pub static DOCK_APPBAR: AtomicU64 = AtomicU64::new(0);
+pub static DOCK_ITEMS: AtomicU64 = AtomicU64::new(0);
+pub static DOCK_SHELL: AtomicU64 = AtomicU64::new(0);
 
 pub fn enabled() -> bool {
     static ON: OnceLock<bool> = OnceLock::new();
@@ -49,12 +51,14 @@ pub fn start() -> Option<slint::Timer> {
     t.start(slint::TimerMode::Repeated, Duration::from_secs(1), || {
         let take = |c: &AtomicU64| c.swap(0, Ordering::Relaxed);
         write(&format!(
-            "dock/sn: refresh={} resize={} frame={} region={} appbar={}",
+            "dock/sn: refresh={} resize={} frame={} region={} appbar={} items={} shell={}",
             take(&DOCK_REFRESH),
             take(&DOCK_RESIZE),
             take(&DOCK_FRAME),
             take(&DOCK_REGION),
-            take(&DOCK_APPBAR)
+            take(&DOCK_APPBAR),
+            take(&DOCK_ITEMS),
+            take(&DOCK_SHELL)
         ));
     });
     Some(t)

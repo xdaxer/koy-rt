@@ -225,7 +225,13 @@ impl DockWindowHost {
             Some(t) => (now - t).as_secs_f64(),
         };
         let dt = if dt <= 0.0 || dt > 0.1 { 0.016 } else { dt };
-        self.vm().update_springs(dt);
+        let vm = self.vm();
+        // Hareket yoksa (yaylar başka yoldan durduruldu ya da hiç başlamadı) kare zamanlayıcısı boşta dönmesin.
+        if !vm.is_animating() {
+            self.timer.stop();
+            return;
+        }
+        vm.update_springs(dt);
     }
 
     // ---- Yerleşim ----

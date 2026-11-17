@@ -1530,6 +1530,10 @@ impl DockViewModel {
     }
 
     /// Kare adımı: yayları ilerletir; hepsi durunca `animation_stopped`.
+    pub fn is_animating(&self) -> bool {
+        self.p.borrow().is_animating
+    }
+
     pub fn update_springs(&self, delta_seconds: f64) {
         if !self.p.borrow().is_animating {
             return;
@@ -1646,6 +1650,7 @@ impl DockViewModel {
     }
 
     fn update_items_now(&self) {
+        crate::infra::trace::bump(&crate::infra::trace::DOCK_ITEMS);
         let models = self.visible_models();
         let s = self.settings();
         let folders: Vec<DockFolder> = s.dock_items.folders.to_vec();
