@@ -14,9 +14,10 @@ use crate::infra::native_window;
 use crate::resources::strings::Strings;
 use crate::resources::theme_manager::ThemeManager;
 use crate::resources::user_style_watcher::UserStyleWatcher;
-use crate::{AD, AdvancedRowData, CA, DP, PR, RU, WX, ProfileItemData, RuleItemData, SectionOptionData, KoyWindow, KoyWindowData, MonitorCardData, OrderItem, S, SC, SL, SearchResultData, ShortcutRowData, ToggleItem, Tr};
+use crate::{AD, AdvancedRowData, BuiltinCardData, ConfirmFactData, EX, StoreCardData, CA, DP, PR, RU, WX, ProfileItemData, RuleItemData, SectionOptionData, KoyWindow, KoyWindowData, MonitorCardData, OrderItem, S, SC, SL, SearchResultData, ShortcutRowData, ToggleItem, Tr};
 
 use super::advanced_view_model::AdvancedViewModel;
+use crate::features::extensions::extension_store_view_model::ExtensionStoreViewModel;
 use super::accounts_view_models::{CalendarAccountsViewModel, WeatherLocationViewModel};
 use super::displays_view_model::DisplaysViewModel;
 use super::profile_service::ProfileService;
@@ -38,6 +39,7 @@ pub struct KoyWindowHost {
     profiles: Rc<ProfilesViewModel>,
     rules: Rc<RulesViewModel>,
     advanced: Rc<AdvancedViewModel>,
+    extensions: Rc<ExtensionStoreViewModel>,
     weather: Rc<WeatherLocationViewModel>,
     calendar: Rc<CalendarAccountsViewModel>,
     watcher: RefCell<Option<UserStyleWatcher>>,
@@ -57,6 +59,7 @@ impl KoyWindowHost {
         let displays = DisplaysViewModel::new(Rc::clone(&vm));
         let profiles = ProfilesViewModel::new(ProfileService::instance());
         let advanced = AdvancedViewModel::new(Rc::clone(&vm));
+        let extensions = ExtensionStoreViewModel::new(ProfileService::instance());
         let rules = RulesViewModel::new(ProfileService::instance(), ContextRuleService::instance());
         let weather = WeatherLocationViewModel::new(Rc::clone(&vm));
         let calendar = CalendarAccountsViewModel::new();
@@ -68,6 +71,7 @@ impl KoyWindowHost {
             profiles,
             rules,
             advanced,
+            extensions,
             weather,
             calendar,
             watcher: RefCell::new(None),
@@ -144,6 +148,19 @@ impl KoyWindowHost {
         host.advanced.changed.subscribe(move || {
             if let Some(h) = weak.upgrade() {
                 h.sync_advanced();
+            }
+        });
+        let weak = Rc::downgrade(&host);
+        host.extensions.changed.subscribe(move || {
+            if let Some(h) = weak.upgrade() {
+                h.sync_extensions();
+            }
+        });
+        // Eklenti profil ekledi: Genel sayfasındaki profil listesi tazelenir.
+        let p = Rc::downgrade(&host.profiles);
+        host.extensions.profiles_changed.subscribe(move |_| {
+            if let Some(p) = p.upgrade() {
+                p.refresh();
             }
         });
         host.sync_profiles();
@@ -252,6 +269,79 @@ impl KoyWindowHost {
         ca.set_google_status(ss(&v.google_status_text));
         ca.set_outlook_status(ss(&v.outlook_status_text));
         ca.set_message(ss(&v.status_message));
+    }
+
+    pub fn extensions(&self) -> &Rc<ExtensionStoreViewModel> {
+        &self.extensions
+    }
+
+    fn sync_extensions(&self) {
+        let ex = self.window.global::<EX>();
+        let m = &self.extensions;
+        let cards: Vec<StoreCardData> = m
+            .cards()
+            .into_iter()
+            .map(|c| StoreCardData {
+                id: ss(&c.id),
+                name: ss(&c.name),
+                meta: ss(&c.meta_text),
+                kind_label: ss(&c.kind_label),
+                summary: ss(&c.summary),
+                description: ss(&c.description),
+                details: ss(&c.details_text),
+                has_homepage: c.has_homepage,
+                busy: c.is_busy,
+                show_install: c.show_install,
+                show_update: c.show_update,
+                show_apply: c.show_apply,
+                applied: c.is_applied,
+                show_uninstall: c.show_uninstall,
+                apply_label: ss(&c.apply_label),
+                progress: c.progress as f32,
+                uninstall_confirming: c.is_uninstall_confirming,
+                expanded: c.is_expanded,
+                message: ss(&c.message),
+                message_error: c.message_is_error,
+                has_preview: c.preview.is_some(),
+                preview: c.preview.unwrap_or_default(),
+            })
+            .collect();
+        ex.set_cards(ModelRc::new(VecModel::from(cards)));
+        let builtin: Vec<BuiltinCardData> = m
+            .builtin_cards()
+            .into_iter()
+            .map(|b| BuiltinCardData {
+                id: ss(&b.id),
+                name: ss(&b.name),
+                kind_label: ss(&b.kind_label),
+                c1: hex_color(b.colors.first().map(String::as_str).unwrap_or("#333333")),
+                c2: hex_color(b.colors.get(1).or(b.colors.first()).map(String::as_str).unwrap_or("#333333")),
+                applied: b.is_applied,
+            })
+            .collect();
+        ex.set_builtin(ModelRc::new(VecModel::from(builtin)));
+        ex.set_search(ss(m.search_text()));
+        ex.set_category(m.category_index());
+        ex.set_filter(m.filter_index());
+        ex.set_sort(m.sort_index());
+        let (loading, index_error, status, status_error, updates, count, show_more, has_more, empty, can_file) = m.texts();
+        ex.set_loading(loading);
+        ex.set_index_error(ss(index_error));
+        ex.set_status(ss(status));
+        ex.set_status_error(status_error);
+        ex.set_updates_label(ss(updates));
+        ex.set_count_text(ss(count));
+        ex.set_show_more_text(ss(show_more));
+        ex.set_has_more(has_more);
+        ex.set_empty(empty);
+        ex.set_can_install_file(can_file);
+        let (confirming, title, button, note, facts) = m.confirm();
+        ex.set_confirming(confirming);
+        ex.set_confirm_title(ss(title));
+        ex.set_confirm_button(ss(button));
+        ex.set_confirm_note(ss(note));
+        let facts: Vec<ConfirmFactData> = facts.into_iter().map(|f| ConfirmFactData { label: ss(f.label), value: ss(f.value) }).collect();
+        ex.set_confirm_facts(ModelRc::new(VecModel::from(facts)));
     }
 
     fn sync_advanced(&self) {
@@ -387,9 +477,21 @@ impl KoyWindowHost {
             });
         });
         let vm = Rc::downgrade(&self.vm);
+        let me = Rc::downgrade(self);
         s.on_action(move |name| {
             let vm = vm.clone();
+            let me = me.clone();
             crate::infra::dispatch::post_local(move || {
+                // "Mağazadan daha fazla al…": Eklentiler sayfası verilen kategoriyle açılır.
+                if let Some(category) = name.strip_prefix("OpenStoreCommand") {
+                    if let Some(h) = me.upgrade() {
+                        h.extensions.show_category(category.trim_start_matches(':'));
+                        h.vm.select_page(super::settings_view_model::EXTENSIONS_PAGE_INDEX);
+                        h.update_page_activation();
+                        h.window.invoke_scroll_top();
+                    }
+                    return;
+                }
                 if let Some(vm) = vm.upgrade() {
                     vm.action(&name);
                 }
@@ -485,6 +587,79 @@ impl KoyWindowHost {
                     "RequestDelete" => m.request_delete(i, true),
                     "CancelDelete" => m.request_delete(i, false),
                     "ConfirmDelete" => m.delete(i),
+                    _ => {}
+                }
+            });
+        });
+
+        let ex = w.global::<EX>();
+        let m = Rc::downgrade(&self.extensions);
+        ex.on_search_edited(move |t| {
+            if let Some(m) = m.upgrade() {
+                m.set_search_text(&t);
+            }
+        });
+        let m = Rc::downgrade(&self.extensions);
+        ex.on_category_changed(move |i| {
+            if let Some(m) = m.upgrade() {
+                m.set_category(i as usize);
+            }
+        });
+        let m = Rc::downgrade(&self.extensions);
+        ex.on_filter_changed(move |i| {
+            if let Some(m) = m.upgrade() {
+                m.set_filter(i as usize);
+            }
+        });
+        let m = Rc::downgrade(&self.extensions);
+        ex.on_sort_changed(move |i| {
+            if let Some(m) = m.upgrade() {
+                m.set_sort(i as usize);
+            }
+        });
+        // Dosya pencereleri ve uygulama (çentik/dock yeniden kurulumu) bağlama dışında, sonraki turda.
+        let m = Rc::downgrade(&self.extensions);
+        ex.on_command(move |name| {
+            let m = m.clone();
+            crate::infra::dispatch::post_local(move || {
+                let Some(m) = m.upgrade() else { return };
+                match name.as_str() {
+                    "RefreshIndex" => m.refresh(),
+                    "InstallFromFile" => m.install_from_file(),
+                    "ShowMore" => m.show_more(),
+                    "ConfirmInstall" => m.confirm_install(),
+                    "CancelConfirm" => m.cancel_confirm(),
+                    _ => {}
+                }
+            });
+        });
+        let m = Rc::downgrade(&self.extensions);
+        ex.on_card_command(move |id, name| {
+            let m = m.clone();
+            crate::infra::dispatch::post_local(move || {
+                let Some(m) = m.upgrade() else { return };
+                match name.as_str() {
+                    "Install" => m.request_install(&id, false),
+                    "Update" => m.request_install(&id, true),
+                    "Apply" => m.apply(&id),
+                    "Disable" => m.disable(&id),
+                    "RequestUninstall" => m.request_uninstall(&id, true),
+                    "CancelUninstall" => m.request_uninstall(&id, false),
+                    "ConfirmUninstall" => m.uninstall(&id),
+                    "ToggleExpanded" => m.toggle_expanded(&id),
+                    "OpenHomepage" => m.open_homepage(&id),
+                    _ => {}
+                }
+            });
+        });
+        let m = Rc::downgrade(&self.extensions);
+        ex.on_builtin_command(move |id, name| {
+            let m = m.clone();
+            crate::infra::dispatch::post_local(move || {
+                let Some(m) = m.upgrade() else { return };
+                match name.as_str() {
+                    "Apply" => m.apply_builtin_background(&id),
+                    "Disable" => m.disable_builtin_background(&id),
                     _ => {}
                 }
             });
@@ -814,6 +989,7 @@ impl KoyWindowHost {
 
     /// Ekranlar sayfası yalnız görünürken sistem olaylarını dinler.
     fn update_page_activation(&self) {
+        self.extensions.set_active(self.vm.selected_page() == super::settings_view_model::EXTENSIONS_PAGE_INDEX && self.is_visible());
         self.advanced.rebuild(self.vm.selected_page() == super::settings_view_model::ADVANCED_PAGE_INDEX);
         if self.vm.selected_page() == 3 && self.is_visible() {
             self.displays.activate();
@@ -824,6 +1000,7 @@ impl KoyWindowHost {
 
     /// Gizler (kapatma düğmesi ve Alt+F4); izleyici bırakılır.
     pub fn hide(&self) {
+        self.extensions.set_active(false);
         self.displays.deactivate();
         if let Some(w) = self.watcher.borrow_mut().take() {
             w.dispose();
@@ -856,4 +1033,10 @@ fn begin_drag(hwnd: isize) {
         let _ = ReleaseCapture();
         let _ = PostMessageW(Some(HWND(hwnd as *mut _)), WM_NCLBUTTONDOWN, WPARAM(HTCAPTION as usize), LPARAM(0));
     }
+}
+
+fn hex_color(hex: &str) -> slint::Color {
+    let h = hex.trim_start_matches('#');
+    let v = u32::from_str_radix(h, 16).unwrap_or(0x333333);
+    if h.len() == 8 { slint::Color::from_argb_encoded(v) } else { slint::Color::from_argb_encoded(0xFF00_0000 | v) }
 }

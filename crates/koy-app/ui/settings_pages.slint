@@ -1313,3 +1313,274 @@ export component AdvancedPage inherits VerticalLayout {
     if AD.rows.length == 0: SettingDesc { text: Tr.t("SettingsSearchNoResult"); }
     for r in AD.rows: AdvancedRowView { ad-row: r; }
 }
+
+// ---------------------------------------------------------------- Eklentiler
+
+export struct StoreCardData {
+    id: string,
+    name: string,
+    meta: string,
+    kind-label: string,
+    summary: string,
+    description: string,
+    details: string,
+    has-homepage: bool,
+    busy: bool,
+    show-install: bool,
+    show-update: bool,
+    show-apply: bool,
+    applied: bool,
+    show-uninstall: bool,
+    apply-label: string,
+    progress: float,
+    uninstall-confirming: bool,
+    expanded: bool,
+    message: string,
+    message-error: bool,
+    has-preview: bool,
+    preview: image,
+}
+
+export struct BuiltinCardData {
+    id: string,
+    name: string,
+    kind-label: string,
+    c1: color,
+    c2: color,
+    applied: bool,
+}
+
+export struct ConfirmFactData {
+    label: string,
+    value: string,
+}
+
+export global EX {
+    in property <[StoreCardData]> cards;
+    in property <[BuiltinCardData]> builtin;
+    in property <string> search;
+    in property <int> category;
+    in property <int> filter;
+    in property <int> sort;
+    in property <bool> loading;
+    in property <string> index-error;
+    in property <string> status;
+    in property <bool> status-error;
+    in property <string> updates-label;
+    in property <string> count-text;
+    in property <string> show-more-text;
+    in property <bool> has-more;
+    in property <bool> empty;
+    in property <bool> can-install-file;
+    in property <bool> confirming;
+    in property <string> confirm-title;
+    in property <string> confirm-button;
+    in property <string> confirm-note;
+    in property <[ConfirmFactData]> confirm-facts;
+    callback search-edited(string);
+    callback category-changed(int);
+    callback filter-changed(int);
+    callback sort-changed(int);
+    // RefreshIndex, InstallFromFile, ShowMore, ConfirmInstall, CancelConfirm
+    callback command(string);
+    // Install, Update, Apply, Disable, RequestUninstall, CancelUninstall, ConfirmUninstall, ToggleExpanded, OpenHomepage
+    callback card-command(string, string);
+    // Apply, Disable
+    callback builtin-command(string, string);
+}
+
+component StoreCardView inherits Rectangle {
+    in property <StoreCardData> card;
+    background: Theme.bg-row;
+    border-width: 1px;
+    border-color: card.applied ? Theme.accent : Theme.border-hairline;
+    border-radius: Theme.radius-row;
+    height: lay.preferred-height;
+    lay := VerticalLayout {
+        padding: 12px;
+        spacing: 8px;
+        HorizontalLayout {
+            spacing: 12px;
+            Rectangle {
+                width: 96px;
+                height: 64px;
+                border-radius: Theme.radius-small;
+                background: Theme.bg-control;
+                clip: true;
+                if root.card.has-preview: Image { width: parent.width; height: parent.height; source: root.card.preview; image-fit: cover; }
+                if !root.card.has-preview: Text { text: root.card.kind-label; color: Theme.text-muted; font-size: Theme.font-caption; }
+            }
+            VerticalLayout {
+                horizontal-stretch: 1;
+                spacing: 2px;
+                HorizontalLayout {
+                    spacing: 6px;
+                    SettingTitle { text: root.card.name; font-weight: 600; horizontal-stretch: 0; }
+                    if root.card.applied: VerticalLayout {
+                        alignment: center;
+                        Rectangle {
+                            border-radius: 4px;
+                            background: Theme.accent-subtle;
+                            HorizontalLayout {
+                                padding-left: 6px;
+                                padding-right: 6px;
+                                Text { text: Tr.t("ExtApplied"); color: Theme.accent-text; font-size: Theme.font-caption; }
+                            }
+                        }
+                    }
+                    Rectangle { horizontal-stretch: 1; }
+                }
+                SettingDesc { text: root.card.kind-label + (root.card.meta == "" ? "" : " · " + root.card.meta); }
+                if root.card.summary != "": SettingDesc { text: root.card.summary; }
+                if root.card.message != "": SettingDesc { text: root.card.message; color: root.card.message-error ? Theme.danger-text : Theme.status-ok; }
+            }
+        }
+        if root.card.busy: Rectangle {
+            height: 4px;
+            border-radius: 2px;
+            background: Theme.toggle-track-off;
+            Rectangle { x: 0; width: parent.width * clamp(root.card.progress, 0, 1); border-radius: 2px; background: Theme.accent; }
+        }
+        HorizontalLayout {
+            spacing: 6px;
+            alignment: start;
+            if root.card.show-update: KoyButton { text: Tr.t("ExtUpdate"); kind: ButtonKind.primary; clicked => { EX.card-command(root.card.id, "Update"); } }
+            if root.card.show-install: KoyButton { text: Tr.t("ExtInstall"); kind: ButtonKind.primary; clicked => { EX.card-command(root.card.id, "Install"); } }
+            if root.card.show-apply: KoyButton { text: root.card.apply-label; clicked => { EX.card-command(root.card.id, "Apply"); } }
+            if root.card.applied: KoyButton { text: Tr.t("ExtDisable"); clicked => { EX.card-command(root.card.id, "Disable"); } }
+            if root.card.show-uninstall && !root.card.uninstall-confirming: KoyButton { text: Tr.t("ExtUninstall"); kind: ButtonKind.danger; clicked => { EX.card-command(root.card.id, "RequestUninstall"); } }
+            if root.card.show-uninstall && root.card.uninstall-confirming: SettingDesc { text: Tr.t("ExtUninstallConfirmQuestion"); vertical-alignment: center; }
+            if root.card.show-uninstall && root.card.uninstall-confirming: KoyButton { text: Tr.t("ExtUninstall"); kind: ButtonKind.danger; clicked => { EX.card-command(root.card.id, "ConfirmUninstall"); } }
+            if root.card.show-uninstall && root.card.uninstall-confirming: KoyButton { text: Tr.t("Cancel"); clicked => { EX.card-command(root.card.id, "CancelUninstall"); } }
+            Rectangle { horizontal-stretch: 1; }
+            LinkButton { text: Tr.t("ExtDetails"); clicked => { EX.card-command(root.card.id, "ToggleExpanded"); } }
+        }
+        if root.card.expanded: VerticalLayout {
+            spacing: 4px;
+            if root.card.description != "": SettingDesc { text: root.card.description; }
+            SettingDesc { text: root.card.details; }
+            if root.card.has-homepage: HorizontalLayout {
+                alignment: start;
+                LinkButton { text: Tr.t("ExtOpenHomepage"); clicked => { EX.card-command(root.card.id, "OpenHomepage"); } }
+            }
+        }
+    }
+}
+
+component BuiltinCardView inherits Rectangle {
+    in property <BuiltinCardData> card;
+    width: 150px;
+    height: 150px;
+    background: Theme.bg-row;
+    border-width: 1px;
+    border-color: card.applied ? Theme.accent : Theme.border-hairline;
+    border-radius: Theme.radius-row;
+    VerticalLayout {
+        padding: 8px;
+        spacing: 6px;
+        Rectangle {
+            height: 64px;
+            border-radius: Theme.radius-small;
+            background: @linear-gradient(135deg, root.card.c1 0%, root.card.c2 100%);
+        }
+        Text { text: root.card.name; color: Theme.text-primary; font-size: Theme.font-control; font-weight: 600; overflow: elide; }
+        Text { text: root.card.kind-label; color: Theme.text-muted; font-size: Theme.font-caption; overflow: elide; }
+        if !root.card.applied: KoyButton { text: Tr.t("ExtApply"); clicked => { EX.builtin-command(root.card.id, "Apply"); } }
+        if root.card.applied: KoyButton { text: Tr.t("ExtDisable"); clicked => { EX.builtin-command(root.card.id, "Disable"); } }
+    }
+}
+
+// Karşılığı: EklentilerPage.xaml
+export component ExtensionsPage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("ExtFromFileHeader"); }
+    SettingRow {
+        SettingText { title: Tr.t("ExtFromFileTitle"); description: Tr.t("ExtFromFileDesc"); }
+        VerticalLayout {
+            alignment: center;
+            KoyButton { text: Tr.t("ExtFromFileButton"); enabled: EX.can-install-file; clicked => { EX.command("InstallFromFile"); } }
+        }
+    }
+    if EX.status != "": SettingDesc { text: EX.status; color: EX.status-error ? Theme.danger-text : Theme.text-secondary; }
+    SectionHeader { text: Tr.t("ExtStoreHeader"); }
+    HorizontalLayout {
+        spacing: 8px;
+        KoyTextBox {
+            horizontal-stretch: 1;
+            text: EX.search;
+            placeholder: Tr.t("ExtSearchPlaceholder");
+            edited(t) => { EX.search-edited(t); }
+        }
+        KoyButton { text: Tr.t("ExtRefresh"); clicked => { EX.command("RefreshIndex"); } }
+    }
+    HorizontalLayout {
+        alignment: start;
+        Segmented {
+            items: [Tr.t("ExtCategoryAll"), Tr.t("ExtCategoryTheme"), Tr.t("ExtCategoryIconPack"), Tr.t("ExtCategoryBackground"), Tr.t("ExtCategoryProfile")];
+            selected: EX.category;
+            changed(i) => { EX.category-changed(i); }
+        }
+    }
+    HorizontalLayout {
+        spacing: 10px;
+        Segmented {
+            items: [Tr.t("ExtFilterAll"), Tr.t("ExtFilterInstalled"), EX.updates-label];
+            selected: EX.filter;
+            changed(i) => { EX.filter-changed(i); }
+        }
+        Rectangle { horizontal-stretch: 1; }
+        SettingDesc { text: Tr.t("ExtSortLabel"); vertical-alignment: center; }
+        KoyComboBox {
+            width: 160px;
+            items: [Tr.t("ExtSortNewest"), Tr.t("ExtSortAlphabetical"), Tr.t("ExtSortMostDownloads")];
+            selected: EX.sort;
+            changed(i) => { EX.sort-changed(i); }
+        }
+    }
+    if EX.count-text != "": SettingDesc { text: EX.count-text; }
+    if EX.index-error != "": InfoNotice { text: EX.index-error; }
+    if EX.loading: SettingDesc { text: Tr.t("ExtLoading"); }
+    if EX.empty: SettingDesc { text: Tr.t("ExtEmpty"); }
+    if EX.builtin.length > 0: SectionHeader { text: Tr.t("LiveBgBuiltinHeader"); }
+    if EX.builtin.length > 0: HorizontalLayout {
+        spacing: 8px;
+        alignment: start;
+        for b in EX.builtin: BuiltinCardView { card: b; }
+    }
+    for c in EX.cards: StoreCardView { card: c; }
+    if EX.has-more: HorizontalLayout {
+        alignment: center;
+        KoyButton { text: EX.show-more-text; clicked => { EX.command("ShowMore"); } }
+    }
+}
+
+// Kurulum onayı (KoyWindow.xaml ConfirmOverlay).
+export component ExtensionConfirmOverlay inherits Rectangle {
+    background: Theme.scrim;
+    TouchArea { }
+    Rectangle {
+        width: 420px;
+        height: card.preferred-height;
+        background: Theme.bg-row;
+        border-width: 1px;
+        border-color: Theme.border-strong;
+        border-radius: Theme.radius-row;
+        card := VerticalLayout {
+            padding: 20px;
+            spacing: 8px;
+            Text { text: EX.confirm-title; font-size: Theme.font-page-title; font-weight: 600; color: Theme.text-primary; wrap: word-wrap; }
+            for f in EX.confirm-facts: HorizontalLayout {
+                spacing: 12px;
+                Text { width: 130px; text: f.label; color: Theme.text-secondary; font-size: Theme.font-control; }
+                Text { text: f.value; color: Theme.text-primary; font-size: Theme.font-control; wrap: word-wrap; horizontal-stretch: 1; }
+            }
+            if EX.confirm-note != "": SettingDesc { text: EX.confirm-note; }
+            HorizontalLayout {
+                alignment: end;
+                spacing: 8px;
+                KoyButton { text: Tr.t("Cancel"); clicked => { EX.command("CancelConfirm"); } }
+                KoyButton { text: EX.confirm-button; kind: ButtonKind.primary; clicked => { EX.command("ConfirmInstall"); } }
+            }
+        }
+    }
+}
