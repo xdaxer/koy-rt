@@ -235,7 +235,7 @@ export component NotchBehaviorPage inherits VerticalLayout {
     BoolRow { key: "Notch.ShowBrightnessOsd"; title: Tr.t("BrightnessOsdTitle"); description: ""; }
     BoolRow { key: "Notch.ShowPrivacyIndicator"; title: Tr.t("PrivacyIndicatorTitle"); description: ""; }
     BoolRow { key: "Notch.ShowNotifications"; title: Tr.t("NotificationsTitle"); description: Tr.t("NotificationsDesc"); }
-    if S.flag("NotificationsPermissionMissing"): SettingDesc { text: Tr.t("NotificationsPermissionMissing"); color: Theme.danger-text; }
+    if S.flag("NotificationsPermissionMissing"): SettingDesc { text: Tr.t("NotificationsNeedPermission"); color: Theme.danger-text; }
     SectionHeader { text: Tr.t("NavAdvanced"); }
     ListRow { key: "Notch.OpenDelayMs"; title: Tr.t("NotchOpenDelayTitle"); description: ""; list: "NotchDelayOptions"; suffix: "ms"; }
     ListRow { key: "Notch.CloseDelayMs"; title: Tr.t("NotchCloseDelayTitle"); description: ""; list: "NotchDelayOptions"; suffix: "ms"; }
@@ -708,7 +708,7 @@ export component AboutPage inherits VerticalLayout {
             VerticalLayout {
                 alignment: center;
                 horizontal-stretch: 1;
-                SettingTitle { text: "Koy " + S.text("AppVersion"); font-weight: 600; }
+                SettingTitle { text: "Koy"; font-weight: 600; }
                 SettingDesc { text: S.text("AboutStatusText"); }
             }
         }

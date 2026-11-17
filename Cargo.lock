@@ -2207,6 +2207,7 @@ dependencies = [
  "koy-core",
  "koy-platform",
  "raw-window-handle",
+ "serde_json",
  "slint",
  "slint-build",
  "windows",

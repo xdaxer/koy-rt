@@ -130,6 +130,51 @@ struct UiState {
     tab_order: Vec<TabOrderRow>,
     memory_mb: f64,
     memory_level: i32,
+    // Güncelleme ve "Yenilikler" pencereleri.
+    is_update_overlay_open: bool,
+    update_modal_title: String,
+    update_modal_intro: String,
+    update_highlights: Vec<String>,
+    is_downloading_update: bool,
+    download_progress: f64,
+    is_whats_new_open: bool,
+    whats_new_title: String,
+    whats_new_highlights: Vec<String>,
+    whats_new_sections: Vec<(String, Vec<String>)>,
+}
+
+/// Güncelleme ve "Yenilikler" pencerelerinin görünüm verisi.
+#[derive(Clone, Default)]
+pub struct UpdateOverlays {
+    pub update_open: bool,
+    pub update_title: String,
+    pub update_intro: String,
+    pub update_highlights: Vec<String>,
+    pub downloading: bool,
+    pub download_progress: f64,
+    pub download_text: String,
+    pub whats_new_open: bool,
+    pub whats_new_title: String,
+    pub whats_new_highlights: Vec<String>,
+    pub whats_new_sections: Vec<(String, Vec<String>)>,
+}
+
+thread_local! {
+    static SETTINGS_VM: RefCell<Option<VmRef>> = const { RefCell::new(None) };
+}
+
+/// Arayüz iş parçacığındaki görünüm modeline gönderilebilir başvuru.
+#[derive(Clone, Copy)]
+struct VmRef(crate::infra::ui_ref::UiRef<SettingsViewModel>);
+
+// SAFETY: yalnız arayüz iş parçacığında `upgrade` edilir (UiRef yalnız kimlik taşır).
+unsafe impl Send for VmRef {}
+unsafe impl Sync for VmRef {}
+
+impl VmRef {
+    fn upgrade_on_ui(&self) -> Option<Rc<SettingsViewModel>> {
+        self.0.upgrade()
+    }
 }
 
 pub struct SettingsViewModel {
@@ -171,6 +216,15 @@ impl SettingsViewModel {
             settings_saved: Notifier::default(),
         });
         vm.load_from_settings();
+        let r = VmRef(crate::infra::ui_ref::UiRef::new(&vm));
+        SETTINGS_VM.with(|v| *v.borrow_mut() = Some(r));
+        // Güncelleme durumu değişince (otomatik denetim, elle denetim) metinler yenilenir.
+        let w = Rc::downgrade(&vm);
+        crate::update_status::UpdateStatus::on_changed(move || {
+            if let Some(vm) = w.upgrade() {
+                vm.bump();
+            }
+        });
         vm
     }
 
@@ -484,7 +538,7 @@ impl SettingsViewModel {
         let st = self.st.borrow();
         match name {
             "LastCheckText" => last_check_text(),
-            "CheckButtonText" => Strings::get("CheckNow"),
+            "CheckButtonText" => Strings::get(if crate::auto_updater::is_checking() { "UpdateChecking" } else { "CheckNow" }),
             "AvailableVersionText" => crate::update_status::UpdateStatus::available_version()
                 .map(|v| Strings::format("UpdateAvailableBadge", &[&v]))
                 .unwrap_or_default(),
@@ -501,7 +555,7 @@ impl SettingsViewModel {
             "LiveBackgroundFileName" => {
                 let p = &self.current.borrow().notch.live_background_file_path;
                 if p.trim().is_empty() {
-                    Strings::get("LiveBgFileNone")
+                    Strings::get("LiveBgNoFile")
                 } else {
                     std::path::Path::new(p).file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| p.clone())
                 }
@@ -509,14 +563,14 @@ impl SettingsViewModel {
             "StartIconFileName" => {
                 let p = &self.current.borrow().dock.start_icon_path;
                 if p.trim().is_empty() {
-                    Strings::get("DockStartIconNone")
+                    Strings::get("DockStartIconNoFile")
                 } else {
                     std::path::Path::new(p).file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| p.clone())
                 }
             }
             "IconPackFolderName" => {
                 let p = &self.current.borrow().appearance.icon_pack_folder;
-                if p.trim().is_empty() { Strings::get("IconPackNoFolder") } else { p.clone() }
+                if p.trim().is_empty() { Strings::get("IconPackFolderNone") } else { p.clone() }
             }
             "AppVersion" => crate::update_status::AppInfo::version().to_string(),
             "AboutStatusText" => about_status_text(),
@@ -984,16 +1038,21 @@ impl SettingsViewModel {
     /// Düğme eylemleri (C# RelayCommand adlarıyla).
     pub fn action(&self, name: &str) {
         match name {
-            "CheckUpdatesCommand" => self.hook(|h| {
-                if let Some(f) = &h.check_updates {
-                    f();
+            "CheckUpdatesCommand" => {
+                let channel = self.current.borrow().general.update_channel;
+                crate::auto_updater::check(channel, || {});
+                self.bump();
+            }
+            "OpenUpdateOverlayCommand" => self.open_update_overlay(),
+            "CloseUpdateOverlayCommand" => {
+                if !self.st.borrow().is_downloading_update {
+                    self.st.borrow_mut().is_update_overlay_open = false;
+                    self.bump();
                 }
-            }),
-            "OpenUpdateOverlayCommand" => self.hook(|h| {
-                if let Some(f) = &h.open_update_overlay {
-                    f();
-                }
-            }),
+            }
+            "StartUpdateCommand" => self.start_update(),
+            "OpenWhatsNewOverlayCommand" => self.open_whats_new_overlay(),
+            "CloseWhatsNewOverlayCommand" => self.close_whats_new_overlay(),
             "ExitAppCommand" => self.hook(|h| {
                 if let Some(f) = &h.exit_app {
                     f();
@@ -1098,10 +1157,121 @@ impl SettingsViewModel {
         }
     }
 
+    pub fn update_overlays(&self) -> UpdateOverlays {
+        let st = self.st.borrow();
+        UpdateOverlays {
+            update_open: st.is_update_overlay_open,
+            update_title: st.update_modal_title.clone(),
+            update_intro: st.update_modal_intro.clone(),
+            update_highlights: st.update_highlights.clone(),
+            downloading: st.is_downloading_update,
+            download_progress: st.download_progress,
+            download_text: Strings::format("UpdateDownloading", &[&((st.download_progress * 100.0).round() as i32).to_string()]),
+            whats_new_open: st.is_whats_new_open,
+            whats_new_title: st.whats_new_title.clone(),
+            whats_new_highlights: st.whats_new_highlights.clone(),
+            whats_new_sections: st.whats_new_sections.clone(),
+        }
+    }
+
+    /// `OpenUpdateOverlay`: yeni sürümün notları güncelleme beslemesinden gelir; gömülü CHANGELOG yalnız kurulu sürümü
+    /// bilir, yeni sürüm orada yoksa eski notları göstermek yerine liste boş kalır.
+    pub fn open_update_overlay(&self) {
+        use koy_core::updates::ChangelogParser;
+        let app_version = crate::update_status::AppInfo::version().to_string();
+        let version = crate::update_status::UpdateStatus::available_version().unwrap_or(app_version);
+        let language = self.current.borrow().general.language.clone();
+        let feed = crate::auto_updater::available_notes();
+        let (feed_notes, feed_language) = ChangelogParser::select_feed_notes(feed.as_deref(), &language);
+        let release = ChangelogParser::extract_version(feed_notes.as_deref(), &version, feed_language)
+            .or_else(|| ChangelogParser::resolve_embedded(&version, &language));
+        {
+            let mut st = self.st.borrow_mut();
+            st.update_modal_title = Strings::get("UpdateModalTitle");
+            st.update_modal_intro = Strings::format("UpdateModalIntro", &[&version]);
+            st.update_highlights = release.map(|r| r.highlights).unwrap_or_default();
+            // İndirme sürerken (pencere kapatılıp yeniden açıldıysa) durum sıfırlanmaz: ikinci indirme başlamasın.
+            if !st.is_downloading_update {
+                st.download_progress = 0.0;
+            }
+            st.is_update_overlay_open = true;
+        }
+        self.bump();
+    }
+
+    fn start_update(self: &Self) {
+        if crate::update_status::UpdateStatus::available_update().is_none() || self.st.borrow().is_downloading_update {
+            return;
+        }
+        {
+            let mut st = self.st.borrow_mut();
+            st.is_downloading_update = true;
+            st.download_progress = 0.0;
+        }
+        self.bump();
+        let me = SETTINGS_VM.with(|v| v.borrow().clone());
+        let progress_me = me.clone();
+        let failed_me = me.clone();
+        crate::auto_updater::start_update(
+            move |p| {
+                let vm = progress_me.as_ref().and_then(|w| w.upgrade_on_ui());
+                if let Some(vm) = vm {
+                    vm.st.borrow_mut().download_progress = p;
+                    vm.bump();
+                }
+            },
+            move || {
+                if let Some(vm) = failed_me.as_ref().and_then(|w| w.upgrade_on_ui()) {
+                    vm.st.borrow_mut().is_downloading_update = false;
+                    vm.bump();
+                }
+            },
+            move || {
+                if let Some(vm) = me.as_ref().and_then(|w| w.upgrade_on_ui()) {
+                    vm.hook(|h| {
+                        if let Some(f) = &h.exit_app {
+                            f();
+                        }
+                    });
+                }
+            },
+        );
+    }
+
+    /// `OpenWhatsNewOverlay`: kurulu sürümün gömülü notları (yoksa en son bölüm).
+    pub fn open_whats_new_overlay(&self) {
+        use koy_core::updates::ChangelogParser;
+        let app_version = crate::update_status::AppInfo::version().to_string();
+        let language = self.current.borrow().general.language.clone();
+        let release = ChangelogParser::resolve_embedded(&app_version, &language).or_else(|| {
+            ChangelogParser::parse_latest(ChangelogParser::read_embedded_changelog(&language).as_deref(), &language)
+        });
+        {
+            let mut st = self.st.borrow_mut();
+            st.whats_new_title = Strings::format("WhatsNewTitle", &[&app_version]);
+            st.whats_new_highlights = release.as_ref().map(|r| r.highlights.clone()).unwrap_or_default();
+            st.whats_new_sections =
+                release.map(|r| r.sections.into_iter().map(|s| (s.title, s.items)).collect()).unwrap_or_default();
+            st.is_whats_new_open = true;
+        }
+        self.bump();
+    }
+
+    pub fn close_whats_new_overlay(&self) {
+        self.st.borrow_mut().is_whats_new_open = false;
+        let app_version = crate::update_status::AppInfo::version().to_string();
+        let mut current = self.store.load();
+        if current.general.last_seen_version != app_version {
+            current.general.last_seen_version = app_version;
+            let _ = self.store.save(&current);
+        }
+        self.bump();
+    }
+
     fn pick_live_background_file(&self) {
         let pattern = koy_core::notch::LiveBackgroundFileValidator::dialog_pattern();
-        let filter = format!("{}|{}", Strings::get("LiveBgFileFilter"), pattern);
-        let Some(p) = crate::infra::file_dialog::pick_file(None, &Strings::get("LiveBgFileChoose"), &filter, true) else {
+        let filter = Strings::format("LiveBgPickFilter", &[&pattern]);
+        let Some(p) = crate::infra::file_dialog::pick_file(None, &Strings::get("LiveBgPickTitle"), &filter, true) else {
             return;
         };
         let size = std::fs::metadata(&p).map_or(0, |m| m.len() as i64);
@@ -1112,8 +1282,8 @@ impl SettingsViewModel {
     }
 
     fn pick_start_icon(&self) {
-        let filter = format!("{}|*.png;*.jpg;*.jpeg;*.ico;*.bmp", Strings::get("DockStartIconFilter"));
-        let Some(path) = crate::infra::file_dialog::pick_file(None, &Strings::get("DockStartIconChoose"), &filter, true) else {
+        let filter = Strings::get("DockStartIconPickFilter");
+        let Some(path) = crate::infra::file_dialog::pick_file(None, &Strings::get("DockStartIconPickTitle"), &filter, true) else {
             return;
         };
         self.set("Dock.StartIconPath", &path);
@@ -1121,7 +1291,7 @@ impl SettingsViewModel {
     }
 
     fn pick_icon_pack_folder(&self) {
-        let Some(path) = crate::infra::file_dialog::pick_folder(None, &Strings::get("IconPackChooseFolder")) else { return };
+        let Some(path) = crate::infra::file_dialog::pick_folder(None, &Strings::get("IconPackFolderPickTitle")) else { return };
         self.set("Appearance.IconPackFolder", &path);
         self.set("Appearance.IconPack", "Folder");
     }
@@ -1303,30 +1473,48 @@ fn can_uninstall() -> bool {
 }
 
 fn last_check_text() -> String {
-    use crate::update_status::UpdateStatus;
-    match UpdateStatus::last_check() {
-        None => Strings::get("UpdateNeverChecked"),
-        Some(t) => {
-            let now = chrono::Local::now();
-            let when = if t.date_naive() == now.date_naive() {
-                t.format("%H:%M").to_string()
-            } else {
-                t.format("%d.%m.%Y %H:%M").to_string()
-            };
-            Strings::format("UpdateLastCheck", &[&when])
-        }
+    use crate::update_status::{UpdateCheckResult, UpdateStatus};
+    if crate::auto_updater::is_checking() {
+        return Strings::get("UpdateChecking");
+    }
+    match UpdateStatus::last_result() {
+        UpdateCheckResult::Failed => Strings::get("UpdateCheckFailed"),
+        UpdateCheckResult::NotInstalled => Strings::get("UpdateNotInstalled"),
+        UpdateCheckResult::UpdateReady => Strings::get("UpdateReadyOnExit"),
+        _ => match UpdateStatus::last_check() {
+            Some(t) => {
+                let now = chrono::Local::now();
+                let when = if t.date_naive() == now.date_naive() {
+                    Strings::format("UpdateToday", &[&t.format("%H:%M").to_string()])
+                } else {
+                    koy_core::clock::format_date_time(t.naive_local(), None, "d MMM HH:mm", &crate::resources::strings::culture()).unwrap_or_default()
+                };
+                Strings::format("UpdateLastCheck", &[&when])
+            }
+            None => Strings::get("UpdateNeverChecked"),
+        },
     }
 }
 
 fn about_status_text() -> String {
-    use crate::update_status::UpdateStatus;
-    match UpdateStatus::available_version() {
-        Some(v) => Strings::format("AboutUpdateAvailable", &[&v]),
-        None => Strings::get("AboutUpToDate"),
-    }
+    use crate::update_status::{AppInfo, UpdateCheckResult, UpdateStatus};
+    let line = Strings::format("AboutVersionLine", &[AppInfo::version()]);
+    let state = if crate::auto_updater::is_checking() {
+        Strings::get("UpdateChecking")
+    } else {
+        match UpdateStatus::last_result() {
+            UpdateCheckResult::UpToDate => Strings::get("UpdateStateUpToDate"),
+            UpdateCheckResult::UpdateReady => Strings::get("UpdateStateReady"),
+            UpdateCheckResult::UpdateAvailable => {
+                Strings::format("UpdateAvailableBadge", &[&UpdateStatus::available_version().unwrap_or_default()])
+            }
+            UpdateCheckResult::Failed => Strings::get("UpdateStateFailed"),
+            _ => Strings::get("UpdateStateUnknown"),
+        }
+    };
+    format!("{line} · {state}")
 }
 
-/// Durum satırı: kapalı / dosya yok / "N uygulandı, M yok sayıldı" (C# `UserStyleResources.StatusText`).
 fn user_style_status_text(s: &AppSettings) -> String {
     if !s.appearance.user_style_overrides_enabled {
         return Strings::get("UserStyleStatusOff");

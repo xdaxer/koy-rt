@@ -14,7 +14,7 @@ use crate::infra::native_window;
 use crate::resources::strings::Strings;
 use crate::resources::theme_manager::ThemeManager;
 use crate::resources::user_style_watcher::UserStyleWatcher;
-use crate::{AD, AdvancedRowData, BuiltinCardData, ConfirmFactData, EX, StoreCardData, CA, DP, PR, RU, WX, ProfileItemData, RuleItemData, SectionOptionData, KoyWindow, KoyWindowData, MonitorCardData, OrderItem, S, SC, SL, SearchResultData, ShortcutRowData, ToggleItem, Tr};
+use crate::{ReleaseSectionData, UP, AD, AdvancedRowData, BuiltinCardData, ConfirmFactData, EX, StoreCardData, CA, DP, PR, RU, WX, ProfileItemData, RuleItemData, SectionOptionData, KoyWindow, KoyWindowData, MonitorCardData, OrderItem, S, SC, SL, SearchResultData, ShortcutRowData, ToggleItem, Tr};
 
 use super::advanced_view_model::AdvancedViewModel;
 use crate::features::extensions::extension_store_view_model::ExtensionStoreViewModel;
@@ -909,6 +909,22 @@ impl KoyWindowHost {
     fn sync(&self) {
         let w = &self.window;
         let vm = &self.vm;
+        let o = vm.update_overlays();
+        let up = w.global::<UP>();
+        let strs = |v: Vec<String>| ModelRc::new(VecModel::from(v.into_iter().map(SharedString::from).collect::<Vec<_>>()));
+        up.set_update_open(o.update_open);
+        up.set_update_title(ss(o.update_title));
+        up.set_update_intro(ss(o.update_intro));
+        up.set_update_highlights(strs(o.update_highlights));
+        up.set_downloading(o.downloading);
+        up.set_progress(o.download_progress as f32);
+        up.set_download_text(ss(o.download_text));
+        up.set_whats_new_open(o.whats_new_open);
+        up.set_whats_new_title(ss(o.whats_new_title));
+        up.set_whats_new_highlights(strs(o.whats_new_highlights));
+        let sections: Vec<ReleaseSectionData> =
+            o.whats_new_sections.into_iter().map(|(t, items)| ReleaseSectionData { title: ss(t), items: strs(items) }).collect();
+        up.set_whats_new_sections(ModelRc::new(VecModel::from(sections)));
         w.global::<Tr>().set_rev(vm.lang_rev());
         let s = w.global::<S>();
         s.set_rev(vm.rev());

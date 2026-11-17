@@ -2,6 +2,7 @@
 
 #![windows_subsystem = "windows"]
 
+mod auto_updater;
 mod features;
 mod infra;
 mod resources;

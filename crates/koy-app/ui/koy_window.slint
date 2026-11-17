@@ -13,6 +13,33 @@ import { SL, GeneralSystemPage, NotchBehaviorPage, NotchVisualsPage, NotchPanels
 
 export { Tr, S, SL, SC, ShortcutRowData, DP, MonitorCardData, IdentifyOverlayWindow, PR, RU, ProfileItemData, SectionOptionData, RuleItemData, WX, CA, AD, AdvancedRowData, EX, StoreCardData, BuiltinCardData, ConfirmFactData }
 
+export struct ReleaseSectionData {
+    title: string,
+    items: [string],
+}
+
+// Güncelleme ve "Yenilikler" pencereleri (KoyWindow.xaml UpdateOverlay / WhatsNewOverlay).
+export global UP {
+    in property <bool> update-open;
+    in property <string> update-title;
+    in property <string> update-intro;
+    in property <[string]> update-highlights;
+    in property <bool> downloading;
+    in property <float> progress;
+    in property <string> download-text;
+    in property <bool> whats-new-open;
+    in property <string> whats-new-title;
+    in property <[string]> whats-new-highlights;
+    in property <[ReleaseSectionData]> whats-new-sections;
+}
+
+component Bullet inherits HorizontalLayout {
+    in property <string> text;
+    spacing: 8px;
+    Text { text: "•"; color: Theme.accent; font-size: Theme.font-control; }
+    Text { text: root.text; color: Theme.text-primary; font-size: Theme.font-control; wrap: word-wrap; horizontal-stretch: 1; }
+}
+
 export struct SearchResultData {
     title: string,
     page: string,
@@ -334,7 +361,7 @@ export component KoyWindow inherits Window {
                     if !S.flag("IsPageResetConfirming"): KoyButton { text: Tr.t("SettingsResetPage"); clicked => { S.action("RequestPageResetCommand"); } }
                     if S.flag("IsPageResetConfirming"): SettingDesc { text: Tr.t("SettingsResetPageConfirm"); vertical-alignment: center; }
                     if S.flag("IsPageResetConfirming"): KoyButton { text: Tr.t("Cancel"); clicked => { S.action("CancelPageResetCommand"); } }
-                    if S.flag("IsPageResetConfirming"): KoyButton { text: Tr.t("SettingsResetPageConfirmButton"); kind: ButtonKind.danger; clicked => { S.action("ConfirmPageResetCommand"); } }
+                    if S.flag("IsPageResetConfirming"): KoyButton { text: Tr.t("ResetConfirmButton"); kind: ButtonKind.danger; clicked => { S.action("ConfirmPageResetCommand"); } }
                 }
 
                 // Alt uyarılar: riskli ayar için uygula/geri al geri sayımı ve okunamayan settings.json bildirimi.
@@ -381,6 +408,80 @@ export component KoyWindow inherits Window {
     }
 
     if EX.confirming: ExtensionConfirmOverlay { }
+
+    if UP.update-open: Rectangle {
+        background: Theme.scrim;
+        TouchArea { }
+        Rectangle {
+            width: 480px;
+            height: ucard.preferred-height;
+            background: Theme.bg-row;
+            border-width: 1px;
+            border-color: Theme.border-strong;
+            border-radius: Theme.radius-row;
+            ucard := VerticalLayout {
+                padding: 22px;
+                spacing: 10px;
+                HorizontalLayout {
+                    spacing: 10px;
+                    KoyIcon { data: Icons.download; size: 20px; color: Theme.accent; }
+                    Text { text: UP.update-title; font-size: Theme.font-page-title; font-weight: 600; color: Theme.text-primary; }
+                }
+                SettingDesc { text: UP.update-intro; }
+                for h in UP.update-highlights: Bullet { text: h; }
+                if UP.downloading: VerticalLayout {
+                    spacing: 6px;
+                    Rectangle {
+                        height: 6px;
+                        border-radius: 3px;
+                        background: Theme.toggle-track-off;
+                        Rectangle { x: 0; width: parent.width * clamp(UP.progress, 0, 1); border-radius: 3px; background: Theme.accent; }
+                    }
+                    SettingDesc { text: UP.download-text; }
+                }
+                HorizontalLayout {
+                    alignment: end;
+                    spacing: 8px;
+                    KoyButton { text: Tr.t("UpdateLater"); enabled: !UP.downloading; clicked => { S.action("CloseUpdateOverlayCommand"); } }
+                    KoyButton { text: Tr.t("UpdateNow"); kind: ButtonKind.primary; enabled: !UP.downloading; clicked => { S.action("StartUpdateCommand"); } }
+                }
+            }
+        }
+    }
+
+    if UP.whats-new-open: Rectangle {
+        background: Theme.scrim;
+        TouchArea { }
+        Rectangle {
+            width: 520px;
+            height: min(root.height - 80px, wcard.preferred-height);
+            background: Theme.bg-row;
+            border-width: 1px;
+            border-color: Theme.border-strong;
+            border-radius: Theme.radius-row;
+            clip: true;
+            Flickable {
+                viewport-height: wcard.preferred-height;
+                wcard := VerticalLayout {
+                    padding: 22px;
+                    spacing: 8px;
+                    Text { text: UP.whats-new-title; font-size: Theme.font-page-title; font-weight: 600; color: Theme.text-primary; }
+                    for h in UP.whats-new-highlights: Bullet { text: h; }
+                    for sec in UP.whats-new-sections: VerticalLayout {
+                        spacing: 4px;
+                        padding-top: 6px;
+                        SectionHeader { text: sec.title; }
+                        for it in sec.items: Bullet { text: it; }
+                    }
+                    HorizontalLayout {
+                        alignment: end;
+                        padding-top: 8px;
+                        KoyButton { text: Tr.t("WhatsNewDone"); kind: ButtonKind.primary; clicked => { S.action("CloseWhatsNewOverlayCommand"); } }
+                    }
+                }
+            }
+        }
+    }
 
     // Kaldırma onayı
     if S.flag("IsUninstallConfirming"): Rectangle {
