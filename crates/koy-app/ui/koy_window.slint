@@ -9,9 +9,9 @@ import { Icons, KoyIcon } from "icons.slint";
 import { Tr, S } from "settings_kit.slint";
 import { SL, GeneralSystemPage, NotchBehaviorPage, NotchVisualsPage, NotchPanelsPage, NotchSearchPage, DockBehaviorPage,
     DockAppearancePage, DockSectionsPage, AppearanceThemePage, AppearanceScalePage, DictationPage, PerformancePage,
-    AboutPage } from "settings_pages.slint";
+    AboutPage, ShortcutsPage, SC, ShortcutRowData } from "settings_pages.slint";
 
-export { Tr, S, SL }
+export { Tr, S, SL, SC, ShortcutRowData }
 
 export struct SearchResultData {
     title: string,
@@ -285,7 +285,11 @@ export component KoyWindow inherits Window {
                             if S.changed-only || KoyWindowData.sub-tabs[3] == 0: AppearanceThemePage { }
                             if S.changed-only || KoyWindowData.sub-tabs[3] == 1: AppearanceScalePage { }
                         }
-                        if KoyWindowData.page == 5: Placeholder { title: Tr.t("NavShortcuts"); subtitle: Tr.t("ShortcutsSubtitle"); }
+                        if KoyWindowData.page == 5: VerticalLayout {
+                            spacing: 6px;
+                            PageHeader { title: Tr.t("NavShortcuts"); subtitle: Tr.t("ShortcutsSubtitle"); }
+                            ShortcutsPage { }
+                        }
                         if KoyWindowData.page == 6: VerticalLayout {
                             spacing: 6px;
                             PageHeader { title: Tr.t("NavDictation"); subtitle: Tr.t("DictationSubtitle"); }

@@ -4,3 +4,4 @@ pub mod app_uninstaller;
 pub mod koy_window;
 pub mod settings_index;
 pub mod settings_view_model;
+pub mod shortcuts_view_model;

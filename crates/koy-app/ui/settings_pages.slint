@@ -4,7 +4,7 @@
 
 import { Theme } from "theme.slint";
 import { SectionHeader, PageTitle, PageSubtitle, SettingRow, SettingText, SettingTitle, SettingDesc, InfoNotice,
-    ToggleSwitch, KoyButton, ButtonKind, ColorSwatch, LinkButton, KoyTextBox, Segmented, KoyLogo } from "controls.slint";
+    ToggleSwitch, KoyButton, ButtonKind, ColorSwatch, LinkButton, KoyTextBox, Segmented, KoyLogo, KeyBadge } from "controls.slint";
 import { Icons, KoyIcon } from "icons.slint";
 import { Tr, S, BoolRow, SegRow, SegStackRow, ComboRow, ListRow, SliderRow, TextRow, ButtonRow, RowButton } from "settings_kit.slint";
 
@@ -593,4 +593,113 @@ export component AboutPage inherits VerticalLayout {
     ButtonRow { title: Tr.t("AboutWeatherTitle"); description: Tr.t("AboutWeatherLicense"); buttons: [{ text: Tr.t("AboutWeatherLink"), action: "OpenOpenMeteoCommand", primary: false, danger: false, enabled: true }]; }
     ButtonRow { title: Tr.t("AboutPlaceTitle"); description: Tr.t("AboutPlaceLicense"); buttons: [{ text: Tr.t("AboutPlaceLink"), action: "OpenOpenStreetMapCommand", primary: false, danger: false, enabled: true }]; }
     ButtonRow { title: Tr.t("UninstallTitle"); description: S.text("UninstallRowDescription"); buttons: [{ text: Tr.t("UninstallAction"), action: "RequestUninstallCommand", primary: false, danger: true, enabled: S.flag("CanUninstall") }]; }
+}
+
+// ---------------------------------------------------------------- Kısayollar
+
+export struct ShortcutRowData {
+    title: string,
+    tokens: [string],
+    capturing: bool,
+    error: string,
+    is-default: bool,
+    has-shortcut: bool,
+}
+
+export global SC {
+    in property <[ShortcutRowData]> rows;
+    callback start-capture(int);
+    callback cancel-capture(int);
+    callback reset(int);
+    // Yakalama kutusuna gelen tuş: metin ve Ctrl, Alt, Shift, Win. true: işlendi.
+    callback key(int, string, bool, bool, bool, bool) -> bool;
+}
+
+// Kısayol satırı: başlık ve hata; sağda yakalama kutusu (rozetler) ve "varsayılan" düğmesi.
+component ShortcutRowView inherits SettingRow {
+    in property <ShortcutRowData> sc-row;
+    in property <int> index;
+    filtered-out: S.changed-only && sc-row.is-default;
+    changed: !sc-row.is-default;
+    VerticalLayout {
+        alignment: center;
+        horizontal-stretch: 1;
+        SettingTitle { text: root.sc-row.title; }
+        if root.sc-row.error != "": SettingDesc { text: root.sc-row.error; color: Theme.status-warn; }
+    }
+    HorizontalLayout {
+        alignment: end;
+        spacing: 8px;
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                min-width: 170px;
+                height: 32px;
+                border-radius: Theme.radius-control;
+                background: Theme.bg-control;
+                border-width: root.sc-row.capturing ? 2px : 1px;
+                border-color: root.sc-row.capturing ? Theme.accent : (ta.has-hover ? Theme.border-strong : Theme.border-control);
+                HorizontalLayout {
+                    padding-left: 6px;
+                    padding-right: 6px;
+                    spacing: 4px;
+                    alignment: center;
+                    if root.sc-row.capturing: Text { text: Tr.t("ShortcutPressKeys"); color: Theme.accent-text; vertical-alignment: center; font-size: Theme.font-control; }
+                    if !root.sc-row.capturing && !root.sc-row.has-shortcut: Text { text: Tr.t("ShortcutNone"); color: Theme.text-muted; vertical-alignment: center; font-size: Theme.font-control; }
+                    if !root.sc-row.capturing: HorizontalLayout {
+                        spacing: 4px;
+                        for t in root.sc-row.tokens: VerticalLayout {
+                            alignment: center;
+                            KeyBadge { text: t; }
+                        }
+                    }
+                }
+                ta := TouchArea {
+                    mouse-cursor: pointer;
+                    clicked => {
+                        fs.focus();
+                        SC.start-capture(root.index);
+                    }
+                }
+                fs := FocusScope {
+                    key-pressed(e) => {
+                        if (root.sc-row.capturing) {
+                            if (SC.key(root.index, e.text, e.modifiers.control, e.modifiers.alt, e.modifiers.shift, e.modifiers.meta)) {
+                                return accept;
+                            }
+                        }
+                        reject
+                    }
+                    focus-changed-event => {
+                        if (!self.has-focus && root.sc-row.capturing) {
+                            SC.cancel-capture(root.index);
+                        }
+                    }
+                }
+            }
+        }
+        if !root.sc-row.is-default: VerticalLayout {
+            alignment: center;
+            KoyButton { text: Tr.t("ShortcutReset"); clicked => { SC.reset(root.index); } }
+        }
+    }
+}
+
+// Karşılığı: KisayollarPage.xaml
+export component ShortcutsPage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("KeyboardHeader"); filtered-out: S.changed-only; }
+    for r[i] in SC.rows: ShortcutRowView { sc-row: r; index: i; }
+    if !S.changed-only: InfoNotice { text: Tr.t("ShortcutsNotice"); }
+    SectionHeader { text: Tr.t("MouseHeader"); }
+    SegRow { key: "Notch.WheelAction"; title: Tr.t("WheelActionTitle"); description: ""; values: ["SwitchPanel", "Volume"]; labels: [Tr.t("WheelSwitchPanel"), Tr.t("WheelVolume")]; }
+    SegRow { key: "Dock.MiddleClickAction"; title: Tr.t("MiddleClickTitle"); description: ""; values: ["NewWindow", "Close"]; labels: [Tr.t("MidClickNewWindow"), Tr.t("MidClickClose")]; }
+    SectionHeader { text: Tr.t("CornersHeader"); }
+    if !S.changed-only: PageSubtitle { text: Tr.t("CornersHint"); }
+    ComboRow { key: "HotCorners.TopLeft"; title: Tr.t("CornerTopLeft"); description: ""; combo-width: 200px; values: ["None", "OpenNotch", "OpenSearch", "OpenKoyWindow", "ToggleDock"]; labels: [Tr.t("CornerActionNone"), Tr.t("CornerActionOpenNotch"), Tr.t("CornerActionOpenSearch"), Tr.t("CornerActionOpenKoyWindow"), Tr.t("CornerActionToggleDock")]; }
+    ComboRow { key: "HotCorners.TopRight"; title: Tr.t("CornerTopRight"); description: ""; combo-width: 200px; values: ["None", "OpenNotch", "OpenSearch", "OpenKoyWindow", "ToggleDock"]; labels: [Tr.t("CornerActionNone"), Tr.t("CornerActionOpenNotch"), Tr.t("CornerActionOpenSearch"), Tr.t("CornerActionOpenKoyWindow"), Tr.t("CornerActionToggleDock")]; }
+    ComboRow { key: "HotCorners.BottomLeft"; title: Tr.t("CornerBottomLeft"); description: ""; combo-width: 200px; values: ["None", "OpenNotch", "OpenSearch", "OpenKoyWindow", "ToggleDock"]; labels: [Tr.t("CornerActionNone"), Tr.t("CornerActionOpenNotch"), Tr.t("CornerActionOpenSearch"), Tr.t("CornerActionOpenKoyWindow"), Tr.t("CornerActionToggleDock")]; }
+    ComboRow { key: "HotCorners.BottomRight"; title: Tr.t("CornerBottomRight"); description: ""; combo-width: 200px; values: ["None", "OpenNotch", "OpenSearch", "OpenKoyWindow", "ToggleDock"]; labels: [Tr.t("CornerActionNone"), Tr.t("CornerActionOpenNotch"), Tr.t("CornerActionOpenSearch"), Tr.t("CornerActionOpenKoyWindow"), Tr.t("CornerActionToggleDock")]; }
+    ComboRow { key: "HotCorners.DwellMs"; title: Tr.t("CornerDwellTitle"); description: ""; combo-width: 200px; values: ["200", "400", "700", "1000"]; labels: ["200 ms", "400 ms", "700 ms", "1000 ms"]; }
+    BoolRow { key: "HotCorners.DisableInFullscreen"; title: Tr.t("CornerFullscreenTitle"); description: ""; }
 }

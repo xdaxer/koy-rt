@@ -142,6 +142,14 @@ pub static ROWS: &[IndexRow] = &[
     IndexRow { page: 8, sub_tab: 0, title: "AboutWeatherTitle", description: "AboutWeatherLicense", section: "LinksHeader", key: "" },
     IndexRow { page: 8, sub_tab: 0, title: "AboutPlaceTitle", description: "AboutPlaceLicense", section: "LinksHeader", key: "" },
     IndexRow { page: 8, sub_tab: 0, title: "UninstallTitle", description: "", section: "LinksHeader", key: "" },
+    IndexRow { page: 5, sub_tab: 0, title: "WheelActionTitle", description: "", section: "MouseHeader", key: "Notch.WheelAction" },
+    IndexRow { page: 5, sub_tab: 0, title: "MiddleClickTitle", description: "", section: "MouseHeader", key: "Dock.MiddleClickAction" },
+    IndexRow { page: 5, sub_tab: 0, title: "CornerTopLeft", description: "", section: "CornersHeader", key: "HotCorners.TopLeft" },
+    IndexRow { page: 5, sub_tab: 0, title: "CornerTopRight", description: "", section: "CornersHeader", key: "HotCorners.TopRight" },
+    IndexRow { page: 5, sub_tab: 0, title: "CornerBottomLeft", description: "", section: "CornersHeader", key: "HotCorners.BottomLeft" },
+    IndexRow { page: 5, sub_tab: 0, title: "CornerBottomRight", description: "", section: "CornersHeader", key: "HotCorners.BottomRight" },
+    IndexRow { page: 5, sub_tab: 0, title: "CornerDwellTitle", description: "", section: "CornersHeader", key: "HotCorners.DwellMs" },
+    IndexRow { page: 5, sub_tab: 0, title: "CornerFullscreenTitle", description: "", section: "CornersHeader", key: "HotCorners.DisableInFullscreen" },
 ];
 
 const PAGE_NAME_KEYS: &[&str] = &[

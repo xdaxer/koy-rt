@@ -61,6 +61,10 @@ pub struct SettingsHooks {
     pub open_update_overlay: Option<Box<dyn Fn()>>,
     pub exit_app: Option<Box<dyn Fn()>>,
     pub open_store: Option<Box<dyn Fn(&str)>>,
+    /// Kısayollar yeniden kaydedilir (App.ApplyShortcuts).
+    pub apply_shortcuts: Option<Box<dyn Fn()>>,
+    /// Ekran köşeleri takibi yeniden değerlendirilir (App.ApplyHotCorners).
+    pub apply_hot_corners: Option<Box<dyn Fn()>>,
 }
 
 /// Tepsi uygulaması satırı (`TrayAppVisibilityRow`): açık = dock tepsi penceresinde görünür. Kullanıcı satırı bir kez
@@ -345,6 +349,9 @@ impl SettingsViewModel {
                 if s.dock.new_tray_icon_visibility == TrayIconVisibility::Hidden { "Hidden" } else { "Overflow" }.to_string()
             }
             "Dock.IconSize" if s.dock.icon_size <= 0.0 => "28".to_string(),
+            "HotCorners.DwellMs" => {
+                [200, 400, 700, 1000].iter().min_by_key(|o| (*o - s.hot_corners.dwell_ms).abs()).copied().unwrap_or(400).to_string()
+            }
             _ => raw,
         }
     }
@@ -590,6 +597,14 @@ impl SettingsViewModel {
         }
     }
 
+    /// Sayfanın kendi akışıyla (kısayollar, profiller) kurulmuş ayar: kaydedilir ve anahtara göre yönlendirilir.
+    pub fn commit_external(&self, key: &str, updated: AppSettings) {
+        if super::app_uninstaller::in_progress() {
+            return;
+        }
+        self.commit(key, updated);
+    }
+
     /// `SaveSettings` + `OnPropertyChanged` yönlendirmesi.
     fn commit(&self, key: &str, updated: AppSettings) {
         let _ = self.store.save(&updated);
@@ -605,6 +620,18 @@ impl SettingsViewModel {
             ThemeManager::apply(&updated);
         }
         self.hook(|h| {
+            if key.starts_with("Shortcuts") {
+                if let Some(f) = &h.apply_shortcuts {
+                    f();
+                }
+                return;
+            }
+            if key.starts_with("HotCorners.") {
+                if let Some(f) = &h.apply_hot_corners {
+                    f();
+                }
+                return;
+            }
             if key == "Notch.Enabled" {
                 if let Some(f) = &h.update_notch_state {
                     f(updated.notch.enabled);
@@ -1196,6 +1223,7 @@ fn normalize(s: &mut AppSettings) {
         s.voice.model = "default".to_string();
     }
     koy_core::dock::DockLayoutLimits::sanitize(&mut s.dock);
+    s.hot_corners.dwell_ms = koy_core::input::CornerActions::clamp_dwell(s.hot_corners.dwell_ms);
 }
 
 fn affects_theme(key: &str) -> bool {
