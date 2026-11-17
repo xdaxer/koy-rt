@@ -9,9 +9,9 @@ import { Icons, KoyIcon } from "icons.slint";
 import { Tr, S } from "settings_kit.slint";
 import { SL, GeneralSystemPage, NotchBehaviorPage, NotchVisualsPage, NotchPanelsPage, NotchSearchPage, DockBehaviorPage,
     DockAppearancePage, DockSectionsPage, AppearanceThemePage, AppearanceScalePage, DictationPage, PerformancePage,
-    AboutPage, ShortcutsPage, SC, ShortcutRowData } from "settings_pages.slint";
+    AboutPage, ShortcutsPage, SC, ShortcutRowData, DisplaysPage, DP, MonitorCardData, IdentifyOverlayWindow } from "settings_pages.slint";
 
-export { Tr, S, SL, SC, ShortcutRowData }
+export { Tr, S, SL, SC, ShortcutRowData, DP, MonitorCardData, IdentifyOverlayWindow }
 
 export struct SearchResultData {
     title: string,
@@ -278,7 +278,11 @@ export component KoyWindow inherits Window {
                             if S.changed-only || KoyWindowData.sub-tabs[2] == 1: DockAppearancePage { }
                             if S.changed-only || KoyWindowData.sub-tabs[2] == 2: DockSectionsPage { }
                         }
-                        if KoyWindowData.page == 3: Placeholder { title: Tr.t("NavDisplays"); subtitle: Tr.t("DisplaysSubtitle"); }
+                        if KoyWindowData.page == 3: VerticalLayout {
+                            spacing: 6px;
+                            PageHeader { title: Tr.t("NavDisplays"); subtitle: Tr.t("DisplaysSubtitle"); }
+                            DisplaysPage { }
+                        }
                         if KoyWindowData.page == 4: VerticalLayout {
                             spacing: 6px;
                             PageHeader { title: Tr.t("NavAppearance"); subtitle: Tr.t("AppearanceSubtitle"); slot: 3; tabs: [Tr.t("SubTabAppearanceTheme"), Tr.t("SubTabAppearanceScaleMotion")]; }

@@ -2,7 +2,7 @@ import { TrayPopupWindow, TrayIconData, RecentsPopupWindow, FolderPopupWindow, F
 import { DockWindow, DockText, DockData, DockEntryData, DockPresentationData } from "dock.slint";
 import { VoiceReplyWindow, NotchLineWindow } from "voice_reply.slint";
 import { NotchWindow } from "notch_window.slint";
-import { KoyWindow, KoyWindowData, SearchResultData, Tr, S, SL, SC, ShortcutRowData } from "koy_window.slint";
+import { KoyWindow, KoyWindowData, SearchResultData, Tr, S, SL, SC, ShortcutRowData, DP, MonitorCardData, IdentifyOverlayWindow } from "koy_window.slint";
 import { ToggleItem, OrderItem } from "settings_pages.slint";
 import { Theme } from "theme.slint";
 import { Icons, KoyIcon } from "icons.slint";
@@ -20,7 +20,7 @@ import { CalendarPanel, CalendarData, CalendarText, CalCellData, CalWeekRowData,
 import { ClipboardPanel, ClipFilterData, ClipCardData, ClipText } from "clipboard_panel.slint";
 import { ShelfPanel, ShelfItemData, ShelfText } from "shelf_panel.slint";
 import { FocusPanel, FocusData, TasksData, FocusText, FocusTabData, FocusPresetData, FocusLapData, TaskRowData } from "focus_panel.slint";
-export { KoyWindow, KoyWindowData, SearchResultData, Tr, S, SL, SC, ShortcutRowData, ToggleItem, OrderItem, TrayPopupWindow, TrayIconData, RecentsPopupWindow, FolderPopupWindow, FolderAppData, PreviewPopupWindow, PreviewWindowData, DockWindow, DockText, DockData, DockEntryData, DockPresentationData, NotchWindow, VoiceReplyWindow, NotchLineWindow, Icons, Theme, Motion, SagAltMenuWindow, MenuText, SystemText, SystemStatsData, FocusText, FocusData, TasksData, FocusTabData, FocusPresetData, FocusLapData, TaskRowData, ShelfItemData, ShelfText, ClipFilterData, ClipCardData, ClipText, CalendarData, CalendarText, CalCellData, CalWeekRowData, CalEventData, NotchData, NotchTabData, NotchText, OsdData, HomeData, MusicCardData, UpcomingData, QuickItemData, HomeText, ControlData, ControlText, RadioTileData, ConnectedDeviceData, WifiRowData, BluetoothRowData, SearchData, SearchRowData, SearchActionData, SearchText }
+export { KoyWindow, KoyWindowData, SearchResultData, Tr, S, SL, SC, ShortcutRowData, DP, MonitorCardData, IdentifyOverlayWindow, ToggleItem, OrderItem, TrayPopupWindow, TrayIconData, RecentsPopupWindow, FolderPopupWindow, FolderAppData, PreviewPopupWindow, PreviewWindowData, DockWindow, DockText, DockData, DockEntryData, DockPresentationData, NotchWindow, VoiceReplyWindow, NotchLineWindow, Icons, Theme, Motion, SagAltMenuWindow, MenuText, SystemText, SystemStatsData, FocusText, FocusData, TasksData, FocusTabData, FocusPresetData, FocusLapData, TaskRowData, ShelfItemData, ShelfText, ClipFilterData, ClipCardData, ClipText, CalendarData, CalendarText, CalCellData, CalWeekRowData, CalEventData, NotchData, NotchTabData, NotchText, OsdData, HomeData, MusicCardData, UpcomingData, QuickItemData, HomeText, ControlData, ControlText, RadioTileData, ConnectedDeviceData, WifiRowData, BluetoothRowData, SearchData, SearchRowData, SearchActionData, SearchText }
 
 // Bileşen denetimi: kontrol kitaplığının derlendiğini ve çizildiğini doğrulayan önizleme penceresi.
 export component Probe inherits Window {

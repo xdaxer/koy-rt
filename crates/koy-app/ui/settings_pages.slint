@@ -703,3 +703,178 @@ export component ShortcutsPage inherits VerticalLayout {
     ComboRow { key: "HotCorners.DwellMs"; title: Tr.t("CornerDwellTitle"); description: ""; combo-width: 200px; values: ["200", "400", "700", "1000"]; labels: ["200 ms", "400 ms", "700 ms", "1000 ms"]; }
     BoolRow { key: "HotCorners.DisableInFullscreen"; title: Tr.t("CornerFullscreenTitle"); description: ""; }
 }
+
+// ---------------------------------------------------------------- Ekranlar
+
+export struct MonitorCardData {
+    number: int,
+    left: length,
+    top: length,
+    width: length,
+    height: length,
+    selected: bool,
+    primary: bool,
+    notch: bool,
+    dock: bool,
+}
+
+export global DP {
+    in property <[MonitorCardData]> cards;
+    in property <length> schema-width;
+    in property <length> schema-height;
+    in property <bool> has-selection;
+    in property <string> header;
+    in property <string> name;
+    in property <string> details;
+    in property <bool> primary;
+    in property <bool> notch-on;
+    in property <bool> dock-on;
+    // 0: çentik ve dock, 1: yalnız çentik, 2: hiçbiri
+    in property <int> new-screen;
+    callback identify();
+    callback select(int);
+    callback notch-toggled(bool);
+    callback dock-toggled(bool);
+    callback new-screen-changed(int);
+}
+
+component MonitorCardView inherits Rectangle {
+    in property <MonitorCardData> card;
+    callback clicked;
+    border-radius: 8px;
+    background: card.selected ? Theme.accent-subtle : Theme.bg-control;
+    border-width: card.selected ? 2px : 1px;
+    border-color: card.selected ? Theme.accent : (ta.has-hover ? Theme.border-strong : Theme.border-control);
+    if card.notch: Rectangle {
+        y: 6px;
+        width: 40px;
+        height: 7px;
+        border-radius: 3.5px;
+        background: Theme.text-primary;
+    }
+    Text {
+        text: card.number;
+        font-size: min(root.height * 0.38, 34px);
+        font-weight: 600;
+        color: card.selected ? Theme.accent-text : Theme.text-primary;
+    }
+    if card.dock: Rectangle {
+        y: parent.height - 14px;
+        width: min(64px, parent.width - 16px);
+        height: 8px;
+        border-radius: 4px;
+        background: Theme.text-secondary;
+    }
+    ta := TouchArea {
+        mouse-cursor: pointer;
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+// Karşılığı: EkranlarPage.xaml
+export component DisplaysPage inherits VerticalLayout {
+    spacing: 6px;
+    HorizontalLayout {
+        alignment: start;
+        KoyButton { text: Tr.t("DisplaysIdentify"); clicked => { DP.identify(); } }
+    }
+    Rectangle {
+        height: 180px;
+        background: Theme.bg-row;
+        border-width: 1px;
+        border-color: Theme.border-hairline;
+        border-radius: Theme.radius-row;
+        Rectangle {
+            width: DP.schema-width;
+            height: DP.schema-height;
+            for c[i] in DP.cards: MonitorCardView {
+                x: c.left;
+                y: c.top;
+                width: c.width;
+                height: c.height;
+                card: c;
+                clicked => {
+                    DP.select(i);
+                }
+            }
+        }
+    }
+    if DP.has-selection: VerticalLayout {
+        spacing: 6px;
+        HorizontalLayout {
+            spacing: 8px;
+            padding-top: 16px;
+            SectionHeader { text: DP.header; }
+            if DP.primary: VerticalLayout {
+                alignment: center;
+                Rectangle {
+                    border-radius: 4px;
+                    background: Theme.accent-subtle;
+                    HorizontalLayout {
+                        padding-left: 6px;
+                        padding-right: 6px;
+                        padding-top: 1px;
+                        padding-bottom: 1px;
+                        Text { text: Tr.t("DisplayPrimaryBadge"); color: Theme.accent-text; font-size: Theme.font-caption; }
+                    }
+                }
+            }
+            Rectangle { horizontal-stretch: 1; }
+        }
+        SettingRow {
+            SettingText { title: DP.name; description: DP.details; }
+        }
+        SettingRow {
+            SettingText { title: Tr.t("ScreenNotchTitle"); }
+            VerticalLayout {
+                alignment: center;
+                ToggleSwitch { checked: DP.notch-on; toggled(v) => { DP.notch-toggled(v); } }
+            }
+        }
+        SettingRow {
+            SettingText { title: Tr.t("ScreenDockTitle"); }
+            VerticalLayout {
+                alignment: center;
+                ToggleSwitch { checked: DP.dock-on; toggled(v) => { DP.dock-toggled(v); } }
+            }
+        }
+    }
+    SectionHeader { text: Tr.t("NewDisplaysHeader"); }
+    SettingRow {
+        SettingText { title: Tr.t("NewDisplayActionTitle"); }
+        VerticalLayout {
+            alignment: center;
+            Segmented {
+                items: [Tr.t("NewDisplayBoth"), Tr.t("NewDisplayNotchOnly"), Tr.t("NewDisplayNone")];
+                selected: DP.new-screen;
+                changed(i) => {
+                    DP.new-screen-changed(i);
+                }
+            }
+        }
+    }
+    InfoNotice { text: Tr.t("MultiMonitorNotice"); }
+}
+
+// Karşılığı: IdentifyOverlayWindow.cs — ekranı tanımlama numarası (2 sn, tıklama geçirir).
+export component IdentifyOverlayWindow inherits Window {
+    in property <int> number;
+    no-frame: true;
+    always-on-top: true;
+    background: Theme.bg-window;
+    width: 180px;
+    height: 180px;
+    Rectangle {
+        border-radius: 28px;
+        border-width: 1px;
+        border-color: Theme.border-strong;
+        Text {
+            text: root.number;
+            font-size: 110px;
+            font-weight: 700;
+            color: Theme.text-primary;
+        }
+    }
+}

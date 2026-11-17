@@ -14,9 +14,11 @@ use crate::infra::native_window;
 use crate::resources::strings::Strings;
 use crate::resources::theme_manager::ThemeManager;
 use crate::resources::user_style_watcher::UserStyleWatcher;
-use crate::{KoyWindow, KoyWindowData, OrderItem, S, SL, SearchResultData, ToggleItem, Tr};
+use crate::{DP, KoyWindow, KoyWindowData, MonitorCardData, OrderItem, S, SC, SL, SearchResultData, ShortcutRowData, ToggleItem, Tr};
 
+use super::displays_view_model::DisplaysViewModel;
 use super::settings_view_model::SettingsViewModel;
+use super::shortcuts_view_model::ShortcutsViewModel;
 
 thread_local! {
     static CURRENT: RefCell<Option<std::rc::Weak<KoyWindowHost>>> = const { RefCell::new(None) };
@@ -25,6 +27,8 @@ thread_local! {
 pub struct KoyWindowHost {
     window: KoyWindow,
     vm: Rc<SettingsViewModel>,
+    shortcuts: Rc<ShortcutsViewModel>,
+    displays: Rc<DisplaysViewModel>,
     watcher: RefCell<Option<UserStyleWatcher>>,
     revert_timer: slint::Timer,
     highlight_timer: slint::Timer,
@@ -38,9 +42,13 @@ impl KoyWindowHost {
     pub fn new(vm: Rc<SettingsViewModel>) -> Result<Rc<Self>, slint::PlatformError> {
         let window = KoyWindow::new()?;
         ThemeManager::install(&window);
+        let shortcuts = ShortcutsViewModel::new(Rc::clone(&vm));
+        let displays = DisplaysViewModel::new(Rc::clone(&vm));
         let host = Rc::new(KoyWindowHost {
             window,
             vm,
+            shortcuts,
+            displays,
             watcher: RefCell::new(None),
             revert_timer: slint::Timer::default(),
             highlight_timer: slint::Timer::default(),
@@ -54,6 +62,19 @@ impl KoyWindowHost {
                 h.sync();
             }
         });
+        let weak = Rc::downgrade(&host);
+        host.shortcuts.changed.subscribe(move || {
+            if let Some(h) = weak.upgrade() {
+                h.sync_shortcuts();
+            }
+        });
+        let weak = Rc::downgrade(&host);
+        host.displays.changed.subscribe(move || {
+            if let Some(h) = weak.upgrade() {
+                h.sync_displays();
+            }
+        });
+        host.sync_shortcuts();
         Ok(host)
     }
 
@@ -63,6 +84,69 @@ impl KoyWindowHost {
 
     pub fn view_model(&self) -> &Rc<SettingsViewModel> {
         &self.vm
+    }
+
+    pub fn shortcuts(&self) -> &Rc<ShortcutsViewModel> {
+        &self.shortcuts
+    }
+
+    fn sync_shortcuts(&self) {
+        let rows: Vec<ShortcutRowData> = self
+            .shortcuts
+            .rows()
+            .into_iter()
+            .map(|r| ShortcutRowData {
+                title: ss(&r.title),
+                tokens: ModelRc::new(VecModel::from(r.key_tokens().into_iter().map(SharedString::from).collect::<Vec<_>>())),
+                capturing: r.is_capturing,
+                error: ss(r.error_text.clone().unwrap_or_default()),
+                is_default: r.is_default(),
+                has_shortcut: r.has_shortcut(),
+            })
+            .collect();
+        self.window.global::<SC>().set_rows(ModelRc::new(VecModel::from(rows)));
+    }
+
+    fn sync_displays(&self) {
+        use koy_core::display::NewScreenMode;
+        let dp = self.window.global::<DP>();
+        let cards: Vec<MonitorCardData> = self
+            .displays
+            .cards()
+            .into_iter()
+            .map(|c| MonitorCardData {
+                number: c.number,
+                left: c.left as f32,
+                top: c.top as f32,
+                width: c.width as f32,
+                height: c.height as f32,
+                selected: c.is_selected,
+                primary: c.monitor.is_primary,
+                notch: c.shows_notch,
+                dock: c.shows_dock,
+            })
+            .collect();
+        dp.set_cards(ModelRc::new(VecModel::from(cards)));
+        let (w, h) = self.displays.schema_size();
+        dp.set_schema_width(w as f32);
+        dp.set_schema_height(h as f32);
+        match self.displays.selected() {
+            Some((header, name, details, primary, notch, dock)) => {
+                dp.set_has_selection(true);
+                dp.set_header(ss(header));
+                dp.set_name(ss(name));
+                dp.set_details(ss(details));
+                dp.set_primary(primary);
+                dp.set_notch_on(notch);
+                dp.set_dock_on(dock);
+            }
+            None => dp.set_has_selection(false),
+        }
+        dp.set_new_screen(match self.displays.new_screen_mode() {
+            NewScreenMode::NotchAndDock => 0,
+            NewScreenMode::NotchOnly => 1,
+            NewScreenMode::None => 2,
+        });
     }
 
     fn bind(self: &Rc<Self>) {
@@ -124,12 +208,75 @@ impl KoyWindowHost {
         let vm = Rc::clone(&self.vm);
         sl.on_tab_move(move |i, step| vm.move_tab(i as usize, step));
 
+        let sc = w.global::<SC>();
+        let m = Rc::downgrade(&self.shortcuts);
+        sc.on_start_capture(move |i| {
+            if let Some(m) = m.upgrade() {
+                m.start_capture(i as usize);
+            }
+        });
+        let m = Rc::downgrade(&self.shortcuts);
+        sc.on_cancel_capture(move |i| {
+            if let Some(m) = m.upgrade() {
+                m.cancel_capture(i as usize);
+            }
+        });
+        let m = Rc::downgrade(&self.shortcuts);
+        sc.on_reset(move |i| {
+            let m = m.clone();
+            crate::infra::dispatch::post_local(move || {
+                if let Some(m) = m.upgrade() {
+                    m.reset_to_default(i as usize);
+                }
+            });
+        });
+        let m = Rc::downgrade(&self.shortcuts);
+        sc.on_key(move |i, text, ctrl, alt, shift, win| m.upgrade().is_some_and(|m| m.handle_key(i as usize, &text, ctrl, alt, shift, win)));
+
+        let dp = w.global::<DP>();
+        let d = Rc::downgrade(&self.displays);
+        dp.on_identify(move || {
+            if let Some(d) = d.upgrade() {
+                d.identify();
+            }
+        });
+        let d = Rc::downgrade(&self.displays);
+        dp.on_select(move |i| {
+            if let Some(d) = d.upgrade() {
+                d.select(Some(i as usize));
+            }
+        });
+        let d = Rc::downgrade(&self.displays);
+        dp.on_notch_toggled(move |v| {
+            if let Some(d) = d.upgrade() {
+                d.set_notch_on(v);
+            }
+        });
+        let d = Rc::downgrade(&self.displays);
+        dp.on_dock_toggled(move |v| {
+            if let Some(d) = d.upgrade() {
+                d.set_dock_on(v);
+            }
+        });
+        let d = Rc::downgrade(&self.displays);
+        dp.on_new_screen_changed(move |i| {
+            use koy_core::display::NewScreenMode;
+            if let Some(d) = d.upgrade() {
+                d.set_new_screen_mode(match i {
+                    1 => NewScreenMode::NotchOnly,
+                    2 => NewScreenMode::None,
+                    _ => NewScreenMode::NotchAndDock,
+                });
+            }
+        });
+
         let data = w.global::<KoyWindowData>();
         let me = Rc::downgrade(self);
         data.on_select_page(move |i| {
             if let Some(h) = me.upgrade() {
                 h.vm.clear_highlight();
                 h.vm.select_page(i);
+                h.update_page_activation();
                 h.window.invoke_scroll_top();
             }
         });
@@ -239,11 +386,13 @@ impl KoyWindowHost {
     /// Pencereyi gösterir; verilen sayfa (ve alt sekme) seçilir. Ayarlar diskten yeniden okunur, izleyici başlar.
     pub fn show(&self, page: Option<i32>) {
         self.vm.load_from_settings();
+        self.shortcuts.load();
         if let Some(p) = page {
             self.vm.select_page(p);
         }
         let _ = self.window.show();
         self.window.window().set_minimized(false);
+        self.update_page_activation();
         if self.watcher.borrow().is_none() {
             let folder = self.vm.store().path().parent().map(|p| p.to_path_buf()).unwrap_or_default();
             *self.watcher.borrow_mut() = Some(UserStyleWatcher::watch_folder(folder, on_settings_file_changed));
@@ -260,8 +409,18 @@ impl KoyWindowHost {
         });
     }
 
+    /// Ekranlar sayfası yalnız görünürken sistem olaylarını dinler.
+    fn update_page_activation(&self) {
+        if self.vm.selected_page() == 3 && self.is_visible() {
+            self.displays.activate();
+        } else {
+            self.displays.deactivate();
+        }
+    }
+
     /// Gizler (kapatma düğmesi ve Alt+F4); izleyici bırakılır.
     pub fn hide(&self) {
+        self.displays.deactivate();
         if let Some(w) = self.watcher.borrow_mut().take() {
             w.dispose();
         }

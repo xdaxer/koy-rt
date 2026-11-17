@@ -1251,7 +1251,8 @@ fn affects_theme(key: &str) -> bool {
 
 /// `AffectsDock`: dock bölümü (açık/kapalı hariç) ve dock'un okuduğu görünüm ayarları.
 fn affects_dock(key: &str) -> bool {
-    (key.starts_with("Dock.") && key != "Dock.Enabled")
+    matches!(key, "Displays.DockOn" | "Displays.NewScreenDefault")
+        || (key.starts_with("Dock.") && key != "Dock.Enabled")
         || matches!(
             key,
             "Appearance.BatterySaverReduceMotion"
@@ -1266,7 +1267,8 @@ fn affects_dock(key: &str) -> bool {
 
 /// `AffectsNotch`.
 fn affects_notch(key: &str) -> bool {
-    (key.starts_with("Notch.") && key != "Notch.Enabled")
+    matches!(key, "Displays.NotchOn" | "Displays.NewScreenDefault")
+        || (key.starts_with("Notch.") && key != "Notch.Enabled")
         || key.starts_with("Music.")
         || key.starts_with("Focus.")
         || key.starts_with("Voice.")

@@ -43,7 +43,7 @@ fn place(window: &slint::Window, dock: WindowRect, edge: DockEdge) {
     window.set_position(slint::PhysicalPosition::new(x, y));
 }
 
-fn rounded_region(hwnd: isize, w: i32, h: i32, radius: i32) {
+pub(crate) fn rounded_region(hwnd: isize, w: i32, h: i32, radius: i32) {
     use windows::Win32::Foundation::HWND;
     use windows::Win32::Graphics::Gdi::{CreateRoundRectRgn, SetWindowRgn};
     // SAFETY: bölge SetWindowRgn başarılıysa sistemin olur; HWND canlı penceredir.
