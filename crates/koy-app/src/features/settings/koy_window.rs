@@ -163,6 +163,7 @@ impl KoyWindowHost {
                 p.refresh();
             }
         });
+        host.sync_extensions();
         host.sync_profiles();
         host.sync_rules();
         host.sync_weather();

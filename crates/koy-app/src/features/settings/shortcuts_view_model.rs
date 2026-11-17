@@ -92,7 +92,8 @@ impl ShortcutsViewModel {
 
     /// Ayarlardaki metinleri satırlara yükler.
     pub fn load(&self) {
-        for i in 0..self.rows.borrow().len() {
+        let count = self.rows.borrow().len();
+        for i in 0..count {
             self.cancel_capture(i);
         }
         let settings = self.vm.settings();
@@ -105,7 +106,8 @@ impl ShortcutsViewModel {
 
     pub fn start_capture(self: &Rc<Self>, index: usize) {
         // Başka satır yakalıyorsa bırakılır.
-        for i in 0..self.rows.borrow().len() {
+        let count = self.rows.borrow().len();
+        for i in 0..count {
             if i != index {
                 self.cancel_capture(i);
             }
