@@ -75,6 +75,21 @@ export global NotchText {
 }
 
 // Gizlilik noktaları: kamera (yeşil) ve mikrofon (turuncu).
+
+// Sekme simgesi adı (Rust `tab_definition`) → yol verisi.
+global TabIcons {
+    pure public function path(name: string) -> string {
+        if name == "tab-home" { return Icons.tab-home; }
+        if name == "tab-focus" { return Icons.tab-focus; }
+        if name == "tab-calendar" { return Icons.tab-calendar; }
+        if name == "tab-shelf" { return Icons.tab-shelf; }
+        if name == "tab-clipboard" { return Icons.tab-clipboard; }
+        if name == "tab-system" { return Icons.tab-system; }
+        if name == "tab-control" { return Icons.tab-control; }
+        return name;
+    }
+}
+
 component PrivacyDots inherits HorizontalLayout {
     in property <bool> camera;
     in property <bool> microphone;
@@ -477,7 +492,7 @@ export component NotchTopRow inherits Rectangle {
                     border-radius: 8px;
                     background: t.selected ? Theme.notch-active : tab-touch.has-hover ? Theme.notch-hover : transparent;
                     KoyIcon {
-                        data: t.icon;
+                        data: TabIcons.path(t.icon);
                         size: 15px;
                         color: t.selected ? Theme.get-color(t.accent, Theme.rev) : tab-touch.has-hover ? Theme.notch-text : Theme.notch-dim;
                     }
