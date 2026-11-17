@@ -2,6 +2,7 @@
 
 #![windows_subsystem = "windows"]
 
+mod app;
 mod auto_updater;
 mod features;
 mod infra;
@@ -49,16 +50,31 @@ fn main() -> Result<(), slint::PlatformError> {
         return Ok(());
     }
 
-    let probe = Probe::new()?;
-    ThemeManager::install(&probe);
     if args.iter().any(|a| a == "--probe") {
+        let probe = Probe::new()?;
+        ThemeManager::install(&probe);
         let _t = infra::dispatch::delay(std::time::Duration::from_millis(800), || {
             let _ = slint::quit_event_loop();
         });
         probe.run()?;
         return Ok(());
     }
-    probe.run()
+
+    // Başka bir Koy çalışıyorsa onun Koy penceresi açılır, bu süreç hiçbir şeye dokunmadan çıkar.
+    let Some(instance) = infra::single_instance::SingleInstance::try_acquire() else {
+        return Ok(());
+    };
+    instance.listen_for_activation(|| {
+        infra::dispatch::post(|| app::with_app(|a| a.show_koy_window(None)));
+    });
+
+    let app = app::App::start();
+    let result = slint::run_event_loop_until_quit();
+    app.dispose();
+    app::safe_restore_taskbar();
+    features::settings::app_uninstaller::clean_after_exit();
+    drop(instance);
+    result
 }
 
 /// Geliştirici yardımcısı: adı verilen görünümü çizip PNG'ye kaydeder ve çıkar.

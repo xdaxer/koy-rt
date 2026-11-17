@@ -186,6 +186,11 @@ impl NotchFeature {
         vm.expand_to_shelf();
     }
 
+    /// Güncelleme kartının "Ayrıntılar" eylemi (App: Koy penceresinde güncelleme penceresi).
+    pub fn set_open_update_handler(&self, f: impl Fn() + 'static) {
+        *self.inner.cards.open_update_handler.borrow_mut() = Some(Box::new(f));
+    }
+
     pub fn toggle_voice_command(&self) {
         super::notch_feature_cards::toggle_voice_command(&self.inner);
     }
