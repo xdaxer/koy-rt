@@ -48,9 +48,20 @@
      kullanılanlar, klasör paneli, DWM önizleme), yerel menüler (`infra/native_menu.rs`, atlama listesi, Başlat menüsü),
      `dock_window.rs` (yerleşim, bölge, yaylar), `dock_feature.rs` (AppBar, görev çubuğu, tepsi barındırma, kenardan
      açma). Gerçek masaüstünde doğrulama bekliyor. Not: açılır pencere yay animasyonu yok (saydamlık yok).
-   - Sıradaki: Settings/KoyWindow (~11.7k), Extensions, Rules, Wizard, `app.rs` (App.xaml.cs: özellikleri, kısayolları,
-     tepsiyi, dock hook'larını ve güncelleme kartı → Ayarlar bağlantısını kurar) ve main.
+   - ✅ Ayarlar (Koy penceresi): `features/settings/` — SettingsViewModel (ayar anahtarlı satırlar, uygula/geri al,
+     arama dizini `settings_index.rs`), bütün sayfalar `ui/settings_pages.slint`, Kısayollar, Ekranlar (tanıtma kaplaması),
+     Profiller + ProfileService, Kurallar + ContextRuleService, Hesaplar (hava konumu, takvim), Gelişmiş, Kaldırma,
+     Eklentiler sayfası (mağaza, filtreler, yerleşik arka planlar, kurulum onayı), güncelleme ve "Yenilikler" kaplamaları.
+   - ✅ `auto_updater.rs`: GitHub sürümlerinden denetim (Önizleme kanalı ön sürümleri dahil), kurulum programı indirme ve
+     çalıştırma. Sapma: Velopack yerine doğrudan GitHub API + `*Setup.exe`.
+   - ✅ İlk açılış sihirbazı (`features/wizard`, `ui/setup_wizard.slint`).
+   - ✅ `app.rs` (App.xaml.cs): sihirbaz → özellikler, tepsi, sağ alt menü, kısayollar, köşeler, kurallar, otomatik
+     denetim, duraklat, yeniden yükleme, tek örnek etkinleştirmesi, çıkışta görev çubuğu. `main` gerçek uygulamayı açar.
+   - ✅ Canlı arka plan çizimi (`live_background_renderer.rs`, `ui/live_bg.slint`): ambiyans gradyanı 15 kare/sn, görsel,
+     perde. Sapma: video ve GIF animasyonu yok (Slint); videolu önayar ambiyans renkleriyle, GIF ilk kare.
+   - Kalan: gerçek masaüstünde görsel doğrulama ve ince ayar (tam ekran uygulama açıkken yapılmadı); ölü kod uyarıları
+     (bağlanmamış küçük yardımcılar) temizliği.
    - Desen: C# ViewModel → Rust struct (`Rc`), görünüm durumu Slint bileşen özelliklerine / global'lere yazılır; olaylar
      arka plandan `dispatch::post` ile, Rc'ye `UiRef` ile ulaşılır. Pencereler `ThemeManager::install` ile temaya bağlanır.
-   - Açık: otomatik güncelleme (C# Velopack) — paketleme kararıyla; UiScalePercent menüde `ui-scale` ile, diğer
+   - Açık: UiScalePercent menüde `ui-scale` ile, diğer
      pencerelerde de aynı desen.
