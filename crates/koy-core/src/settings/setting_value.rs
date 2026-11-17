@@ -332,6 +332,7 @@ named_enums! {
     crate::dock::DockLabelMode => [Never, Always, OnHover],
     crate::tray::TrayIconVisibility => [Shown, Overflow, Hidden],
     crate::notch::NotchStyleMode => [Pinned, Floating],
+    crate::notch::NotchCollapsedBackground => [Default, AlbumColor, Ambient],
     crate::notch::NotchOpenBehavior => [Hover, Click, DragOver],
     crate::notch::NotchTabBarStyle => [IconOnly, IconAndLabel, Hidden],
     crate::notch::HomeCard => [Music, HeadphoneBattery, SystemNetwork, QuickLaunch, Weather, Timers],

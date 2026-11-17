@@ -1,6 +1,7 @@
 mod support;
 
 mod clock_tick_tests;
+mod collapsed_background_policy_tests;
 mod control_center_tiles_tests;
 mod greeting_tests;
 mod idle_display_format_tests;

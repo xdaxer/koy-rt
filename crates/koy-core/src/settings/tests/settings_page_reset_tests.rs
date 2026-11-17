@@ -13,7 +13,11 @@ fn customized() -> AppSettings {
             ..Default::default()
         },
         appearance: AppearanceSettings { animation_speed: AnimationSpeed::Fast, ..Default::default() },
-        notch: NotchSettings { show_volume_osd: false, ..Default::default() },
+        notch: NotchSettings {
+            show_volume_osd: false,
+            collapsed_background: crate::notch::NotchCollapsedBackground::AlbumColor,
+            ..Default::default()
+        },
         music: MusicSettings { show_waveform: false, ..Default::default() },
         dock: DockSettings { enabled: false, show_tray: false, ..Default::default() },
         ..Default::default()

@@ -14,6 +14,8 @@ fn app_settings_default_first_run_completed_is_false() {
     assert_eq!(AnimationSpeed::Normal, settings.appearance.animation_speed);
     assert!(settings.appearance.respect_reduce_motion);
     assert!(settings.dock.hide_windows_taskbar);
+    assert_eq!(crate::visibility::VisibilityMode::Fixed, settings.notch.visibility);
+    assert!(settings.notch.hide_in_fullscreen);
     assert!(settings.general.auto_check_updates);
     assert_eq!(UpdateChannel::Stable, settings.general.update_channel);
 }
@@ -42,6 +44,8 @@ fn wizard_card_selection_configures_features_correctly() {
 
         assert!(loaded.general.first_run_completed, "{card_index}");
         assert_eq!(expected_notch, loaded.notch.enabled, "{card_index}");
+        assert_eq!(crate::visibility::VisibilityMode::Fixed, loaded.notch.visibility, "{card_index}");
+        assert!(loaded.notch.hide_in_fullscreen, "{card_index}");
         assert_eq!(expected_dock, loaded.dock.enabled, "{card_index}");
         assert_eq!(dock_enabled, loaded.dock.hide_windows_taskbar, "{card_index}");
     }

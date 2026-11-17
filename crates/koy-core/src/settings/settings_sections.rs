@@ -17,7 +17,7 @@ use crate::dock::{
 };
 use crate::input::{CornerAction, CornerActions};
 use crate::media::MusicCardStyle;
-use crate::notch::{
+use crate::notch::{NotchCollapsedBackground, 
     HomeCard, HomeCardLayout, IdleDisplayMode, LiveBackgroundLimits, LiveBackgroundPresets, LiveBackgroundSourceKind,
     LiveBackgroundTarget, NotchEdgeLine, NotchEdgeLineColor, NotchOpenBehavior, NotchOpenPolicy, NotchStyleMode,
     NotchTabBarStyle, NotchVisualizerColorSource, NotchVisualizerStyle, WheelAction,
@@ -306,6 +306,8 @@ section! {
         live_background_file_path: String = String::new() => "LiveBackgroundFilePath",
         /// Okunabilirlik için koyu perdenin yüzdesi (30–90, bkz. `LiveBackgroundLimits.ClampScrimPercent`).
         live_background_scrim_percent: i32 = LiveBackgroundLimits::DEFAULT_SCRIM_PERCENT => "LiveBackgroundScrimPercent",
+        /// Kapalı çentiğin arka planı: Varsayılan (#0A0A0B), Albüm rengi (çalarken kapaktan), Ambiyans (seçili önayardan statik renk).
+        collapsed_background: NotchCollapsedBackground = NotchCollapsedBackground::Default => "CollapsedBackground",
     }
 }
 

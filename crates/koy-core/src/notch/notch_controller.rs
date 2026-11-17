@@ -25,6 +25,8 @@ struct Inner {
     auto_peek_timer: Option<Box<dyn Timer>>,
     mouse_leave_timer: Option<Box<dyn Timer>>,
     hover_open_timer: Option<Box<dyn Timer>>,
+    hover_open_suppressed: bool,
+    suppressed_until_mouse_leave: bool,
 }
 
 /// Zamanlayıcı iş parçacıklarıyla paylaşılan çekirdek (`Arc` + `Weak` kalıbı, PORTING.md #10).
@@ -160,6 +162,10 @@ impl Shared {
             let mut g = self.lock();
             g.is_mouse_over = true;
             cancel(&mut g.mouse_leave_timer);
+            if g.hover_open_suppressed || g.suppressed_until_mouse_leave {
+                g.hover_open_timer = None;
+                return;
+            }
             (g.open_on_hover, g.state, g.open_delay_ms)
         };
 
@@ -192,7 +198,11 @@ impl Shared {
         let open = {
             let mut g = self.lock();
             g.hover_open_timer = None;
-            g.is_mouse_over && g.open_on_hover && g.state != NotchState::Expanded && !g.disposed
+            g.is_mouse_over
+                && g.open_on_hover
+                && !(g.hover_open_suppressed || g.suppressed_until_mouse_leave)
+                && g.state != NotchState::Expanded
+                && !g.disposed
         };
         if open {
             self.cancel_auto_peek();
@@ -204,6 +214,7 @@ impl Shared {
         let (state, pinned, held) = {
             let mut g = self.lock();
             g.is_mouse_over = false;
+            g.suppressed_until_mouse_leave = false;
             g.hover_open_timer = None;
             (g.state, g.is_pinned, g.holds > 0)
         };
@@ -394,6 +405,8 @@ impl NotchController {
                     auto_peek_timer: None,
                     mouse_leave_timer: None,
                     hover_open_timer: None,
+                    hover_open_suppressed: false,
+                    suppressed_until_mouse_leave: false,
                 }),
                 time_provider,
                 state_changed: Event::new(),
@@ -507,6 +520,28 @@ impl NotchController {
 
     pub fn on_mouse_enter(&self) {
         self.shared.on_mouse_enter();
+    }
+
+    /// Üzerine gelince açılmanın (Expanded veya Peek) şu an bastırılıp bastırılmadığını gösterir.
+    pub fn is_hover_open_suppressed(&self) -> bool {
+        let g = self.shared.lock();
+        g.hover_open_suppressed || g.suppressed_until_mouse_leave
+    }
+
+    /// OSD/kart görünürken fareyle üzerine gelerek çentiğin açılmasını (Expanded ve Peek) bastırır.
+    /// İmleç çentik üzerindeyken bastırma kalkarsa, imleç çıkana (`on_mouse_leave`) kadar bastırma sürer.
+    pub fn set_hover_open_suppressed(&self, suppressed: bool) {
+        let mut g = self.shared.lock();
+        if g.hover_open_suppressed == suppressed {
+            return;
+        }
+        g.hover_open_suppressed = suppressed;
+        if suppressed {
+            g.suppressed_until_mouse_leave = false;
+            g.hover_open_timer = None;
+        } else {
+            g.suppressed_until_mouse_leave = g.is_mouse_over;
+        }
     }
 
     /// Gecikmeli açılmanın süresi doldu (zamanlayıcı ya da test çağırır).

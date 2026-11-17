@@ -383,3 +383,116 @@ fn expand_to_enabled_panel_does_not_raise_enabled_panels_changed() {
     assert_eq!(0, raised.load(Ordering::SeqCst));
     assert_eq!(NotchPanel::ControlCenter, controller.current_panel());
 }
+
+fn fake() -> (Arc<FakeClock>, NotchController) {
+    let clock = Arc::new(FakeClock::new());
+    let c = NotchController::new(Some(Arc::clone(&clock) as Arc<dyn TimeProvider>));
+    (clock, c)
+}
+
+#[test]
+fn hover_open_suppressed_blocks_immediate_hover_open_and_peek() {
+    let (clock, hover) = fake();
+    hover.set_open_on_hover(true);
+    hover.set_open_delay_ms(0);
+    hover.set_hover_open_suppressed(true);
+    hover.on_mouse_enter();
+    assert!(hover.is_mouse_over());
+    assert!(hover.is_hover_open_suppressed());
+    assert_eq!(NotchState::Collapsed, hover.state());
+    assert_eq!(0, clock.active_timers());
+
+    let peek = NotchController::new(Some(Arc::clone(&clock) as Arc<dyn TimeProvider>));
+    peek.set_open_on_hover(false);
+    peek.set_hover_open_suppressed(true);
+    peek.on_mouse_enter();
+    assert!(peek.is_mouse_over());
+    assert_eq!(NotchState::Collapsed, peek.state());
+}
+
+#[test]
+fn hover_open_suppressed_blocks_delayed_hover_open_and_cancels_pending_timer() {
+    let (clock, c) = fake();
+    c.set_open_on_hover(true);
+    c.set_open_delay_ms(300);
+    // Bastırılmışken giriş: gecikme zamanlayıcısı başlamaz, zaman aşımı açmaz.
+    c.set_hover_open_suppressed(true);
+    c.on_mouse_enter();
+    assert_eq!(NotchState::Collapsed, c.state());
+    assert_eq!(0, clock.active_timers());
+    c.on_hover_open_timeout();
+    assert_eq!(NotchState::Collapsed, c.state());
+
+    c.on_mouse_leave();
+    c.set_hover_open_suppressed(false);
+
+    // Zamanlayıcı çalışırken bastırma açılırsa bekleyen zamanlayıcı iptal edilir.
+    c.on_mouse_enter();
+    assert_eq!(NotchState::Peek, c.state());
+    assert_eq!(1, clock.active_timers());
+
+    c.set_hover_open_suppressed(true);
+    assert_eq!(0, clock.active_timers());
+    clock.advance(TimeSpan::from_millis(500));
+    c.on_hover_open_timeout();
+    assert_ne!(NotchState::Expanded, c.state());
+}
+
+#[test]
+fn clearing_suppression_while_mouse_inside_keeps_suppressed_until_mouse_leaves() {
+    let (_clock, c) = fake();
+    c.set_open_on_hover(true);
+    c.set_open_delay_ms(0);
+    c.set_hover_open_suppressed(true);
+
+    // Kullanıcı kartın × düğmesine tıklamak için çentiğe girdi.
+    c.on_mouse_enter();
+    assert_eq!(NotchState::Collapsed, c.state());
+
+    // × tıklandı, bastırma kalktı ama imleç hâlâ içeride: çentik hemen açılmamalı.
+    c.set_hover_open_suppressed(false);
+    assert!(c.is_hover_open_suppressed());
+    assert_eq!(NotchState::Collapsed, c.state());
+
+    c.on_mouse_enter();
+    c.on_hover_open_timeout();
+    assert_eq!(NotchState::Collapsed, c.state());
+
+    // İmleç çıkınca bastırma tamamen temizlenir; sonraki girişte normal açılır.
+    c.on_mouse_leave();
+    assert!(!c.is_hover_open_suppressed());
+    c.on_mouse_enter();
+    assert_eq!(NotchState::Expanded, c.state());
+}
+
+#[test]
+fn clearing_suppression_when_mouse_outside_allows_next_hover_immediately() {
+    let c = controller();
+    c.set_open_on_hover(true);
+    c.set_open_delay_ms(0);
+    c.set_hover_open_suppressed(true);
+    c.set_hover_open_suppressed(false);
+    assert!(!c.is_hover_open_suppressed());
+    c.on_mouse_enter();
+    assert_eq!(NotchState::Expanded, c.state());
+}
+
+#[test]
+fn redundant_clear_suppression_while_mouse_inside_does_not_block_future_hover() {
+    let c = controller();
+    c.set_open_on_hover(false);
+    c.on_mouse_enter();
+    assert_eq!(NotchState::Peek, c.state());
+    // Hiç bastırılmamışken false çağrısı sahte bastırma başlatmamalı.
+    c.set_hover_open_suppressed(false);
+    assert!(!c.is_hover_open_suppressed());
+}
+
+#[test]
+fn hover_open_suppressed_still_allows_explicit_click_to_expand() {
+    let c = controller();
+    c.set_open_on_hover(true);
+    c.set_hover_open_suppressed(true);
+    c.on_click();
+    assert_eq!(NotchState::Expanded, c.state());
+}

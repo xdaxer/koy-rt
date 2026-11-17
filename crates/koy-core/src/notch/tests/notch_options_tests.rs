@@ -129,6 +129,7 @@ fn new_notch_options_have_safe_defaults() {
     assert_eq!(NotchOpenPolicy::DEFAULT_CLOSE_DELAY_MS, notch.close_delay_ms);
     assert_eq!(0, notch.panel_order.len());
     assert_eq!(HomeCardLayout::default().to_vec(), notch.home_cards.iter().copied().collect::<Vec<HomeCard>>());
+    assert_eq!(crate::notch::NotchCollapsedBackground::Default, notch.collapsed_background);
     assert_eq!(NotchVisualizerStyle::Bars, music.visualizer_style);
     assert_eq!(NotchVisualizerColorSource::Accent, music.visualizer_color_source);
     assert_eq!(5, music.visualizer_bar_count);
@@ -143,6 +144,7 @@ fn new_notch_options_survive_save_and_load() {
             open_delay_ms: 250,
             close_delay_ms: 600,
             tab_bar_style: NotchTabBarStyle::Hidden,
+            collapsed_background: crate::notch::NotchCollapsedBackground::Ambient,
             panel_order: ValueList::from(s(&["system", "home"])),
             home_cards: ValueList::from(vec![HomeCard::Weather, HomeCard::Timers]),
             ..NotchSettings::default()

@@ -6,6 +6,7 @@
 //! ağacında o klasör yok (ne `Notch/Effects/` ne `BackgroundEffectsTests.cs`); bu yüzden `effects` alt modülü yoktur.
 
 mod clock_tick;
+mod collapsed_background_policy;
 mod control_center_tiles;
 mod greeting;
 mod home_card_layout;
@@ -25,6 +26,7 @@ mod notch_style;
 mod notch_visualizer;
 
 pub use clock_tick::*;
+pub use collapsed_background_policy::*;
 pub use control_center_tiles::*;
 pub use greeting::*;
 pub use home_card_layout::*;

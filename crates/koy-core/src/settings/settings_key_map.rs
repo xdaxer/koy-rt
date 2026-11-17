@@ -64,6 +64,7 @@ fn build() -> HashMap<String, (String, String)> {
         "NotchEdgeLineColor=EdgeLineColor", "NotchEdgeLineThickness=EdgeLineThickness",
         "NotchFollowsMaterial=FollowsMaterial", "ShowVolumeOsd", "ShowBrightnessOsd", "ShowPrivacyIndicator",
         "NotchShowNotifications=ShowNotifications", "NotchNotificationsHideBody=NotificationsHideBody",
+        "NotchCollapsedBackground=CollapsedBackground",
         "EnabledPanels", "ControlCenterLayout",
     ]);
     add("Music", &["MusicShowWaveform=ShowWaveform", "MusicCardStyle=CardStyle", "MusicLyricsEnabled=LyricsEnabled"]);
