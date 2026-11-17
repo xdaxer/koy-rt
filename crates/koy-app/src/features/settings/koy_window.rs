@@ -14,8 +14,9 @@ use crate::infra::native_window;
 use crate::resources::strings::Strings;
 use crate::resources::theme_manager::ThemeManager;
 use crate::resources::user_style_watcher::UserStyleWatcher;
-use crate::{CA, DP, PR, RU, WX, ProfileItemData, RuleItemData, SectionOptionData, KoyWindow, KoyWindowData, MonitorCardData, OrderItem, S, SC, SL, SearchResultData, ShortcutRowData, ToggleItem, Tr};
+use crate::{AD, AdvancedRowData, CA, DP, PR, RU, WX, ProfileItemData, RuleItemData, SectionOptionData, KoyWindow, KoyWindowData, MonitorCardData, OrderItem, S, SC, SL, SearchResultData, ShortcutRowData, ToggleItem, Tr};
 
+use super::advanced_view_model::AdvancedViewModel;
 use super::accounts_view_models::{CalendarAccountsViewModel, WeatherLocationViewModel};
 use super::displays_view_model::DisplaysViewModel;
 use super::profile_service::ProfileService;
@@ -36,6 +37,7 @@ pub struct KoyWindowHost {
     displays: Rc<DisplaysViewModel>,
     profiles: Rc<ProfilesViewModel>,
     rules: Rc<RulesViewModel>,
+    advanced: Rc<AdvancedViewModel>,
     weather: Rc<WeatherLocationViewModel>,
     calendar: Rc<CalendarAccountsViewModel>,
     watcher: RefCell<Option<UserStyleWatcher>>,
@@ -54,6 +56,7 @@ impl KoyWindowHost {
         let shortcuts = ShortcutsViewModel::new(Rc::clone(&vm));
         let displays = DisplaysViewModel::new(Rc::clone(&vm));
         let profiles = ProfilesViewModel::new(ProfileService::instance());
+        let advanced = AdvancedViewModel::new(Rc::clone(&vm));
         let rules = RulesViewModel::new(ProfileService::instance(), ContextRuleService::instance());
         let weather = WeatherLocationViewModel::new(Rc::clone(&vm));
         let calendar = CalendarAccountsViewModel::new();
@@ -64,6 +67,7 @@ impl KoyWindowHost {
             displays,
             profiles,
             rules,
+            advanced,
             weather,
             calendar,
             watcher: RefCell::new(None),
@@ -134,6 +138,12 @@ impl KoyWindowHost {
         host.calendar.changed.subscribe(move || {
             if let Some(h) = weak.upgrade() {
                 h.sync_calendar();
+            }
+        });
+        let weak = Rc::downgrade(&host);
+        host.advanced.changed.subscribe(move || {
+            if let Some(h) = weak.upgrade() {
+                h.sync_advanced();
             }
         });
         host.sync_profiles();
@@ -242,6 +252,39 @@ impl KoyWindowHost {
         ca.set_google_status(ss(&v.google_status_text));
         ca.set_outlook_status(ss(&v.outlook_status_text));
         ca.set_message(ss(&v.status_message));
+    }
+
+    fn sync_advanced(&self) {
+        use koy_core::settings::AdvancedSettingKind as K;
+        let ad = self.window.global::<AD>();
+        let rows: Vec<AdvancedRowData> = self
+            .advanced
+            .rows()
+            .into_iter()
+            .map(|r| {
+                let choice_index = r.choices.iter().position(|c| c.eq_ignore_ascii_case(&r.value)).map_or(-1, |i| i as i32);
+                AdvancedRowData {
+                    header: r.is_header,
+                    key: ss(&r.key),
+                    title: ss(&r.title),
+                    kind: match r.kind {
+                        K::Bool => 0,
+                        K::Integer => 1,
+                        K::Number => 2,
+                        K::Text => 3,
+                        K::Choice => 4,
+                    },
+                    value: ss(&r.value),
+                    default_text: ss(&r.default_text),
+                    choices: ModelRc::new(VecModel::from(r.choices.into_iter().map(SharedString::from).collect::<Vec<_>>())),
+                    choice_index,
+                    changed: r.is_changed,
+                    error: ss(&r.error),
+                }
+            })
+            .collect();
+        ad.set_rows(ModelRc::new(VecModel::from(rows)));
+        ad.set_filter(ss(self.advanced.filter()));
     }
 
     fn sync_rules(&self) {
@@ -443,6 +486,32 @@ impl KoyWindowHost {
                     "CancelDelete" => m.request_delete(i, false),
                     "ConfirmDelete" => m.delete(i),
                     _ => {}
+                }
+            });
+        });
+
+        let ad = w.global::<AD>();
+        let m = Rc::downgrade(&self.advanced);
+        ad.on_filter_edited(move |t| {
+            if let Some(m) = m.upgrade() {
+                m.set_filter(&t);
+            }
+        });
+        let m = Rc::downgrade(&self.advanced);
+        ad.on_apply(move |k, v| {
+            let m = m.clone();
+            crate::infra::dispatch::post_local(move || {
+                if let Some(m) = m.upgrade() {
+                    m.apply(&k, &v);
+                }
+            });
+        });
+        let m = Rc::downgrade(&self.advanced);
+        ad.on_reset(move |k| {
+            let m = m.clone();
+            crate::infra::dispatch::post_local(move || {
+                if let Some(m) = m.upgrade() {
+                    m.reset(&k);
                 }
             });
         });
@@ -745,6 +814,7 @@ impl KoyWindowHost {
 
     /// Ekranlar sayfası yalnız görünürken sistem olaylarını dinler.
     fn update_page_activation(&self) {
+        self.advanced.rebuild(self.vm.selected_page() == super::settings_view_model::ADVANCED_PAGE_INDEX);
         if self.vm.selected_page() == 3 && self.is_visible() {
             self.displays.activate();
         } else {

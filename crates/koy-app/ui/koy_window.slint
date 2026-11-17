@@ -9,9 +9,9 @@ import { Icons, KoyIcon } from "icons.slint";
 import { Tr, S } from "settings_kit.slint";
 import { SL, GeneralSystemPage, NotchBehaviorPage, NotchVisualsPage, NotchPanelsPage, NotchSearchPage, DockBehaviorPage,
     DockAppearancePage, DockSectionsPage, AppearanceThemePage, AppearanceScalePage, DictationPage, PerformancePage,
-    AboutPage, ShortcutsPage, SC, ShortcutRowData, DisplaysPage, DP, MonitorCardData, IdentifyOverlayWindow, GeneralProfilesPage, GeneralRulesPage, PR, RU, ProfileItemData, SectionOptionData, RuleItemData, WX, CA } from "settings_pages.slint";
+    AboutPage, ShortcutsPage, SC, ShortcutRowData, DisplaysPage, DP, MonitorCardData, IdentifyOverlayWindow, GeneralProfilesPage, GeneralRulesPage, PR, RU, ProfileItemData, SectionOptionData, RuleItemData, WX, CA, AD, AdvancedRowData, AdvancedPage } from "settings_pages.slint";
 
-export { Tr, S, SL, SC, ShortcutRowData, DP, MonitorCardData, IdentifyOverlayWindow, PR, RU, ProfileItemData, SectionOptionData, RuleItemData, WX, CA }
+export { Tr, S, SL, SC, ShortcutRowData, DP, MonitorCardData, IdentifyOverlayWindow, PR, RU, ProfileItemData, SectionOptionData, RuleItemData, WX, CA, AD, AdvancedRowData }
 
 export struct SearchResultData {
     title: string,
@@ -311,7 +311,11 @@ export component KoyWindow inherits Window {
                             PageHeader { title: Tr.t("NavAbout"); subtitle: Tr.t("AboutSubtitle"); }
                             AboutPage { }
                         }
-                        if KoyWindowData.page == 9: Placeholder { title: Tr.t("NavAdvanced"); subtitle: Tr.t("AdvancedSubtitle"); }
+                        if KoyWindowData.page == 9: VerticalLayout {
+                            spacing: 6px;
+                            PageHeader { title: Tr.t("NavAdvanced"); subtitle: Tr.t("AdvancedSubtitle"); }
+                            AdvancedPage { }
+                        }
                         if KoyWindowData.page == 10: Placeholder { title: Tr.t("NavExtensions"); subtitle: Tr.t("ExtensionsSubtitle"); }
                     }
                 }

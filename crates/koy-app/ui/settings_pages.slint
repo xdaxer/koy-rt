@@ -1227,3 +1227,89 @@ export component GeneralRulesPage inherits VerticalLayout {
         }
     }
 }
+
+// ---------------------------------------------------------------- Gelişmiş
+
+// kind: 0 bool, 1 tamsayı, 2 sayı, 3 metin, 4 seçim (AdvancedSettingKind sırası)
+export struct AdvancedRowData {
+    header: bool,
+    key: string,
+    title: string,
+    kind: int,
+    value: string,
+    default-text: string,
+    choices: [string],
+    choice-index: int,
+    changed: bool,
+    error: string,
+}
+
+export global AD {
+    in property <[AdvancedRowData]> rows;
+    in property <string> filter;
+    callback filter-edited(string);
+    callback apply(string, string);
+    callback reset(string);
+}
+
+component AdvancedRowView inherits Rectangle {
+    in property <AdvancedRowData> ad-row;
+    min-height: ad-row.header ? 36px : 56px;
+    if ad-row.header: HorizontalLayout {
+        padding-top: 14px;
+        SectionHeader { text: root.ad-row.title; }
+    }
+    if !ad-row.header: SettingRow {
+        changed: root.ad-row.changed;
+        VerticalLayout {
+            alignment: center;
+            horizontal-stretch: 1;
+            SettingTitle { text: root.ad-row.title; }
+            Text { text: root.ad-row.key; color: Theme.text-muted; font-size: Theme.font-caption; font-family: Theme.font-mono; }
+            SettingDesc { text: root.ad-row.default-text; }
+            if root.ad-row.error != "": SettingDesc { text: root.ad-row.error; color: Theme.danger-text; }
+        }
+        HorizontalLayout {
+            alignment: end;
+            spacing: 8px;
+            if root.ad-row.kind == 0: VerticalLayout {
+                alignment: center;
+                ToggleSwitch { checked: root.ad-row.value == "true"; toggled(v) => { AD.apply(root.ad-row.key, v ? "true" : "false"); } }
+            }
+            if root.ad-row.kind == 4: VerticalLayout {
+                alignment: center;
+                KoyComboBox {
+                    width: 180px;
+                    items: root.ad-row.choices;
+                    selected: root.ad-row.choice-index;
+                    changed(i) => { AD.apply(root.ad-row.key, root.ad-row.choices[i]); }
+                }
+            }
+            if root.ad-row.kind >= 1 && root.ad-row.kind <= 3: VerticalLayout {
+                alignment: center;
+                box := KoyTextBox {
+                    width: 180px;
+                    text: root.ad-row.value;
+                    accepted(t) => { AD.apply(root.ad-row.key, t); }
+                }
+            }
+            if root.ad-row.changed: VerticalLayout {
+                alignment: center;
+                KoyButton { text: Tr.t("AdvancedResetRow"); clicked => { AD.reset(root.ad-row.key); } }
+            }
+        }
+    }
+}
+
+// Karşılığı: GelismisPage.xaml
+export component AdvancedPage inherits VerticalLayout {
+    spacing: 6px;
+    InfoNotice { text: Tr.t("AdvancedWarning"); }
+    KoyTextBox {
+        text: AD.filter;
+        placeholder: Tr.t("AdvancedFilterPlaceholder");
+        edited(t) => { AD.filter-edited(t); }
+    }
+    if AD.rows.length == 0: SettingDesc { text: Tr.t("SettingsSearchNoResult"); }
+    for r in AD.rows: AdvancedRowView { ad-row: r; }
+}

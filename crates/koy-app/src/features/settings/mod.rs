@@ -1,6 +1,7 @@
 //! Karşılığı: `koy/src/App/Features/Settings/` (Koy penceresi).
 
 pub mod accounts_view_models;
+pub mod advanced_view_model;
 pub mod app_uninstaller;
 pub mod displays_view_model;
 pub mod profile_service;

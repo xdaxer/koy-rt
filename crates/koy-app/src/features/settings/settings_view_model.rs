@@ -293,6 +293,15 @@ impl SettingsViewModel {
         self.apply_loaded_settings();
     }
 
+    /// Gelişmiş tablodan yazılan ayar: kaydedilir, pencere ve özellikler yeni değerle kurulur (alan her şey olabilir).
+    pub fn commit_loaded(&self, updated: AppSettings) {
+        if super::app_uninstaller::in_progress() {
+            return;
+        }
+        let _ = self.store.save(&updated);
+        self.apply_loaded_settings();
+    }
+
     /// Ayar dışarıdan (profil, eklenti, gelişmiş tablo, sıfırlama) değişti: yeniden okunur, tema ve özellikler kurulur.
     fn apply_loaded_settings(&self) {
         self.load_from_settings();
