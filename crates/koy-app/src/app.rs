@@ -202,6 +202,11 @@ impl App {
         corners.apply(&settings.hot_corners);
         *self.hot_corners.borrow_mut() = Some(corners);
 
+        // Geliştirici: sağ alt menüyü açılıştan sonra koddan açar (canlı doğrulama; C# karşılığı yok).
+        if std::env::var("KOY_DEV_OPEN_MENU").is_ok_and(|v| v == "1") {
+            slint::Timer::single_shot(Duration::from_secs(3), SagAltMenuWindow::toggle);
+        }
+
         // İlk kurulumdan hemen sonra ana uygulama doğrudan ekrana çıksın; yeni sürümde "Yenilikler".
         if is_first_run {
             self.show_koy_window(None);
