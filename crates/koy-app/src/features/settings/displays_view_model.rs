@@ -101,7 +101,7 @@ impl DisplaysViewModel {
             return;
         }
         if let Some((service, sub)) = self.service.borrow_mut().take() {
-            drop(sub);
+            service.monitors_changed().unsubscribe(sub);
             service.dispose();
         }
     }

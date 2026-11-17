@@ -524,6 +524,10 @@ fn install_panic_hook() {
     std::panic::set_hook(Box::new(move |info| {
         CrashLog::write("Panic", &CrashError::object(info.to_string()));
         safe_restore_taskbar();
+        // Tepsi hemen asıl sahibine dönsün (arayüz iş parçacığındaysa; değilse atlanır).
+        if let Ok(Some(app)) = APP.try_with(|a| a.try_borrow().ok().and_then(|a| a.clone())) {
+            app.services.request_tray_host_close();
+        }
         previous(info);
     }));
 }

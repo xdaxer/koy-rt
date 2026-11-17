@@ -43,6 +43,7 @@ pub struct KoyWindowHost {
     weather: Rc<WeatherLocationViewModel>,
     calendar: Rc<CalendarAccountsViewModel>,
     watcher: RefCell<Option<UserStyleWatcher>>,
+    style_watcher: RefCell<Option<UserStyleWatcher>>,
     revert_timer: slint::Timer,
     highlight_timer: slint::Timer,
 }
@@ -75,6 +76,7 @@ impl KoyWindowHost {
             weather,
             calendar,
             watcher: RefCell::new(None),
+            style_watcher: RefCell::new(None),
             revert_timer: slint::Timer::default(),
             highlight_timer: slint::Timer::default(),
         });
@@ -992,6 +994,12 @@ impl KoyWindowHost {
             let folder = self.vm.store().path().parent().map(|p| p.to_path_buf()).unwrap_or_default();
             *self.watcher.borrow_mut() = Some(UserStyleWatcher::watch_folder(folder, on_settings_file_changed));
         }
+        if self.style_watcher.borrow().is_none() {
+            // Pencere kapalıyken değişmiş stil dosyası burada yakalanır, sonra olay tabanlı izleme başlar.
+            crate::resources::theme_manager::ThemeManager::reload_user_style_if_changed();
+            *self.style_watcher.borrow_mut() =
+                Some(UserStyleWatcher::new(crate::resources::theme_manager::ThemeManager::reload_user_style_if_changed));
+        }
         let weak = self.window.as_weak();
         // Yerel pencere olay döngüsü dönünce oluşur; öne getirme biraz sonra.
         slint::Timer::single_shot(Duration::from_millis(30), move || {
@@ -1020,6 +1028,9 @@ impl KoyWindowHost {
         self.extensions.set_active(false);
         self.displays.deactivate();
         if let Some(w) = self.watcher.borrow_mut().take() {
+            w.dispose();
+        }
+        if let Some(w) = self.style_watcher.borrow_mut().take() {
             w.dispose();
         }
         let _ = self.window.hide();

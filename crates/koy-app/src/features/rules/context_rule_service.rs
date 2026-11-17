@@ -142,8 +142,9 @@ impl ContextRuleService {
         self.switcher.borrow_mut().reset();
         *self.snapshot.borrow_mut() = None;
         *self.fullscreen.borrow_mut() = None;
-        let Some((_tracker, sub, applied_id)) = self.tracker.borrow_mut().take() else { return };
-        drop(sub);
+        let Some((tracker, sub, applied_id)) = self.tracker.borrow_mut().take() else { return };
+        // Abonelik yalnız kimlik taşır: olaydan açıkça çıkarılır (paylaşılan izleyici kural kapanınca uyarmasın).
+        tracker.foreground_window_changed().unsubscribe(sub);
         self.profiles.applied.unsubscribe(applied_id);
         if let Some(s) = self.services.borrow().as_ref() {
             s.release_window_tracker();
