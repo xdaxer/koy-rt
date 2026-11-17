@@ -961,9 +961,6 @@ impl NotchViewModel {
         match self.settings.borrow().notch.collapsed_background {
             B::AlbumColor => {
                 let m = self.music.state();
-                crate::infra::trace::line(|| {
-                    format!("kapalı zemin: albüm has_track={} playing={} renk={:?}", m.has_track, m.is_playing, m.paint.collapsed_album)
-                });
                 if m.has_track && m.is_playing && let Some(c) = m.paint.collapsed_album {
                     return (c.as_argb_encoded(), Vec::new());
                 }

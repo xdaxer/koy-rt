@@ -27,6 +27,8 @@ fn main() -> Result<(), slint::PlatformError> {
     ThemeManager::apply(&settings);
 
     let args: Vec<String> = std::env::args().collect();
+    // Döngü başlamadan gönderilen arka plan işleri ilk turda çalışır (hangi döngü çalışırsa).
+    infra::dispatch::start();
     // Kurtarma: görev çubuğunu geri getirip çıkar (Koy çöktüyse ya da zorla kapatıldıysa).
     if args.iter().any(|a| a == "--restore-taskbar") {
         app::safe_restore_taskbar();
