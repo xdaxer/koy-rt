@@ -565,7 +565,11 @@ impl NotchViewModel {
         {
             return c.as_argb_encoded();
         }
-        ThemeManager::color("KoyNotchAccentMusic")
+        // Kaynak yoksa (tema tanımlamıyor) C#'taki gibi yeşil gösterge rengi; 0 saydam olurdu ve çubuklar görünmezdi.
+        match ThemeManager::color("KoyNotchAccentMusic") {
+            0 => 0xFF4A_DE80,
+            c => c,
+        }
     }
     pub fn is_music_page_selected(&self) -> bool {
         self.state.borrow().current_panel == NotchPanel::Home && self.home.is_music_page()
