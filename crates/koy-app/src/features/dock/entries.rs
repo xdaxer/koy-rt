@@ -124,9 +124,18 @@ impl EntryMotion {
     }
 }
 
-/// Uygulama simgesinin kodlanmış verisini 48 px'e çözer.
+thread_local! {
+    static ICON_PIXELS: std::cell::Cell<u32> = const { std::cell::Cell::new(28) };
+}
+
+/// Dock simgelerinin çizildiği fiziksel piksel boyutu (simge boyutu × ekran ölçeği). Dock görünüm modeli verir.
+pub fn set_icon_pixels(px: u32) {
+    ICON_PIXELS.with(|c| c.set(px.max(8)));
+}
+
+/// Uygulama simgesinin kodlanmış verisini çizildiği boyutta çözer (1:1, keskin).
 pub fn load_icon(data: &[u8]) -> Option<slint::Image> {
-    image_decode::decode(data, Some(48)).map(|b| b.to_image())
+    image_decode::decode(data, Some(ICON_PIXELS.with(|c| c.get()))).map(|b| b.to_image())
 }
 
 /// Tek uygulama (sabitli ya da çalışan). C# `DockItemViewModel`.
@@ -226,6 +235,15 @@ impl DockAppEntry {
         }
         self.model = model;
         self.refresh_presentation();
+    }
+
+    /// Uygulamanın kendi simgesini güncel piksel boyutunda yeniden çözer (değişim simgesine dokunulmaz).
+    pub fn reload_icon(&mut self) {
+        if self.custom_icon.is_none()
+            && let Some(d) = self.model.icon_data.as_deref().filter(|d| !d.is_empty())
+        {
+            self.icon = load_icon(d);
+        }
     }
 
     /// Değişim ya da paket simgesini uygular; `None` verilirse uygulamanın kendi simgesine dönülür.

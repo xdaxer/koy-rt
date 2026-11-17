@@ -243,6 +243,7 @@ impl DockViewModel {
     pub fn new(parts: DockParts) -> Rc<Self> {
         let s = parts.settings.borrow().clone();
         let icon_size = if s.dock.icon_size > 0.0 { s.dock.icon_size } else { 28.0 };
+        super::entries::set_icon_pixels(crate::infra::image_decode::pixels_for(icon_size));
         let state = DockState {
             icon_size,
             item_size: DockFitMath::item_size_for(icon_size),
@@ -1022,7 +1023,12 @@ impl DockViewModel {
             changed
         };
         if changed_size {
+            // Simgeler yeni boyutta yeniden çözülür (sığdırma küçülttüyse ölçeklenmiş bulanık çizim olmasın).
+            super::entries::set_icon_pixels(crate::infra::image_decode::pixels_for(icon));
             for e in self.items.borrow().iter() {
+                if let DockEntry::App(a) = e {
+                    a.borrow_mut().reload_icon();
+                }
                 e.with_motion(|m| {
                     m.icon_size = icon;
                     m.item_size = item_size;
@@ -1991,7 +1997,7 @@ impl DockViewModel {
                         .thumbnail
                         .as_deref()
                         .filter(|t| !t.is_empty())
-                        .and_then(|t| crate::infra::image_decode::decode(t, Some(28)))
+                        .and_then(|t| crate::infra::image_decode::decode(t, Some(crate::infra::image_decode::pixels_for(28.0))))
                         .map(|b| b.to_image());
                 }
             }

@@ -48,8 +48,13 @@ pub fn make_popup(hwnd: isize) {
         let style = GetWindowLongW(h(hwnd), GWL_STYLE) as u32;
         let strip = WS_CAPTION.0 | WS_SYSMENU.0 | WS_THICKFRAME.0 | WS_MINIMIZEBOX.0 | WS_MAXIMIZEBOX.0;
         let next = (style & !strip) | WS_POPUP.0;
-        if next != style {
+        // winit pencerelere WS_EX_APPWINDOW verir: araç penceresi olsa bile Alt+Tab ve görev çubuğunda görünür.
+        // WPF `ShowInTaskbar=False` bu biti hiç koymaz.
+        let ex = GetWindowLongW(h(hwnd), GWL_EXSTYLE) as u32;
+        let next_ex = ex & !WS_EX_APPWINDOW.0;
+        if next != style || next_ex != ex {
             SetWindowLongW(h(hwnd), GWL_STYLE, next as i32);
+            SetWindowLongW(h(hwnd), GWL_EXSTYLE, next_ex as i32);
             let _ = SetWindowPos(h(hwnd), None, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
         }
     }

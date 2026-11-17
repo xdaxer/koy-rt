@@ -46,7 +46,9 @@ pub fn load_file(path: &str) -> Option<slint::Image> {
         return None;
     }
     let bytes = std::fs::read(path).ok()?;
-    image_decode::decode(&bytes, Some(DECODE_PIXELS)).map(|b| b.to_image())
+    // Değişim simgeleri de dock simgesiyle aynı piksel boyutunda (keskin); en az paket ön izleme boyutu kadar değil.
+    let _ = DECODE_PIXELS;
+    super::entries::load_icon(&bytes)
 }
 
 /// Simge paketi ve uygulama başına değişim. Ayar değişince dock yeniden kurulur, örnek de yenilenir.

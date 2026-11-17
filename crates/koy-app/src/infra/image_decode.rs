@@ -38,6 +38,20 @@ pub fn pixel_width(bytes: &[u8]) -> u32 {
 }
 
 /// Resmi çözer; `decode_width` verilirse en-boy oranı korunarak o genişliğe ölçeklenir (WPF `DecodePixelWidth`).
+/// Ekran ölçeği (sistem DPI / 96).
+pub fn display_scale() -> f64 {
+    // SAFETY: salt okunur sorgu.
+    let dpi = unsafe { windows::Win32::UI::HiDpi::GetDpiForSystem() };
+    if dpi == 0 { 1.0 } else { dpi as f64 / 96.0 }
+}
+
+/// Mantıksal boyutu (DIP) çizileceği fiziksel piksele çevirir. Slint'in yazılım çizicisi küçültürken basit süzgeç
+/// kullanır (WPF'in yüksek kaliteli ölçeklemesi yok): görseller çizildiği boyutta önceden (WIC Fant) çözülürse 1:1 ve
+/// keskin çizilir.
+pub fn pixels_for(logical: f64) -> u32 {
+    (logical * display_scale()).round().max(1.0) as u32
+}
+
 pub fn decode(bytes: &[u8], decode_width: Option<u32>) -> Option<Bgra> {
     with_frame(bytes, |factory, frame| {
         // SAFETY: WIC nesneleri bu kapsamda yaşar; çıkış tamponu boyutu stride * yükseklik kadardır.

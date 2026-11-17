@@ -132,7 +132,7 @@ impl QuickLaunchViewModel {
         std::thread::spawn(move || {
             for path in paths {
                 // Simge baytları ve 32 px çözüm arka planda; slint resmi arayüz iş parçacığında kurulur.
-                let bgra = IconHelper::get_icon_bytes(&path).and_then(|b| image_decode::decode(&b, Some(32)));
+                let bgra = IconHelper::get_icon_bytes(&path).and_then(|b| image_decode::decode(&b, Some(image_decode::pixels_for(32.0))));
                 dispatch::post(move || {
                     let Some(vm) = me.upgrade() else { return };
                     if vm.disposed.get() {
