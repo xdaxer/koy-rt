@@ -394,6 +394,7 @@ impl DockWindowHost {
             return;
         }
         self.hwnd.set(hwnd);
+        crate::infra::native_window::make_popup(hwnd);
         WindowStyles::apply_tool_window_and_no_activate(hwnd);
         let w = self.weak();
         let id = native_window::add_hook(

@@ -59,6 +59,7 @@ fn style_popup(window: &slint::Window, radius_dip: f64) {
     if hwnd == 0 {
         return;
     }
+    crate::infra::native_window::make_popup(hwnd);
     WindowStyles::apply_tool_window_and_no_activate(hwnd);
     WindowStyles::reassert_topmost(hwnd);
     let s = window.size();

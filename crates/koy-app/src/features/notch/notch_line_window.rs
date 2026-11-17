@@ -63,6 +63,7 @@ impl NotchLineWindow {
             return;
         }
         self.hwnd.set(hwnd);
+        crate::infra::native_window::make_popup(hwnd);
         WindowStyles::apply_tool_window_and_no_activate(hwnd);
         WindowStyles::set_click_through(hwnd, true);
         let m = self.monitor.borrow().clone();

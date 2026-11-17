@@ -33,6 +33,28 @@ fn h(hwnd: isize) -> HWND {
     HWND(hwnd as *mut _)
 }
 
+/// Çerçevesiz açılır pencere (WPF `WindowStyle=None` karşılığı): başlık, sistem menüsü ve kenarlık bitleri atılır,
+/// `WS_POPUP` verilir. winit `no-frame` pencerede bile `WS_CAPTION` kalır; pencere bölgesi (SetWindowRgn) değişince
+/// Windows başlık çubuğunu bölgenin içine çizebiliyordu (dock'un üstünde "Koy Dock" yazılı açık mavi şerit).
+pub fn make_popup(hwnd: isize) {
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GWL_STYLE, WS_CAPTION, WS_MAXIMIZEBOX, WS_MINIMIZEBOX, WS_POPUP, WS_SYSMENU, WS_THICKFRAME,
+    };
+    if hwnd == 0 {
+        return;
+    }
+    // SAFETY: kendi penceremizin stil bitleri değişir; SWP_FRAMECHANGED çerçeveyi yeniden hesaplatır.
+    unsafe {
+        let style = GetWindowLongW(h(hwnd), GWL_STYLE) as u32;
+        let strip = WS_CAPTION.0 | WS_SYSMENU.0 | WS_THICKFRAME.0 | WS_MINIMIZEBOX.0 | WS_MAXIMIZEBOX.0;
+        let next = (style & !strip) | WS_POPUP.0;
+        if next != style {
+            SetWindowLongW(h(hwnd), GWL_STYLE, next as i32);
+            let _ = SetWindowPos(h(hwnd), None, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
+        }
+    }
+}
+
 /// Görev çubuğunda düğmesi olmayan araç penceresi (C# `ShowInTaskbar = false`).
 pub fn set_tool_window(hwnd: isize) {
     if hwnd == 0 {

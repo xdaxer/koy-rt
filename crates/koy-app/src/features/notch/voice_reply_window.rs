@@ -40,6 +40,7 @@ pub fn show_reply(notch_center_x: f64, top: f64, prompt: &str, info: &str, body:
         if let Some(w) = weak.upgrade() {
             let hwnd = native_window::hwnd_of(w.window());
             if hwnd != 0 {
+                crate::infra::native_window::make_popup(hwnd);
                 WindowStyles::apply_tool_window_and_no_activate(hwnd);
             }
         }

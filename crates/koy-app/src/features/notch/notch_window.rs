@@ -165,6 +165,7 @@ impl NotchWindowHost {
             return;
         }
         self.hwnd.set(hwnd);
+        crate::infra::native_window::make_popup(hwnd);
         WindowStyles::apply_tool_window_and_no_activate(hwnd);
         WindowStyles::reassert_topmost(hwnd);
         self.place_at_top_center(None);

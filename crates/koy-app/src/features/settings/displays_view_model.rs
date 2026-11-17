@@ -343,6 +343,7 @@ fn style_when_ready(w: slint::Weak<crate::IdentifyOverlayWindow>, size: i32, rad
     let Some(win) = w.upgrade() else { return };
     let hwnd = native_window::hwnd_of(win.window());
     if hwnd != 0 {
+        crate::infra::native_window::make_popup(hwnd);
         WindowStyles::apply_tool_window_and_no_activate(hwnd);
         WindowStyles::set_click_through(hwnd, true);
         WindowStyles::reassert_topmost(hwnd);

@@ -176,6 +176,7 @@ impl Menu {
             return;
         }
         self.hwnd.set(hwnd);
+        native_window::make_popup(hwnd);
         native_window::set_tool_window(hwnd);
         native_window::extend_frame(hwnd);
         WindowFrame::attach(Rc::new(move || hwnd), Rc::clone(&self.alive));

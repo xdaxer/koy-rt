@@ -27,6 +27,11 @@ fn main() -> Result<(), slint::PlatformError> {
     ThemeManager::apply(&settings);
 
     let args: Vec<String> = std::env::args().collect();
+    // Kurtarma: görev çubuğunu geri getirip çıkar (Koy çöktüyse ya da zorla kapatıldıysa).
+    if args.iter().any(|a| a == "--restore-taskbar") {
+        app::safe_restore_taskbar();
+        return Ok(());
+    }
     if let Some(i) = args.iter().position(|a| a == "--snapshot") {
         let view = args.get(i + 1).cloned().unwrap_or_default();
         let path = args.get(i + 2).cloned().unwrap_or_else(|| "snapshot.png".into());
