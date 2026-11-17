@@ -18,6 +18,7 @@ pub mod shelf;
 pub mod shortcuts;
 pub mod status;
 pub mod system_info;
+pub mod wizard;
 
 /// Uygulama özelliği (Notch, Dock). C# `IFeature`.
 pub trait Feature {

@@ -1,0 +1,282 @@
+// Karşılığı: koy/src/App/Features/Wizard/SetupWizardWindow.xaml.
+// İlk açılış sihirbazı: 1 karşılama ve dil, 2 yerleşim (çentik ve dock / yalnız çentik / yalnız dock), 3 konum izni,
+// 4 bitiş (başlangıçta çalış). 880x600 çerçevesiz pencere.
+
+import { Theme } from "theme.slint";
+import { TitleButton, KoyButton, ButtonKind, ToggleSwitch, KoyLogo, SettingTitle, SettingDesc, Segmented } from "controls.slint";
+import { Icons, KoyIcon } from "icons.slint";
+import { Tr } from "settings_kit.slint";
+
+component StepLabel inherits Text {
+    color: Theme.accent-text;
+    font-size: Theme.font-caption;
+    font-weight: 600;
+}
+
+component BigTitle inherits Text {
+    color: Theme.text-primary;
+    font-size: 26px;
+    font-weight: 700;
+    wrap: word-wrap;
+}
+
+component Body inherits Text {
+    color: Theme.text-secondary;
+    font-size: 14px;
+    wrap: word-wrap;
+}
+
+component ChoiceCard inherits Rectangle {
+    in property <bool> selected;
+    in property <string> title;
+    in property <string> description;
+    callback clicked;
+    border-radius: Theme.radius-row;
+    background: selected ? Theme.accent-subtle : Theme.bg-row;
+    border-width: selected ? 2px : 1px;
+    border-color: selected ? Theme.accent : (ta.has-hover ? Theme.border-strong : Theme.border-hairline);
+    @children
+    ta := TouchArea { mouse-cursor: pointer; clicked => { root.clicked(); } }
+}
+
+// Yerleşim kartındaki mini ekran: üstte çentik, altta dock.
+component LayoutPreview inherits Rectangle {
+    in property <bool> notch;
+    in property <bool> dock;
+    height: 140px;
+    border-radius: 8px;
+    background: Theme.bg-control;
+    border-width: 1px;
+    border-color: Theme.border-hairline;
+    if notch: Rectangle { y: 8px; width: 64px; height: 12px; border-radius: 6px; background: Theme.text-primary; }
+    if dock: Rectangle { y: parent.height - 26px; width: 120px; height: 18px; border-radius: 9px; background: Theme.text-secondary; }
+}
+
+export component SetupWizardWindow inherits Window {
+    in property <int> step: 1;
+    in property <int> layout-index;
+    in property <string> language: "tr";
+    in property <bool> run-at-startup: true;
+    in property <bool> use-location;
+    in property <bool> locating;
+    callback next();
+    callback back();
+    callback close-window();
+    callback drag-title();
+    callback layout-selected(int);
+    callback language-selected(string);
+    callback startup-toggled(bool);
+    callback location-selected(bool);
+
+    title: Tr.t("WizTitle");
+    width: 880px;
+    height: 600px;
+    no-frame: true;
+    background: Theme.bg-window;
+    default-font-family: Theme.font;
+
+    VerticalLayout {
+        Rectangle {
+            height: 40px;
+            background: Theme.bg-shell;
+            TouchArea {
+                pointer-event(e) => {
+                    if (e.kind == PointerEventKind.down && e.button == PointerEventButton.left) {
+                        root.drag-title();
+                    }
+                }
+            }
+            HorizontalLayout {
+                padding-left: 16px;
+                padding-right: 6px;
+                spacing: 8px;
+                VerticalLayout { alignment: center; KoyLogo { width: 16px; height: 16px; } }
+                Text { text: Tr.t("WizTitle"); color: Theme.text-primary; font-size: 13px; font-weight: 600; vertical-alignment: center; horizontal-stretch: 1; }
+                VerticalLayout { alignment: center; TitleButton { icon: Icons.x; label: Tr.t("WindowHide"); clicked => { root.close-window(); } } }
+            }
+        }
+
+        // Adımlar
+        Rectangle {
+            vertical-stretch: 1;
+            if root.step == 1: VerticalLayout {
+                width: 560px;
+                alignment: center;
+                spacing: 12px;
+                StepLabel { text: Tr.t("WizStep1"); }
+                BigTitle { text: Tr.t("WizWelcomeTitle"); }
+                Body { text: Tr.t("WizWelcomeBody"); }
+                Rectangle { height: 22px; }
+                SettingTitle { text: Tr.t("WizLangTitle"); }
+                SettingDesc { text: Tr.t("WizLangDesc"); }
+                HorizontalLayout {
+                    alignment: start;
+                    Segmented {
+                        items: ["Türkçe", "English"];
+                        selected: root.language == "en" ? 1 : 0;
+                        changed(i) => { root.language-selected(i == 1 ? "en" : "tr"); }
+                    }
+                }
+            }
+            if root.step == 2: VerticalLayout {
+                padding-left: 40px;
+                padding-right: 40px;
+                alignment: center;
+                spacing: 12px;
+                StepLabel { text: Tr.t("WizStep2"); }
+                BigTitle { text: Tr.t("WizLayoutTitle"); }
+                Body { text: Tr.t("WizLayoutSub"); }
+                HorizontalLayout {
+                    spacing: 16px;
+                    height: 248px;
+                    ChoiceCard {
+                        selected: root.layout-index == 0;
+                        clicked => { root.layout-selected(0); }
+                        VerticalLayout {
+                            padding: 14px;
+                            spacing: 8px;
+                            LayoutPreview { notch: true; dock: true; }
+                            SettingTitle { text: Tr.t("WizBothTitle"); font-weight: 600; }
+                            SettingDesc { text: Tr.t("WizBothDesc"); }
+                        }
+                    }
+                    ChoiceCard {
+                        selected: root.layout-index == 1;
+                        clicked => { root.layout-selected(1); }
+                        VerticalLayout {
+                            padding: 14px;
+                            spacing: 8px;
+                            LayoutPreview { notch: true; dock: false; }
+                            SettingTitle { text: Tr.t("WizNotchTitle"); font-weight: 600; }
+                            SettingDesc { text: Tr.t("WizNotchDesc"); }
+                        }
+                    }
+                    ChoiceCard {
+                        selected: root.layout-index == 2;
+                        clicked => { root.layout-selected(2); }
+                        VerticalLayout {
+                            padding: 14px;
+                            spacing: 8px;
+                            LayoutPreview { notch: false; dock: true; }
+                            SettingTitle { text: Tr.t("WizDockTitle"); font-weight: 600; }
+                            SettingDesc { text: Tr.t("WizDockDesc"); }
+                        }
+                    }
+                }
+            }
+            if root.step == 3: VerticalLayout {
+                width: 560px;
+                alignment: center;
+                spacing: 12px;
+                StepLabel { text: Tr.t("WizStep3"); }
+                BigTitle { text: Tr.t("WizLocationTitle"); }
+                Body { text: Tr.t("WizLocationBody"); }
+                Rectangle { height: 21px; }
+                ChoiceCard {
+                    height: 64px;
+                    selected: root.use-location;
+                    clicked => { root.location-selected(true); }
+                    VerticalLayout {
+                        padding-left: 16px;
+                        alignment: center;
+                        SettingTitle { text: Tr.t("WizLocationYes"); font-weight: 600; }
+                        SettingDesc { text: Tr.t("WizLocationYesDesc"); }
+                    }
+                }
+                ChoiceCard {
+                    height: 64px;
+                    selected: !root.use-location;
+                    clicked => { root.location-selected(false); }
+                    VerticalLayout {
+                        padding-left: 16px;
+                        alignment: center;
+                        SettingTitle { text: Tr.t("WizLocationNo"); font-weight: 600; }
+                        SettingDesc { text: Tr.t("WizLocationNoDesc"); }
+                    }
+                }
+                if root.locating: SettingDesc { text: Tr.t("WizLocating"); }
+            }
+            if root.step == 4: VerticalLayout {
+                width: 560px;
+                alignment: center;
+                spacing: 12px;
+                StepLabel { text: Tr.t("WizStep4"); }
+                BigTitle { text: Tr.t("WizDoneTitle"); }
+                Body { text: Tr.t("WizDoneBody"); }
+                Rectangle { height: 22px; }
+                Rectangle {
+                    background: Theme.bg-row;
+                    border-radius: Theme.radius-row;
+                    border-width: 1px;
+                    border-color: Theme.border-hairline;
+                    HorizontalLayout {
+                        padding: 14px;
+                        spacing: 12px;
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            SettingTitle { text: Tr.t("WizStartupTitle"); }
+                            SettingDesc { text: Tr.t("WizStartupDesc"); }
+                        }
+                        VerticalLayout {
+                            alignment: center;
+                            ToggleSwitch { checked: root.run-at-startup; toggled(v) => { root.startup-toggled(v); } }
+                        }
+                    }
+                }
+                Rectangle {
+                    background: Theme.bg-info;
+                    border-radius: Theme.radius-row;
+                    HorizontalLayout {
+                        padding: 12px;
+                        spacing: 10px;
+                        KoyIcon { data: Icons.lock; color: Theme.fg-info; }
+                        VerticalLayout {
+                            horizontal-stretch: 1;
+                            Text { text: Tr.t("WizCalendarPrivacyTitle"); color: Theme.fg-info; font-weight: 600; font-size: Theme.font-control; }
+                            Text { text: Tr.t("WizCalendarPrivacyDesc"); color: Theme.fg-info; font-size: Theme.font-caption; wrap: word-wrap; }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Alt çubuk: adım noktaları ve gezinme
+        Rectangle {
+            height: 76px;
+            background: Theme.bg-shell;
+            HorizontalLayout {
+                padding-left: 28px;
+                padding-right: 28px;
+                spacing: 8px;
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: start;
+                    for i in 4: VerticalLayout {
+                        alignment: center;
+                        Rectangle {
+                            width: i + 1 == root.step ? 22px : 8px;
+                            height: 8px;
+                            border-radius: 4px;
+                            background: i + 1 == root.step ? Theme.accent : Theme.toggle-track-off;
+                            animate width { duration: 200ms; }
+                        }
+                    }
+                }
+                Rectangle { horizontal-stretch: 1; }
+                if root.step > 1: VerticalLayout {
+                    alignment: center;
+                    KoyButton { text: Tr.t("WizBack"); enabled: !root.locating; clicked => { root.back(); } }
+                }
+                VerticalLayout {
+                    alignment: center;
+                    KoyButton {
+                        text: root.step == 4 ? Tr.t("WizStart") : Tr.t("WizContinue");
+                        kind: ButtonKind.primary;
+                        enabled: !root.locating;
+                        clicked => { root.next(); }
+                    }
+                }
+            }
+        }
+    }
+}
