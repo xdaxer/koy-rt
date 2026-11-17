@@ -82,7 +82,7 @@ impl CalendarSyncService {
         }
     }
 
-    fn connect(&self, provider: CalendarProvider, client: &OAuthClient, ct: &CancellationToken) -> OAuthConnectResult {
+    pub fn connect(&self, provider: CalendarProvider, client: &OAuthClient, ct: &CancellationToken) -> OAuthConnectResult {
         if !client.is_configured() {
             return OAuthConnectResult::new(false, "", Some("missing_client_id".into()));
         }

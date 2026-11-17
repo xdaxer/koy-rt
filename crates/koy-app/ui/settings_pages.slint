@@ -273,6 +273,138 @@ export component NotchVisualsPage inherits VerticalLayout {
     if S.flag("ClockCustomDateFormatInvalid"): SettingDesc { text: Tr.t("ClockCustomDateInvalid"); color: Theme.danger-text; }
 }
 
+
+// ---------------------------------------------------------------- Hava durumu konumu ve takvim hesapları
+
+export global WX {
+    in property <bool> use-location;
+    in property <string> query;
+    in property <bool> busy;
+    in property <string> status;
+    in property <bool> show-settings-link;
+    in property <bool> no-results;
+    in property <bool> has-location;
+    in property <[string]> results;
+    callback use-location-toggled(bool);
+    callback query-edited(string);
+    callback search();
+    callback select(int);
+    callback clear();
+    callback open-location-settings();
+}
+
+export global CA {
+    in property <string> google-client-id;
+    in property <string> google-client-secret;
+    in property <bool> show-google-fields;
+    in property <string> outlook-client-id;
+    in property <bool> google-connected;
+    in property <bool> outlook-connected;
+    in property <bool> outlook-available;
+    in property <bool> google-busy;
+    in property <bool> outlook-busy;
+    in property <string> google-status;
+    in property <string> outlook-status;
+    in property <string> message;
+    // alan: 0 Google kimliği, 1 Google gizli anahtarı, 2 Outlook kimliği
+    callback field-edited(int, string);
+    // eylem: ConnectGoogle, DisconnectGoogle, ConnectOutlook, DisconnectOutlook, SyncNow
+    callback command(string);
+}
+
+component NotchAccountsSection inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("WeatherHeader"); filtered-out: S.changed-only; }
+    SettingRow {
+        filtered-out: S.changed-only;
+        SettingText { title: Tr.t("WeatherUseLocationTitle"); description: Tr.t("WeatherUseLocationDesc"); }
+        VerticalLayout {
+            alignment: center;
+            ToggleSwitch { checked: WX.use-location; toggled(v) => { WX.use-location-toggled(v); } }
+        }
+    }
+    SettingRow {
+        filtered-out: S.changed-only;
+        VerticalLayout {
+            spacing: 8px;
+            horizontal-stretch: 1;
+            SettingText { title: Tr.t("WeatherCityTitle"); description: Tr.t("WeatherCityDesc"); }
+            HorizontalLayout {
+                spacing: 8px;
+                KoyTextBox {
+                    horizontal-stretch: 1;
+                    text: WX.query;
+                    edited(t) => { WX.query-edited(t); }
+                    accepted(t) => { WX.search(); }
+                }
+                KoyButton { text: Tr.t("WeatherSearchButton"); enabled: !WX.busy; clicked => { WX.search(); } }
+            }
+            if WX.busy: SettingDesc { text: Tr.t("WeatherSearching"); }
+            if WX.no-results: SettingDesc { text: Tr.t("WeatherNoResults"); }
+            for r[i] in WX.results: Rectangle {
+                height: 30px;
+                border-radius: Theme.radius-small;
+                background: rta.has-hover ? Theme.bg-hover : transparent;
+                Text { x: 8px; text: r; color: Theme.text-primary; font-size: Theme.font-control; vertical-alignment: center; }
+                rta := TouchArea { mouse-cursor: pointer; clicked => { WX.select(i); } }
+            }
+            HorizontalLayout {
+                spacing: 10px;
+                SettingDesc { text: WX.status; horizontal-stretch: 1; vertical-alignment: center; }
+                if WX.show-settings-link: LinkButton { text: Tr.t("WeatherOpenLocationSettings"); clicked => { WX.open-location-settings(); } }
+                if WX.has-location: KoyButton { text: Tr.t("WeatherClear"); clicked => { WX.clear(); } }
+            }
+        }
+    }
+
+    SectionHeader { text: Tr.t("CalAccountsHeader"); filtered-out: S.changed-only; }
+    SettingRow {
+        filtered-out: S.changed-only;
+        SettingText { title: Tr.t("CalPrivacyTitle"); description: Tr.t("CalPrivacyDesc"); }
+    }
+    SettingRow {
+        filtered-out: S.changed-only;
+        VerticalLayout {
+            spacing: 8px;
+            horizontal-stretch: 1;
+            HorizontalLayout {
+                SettingText { title: Tr.t("CalGoogleTitle"); description: CA.google-status; }
+                VerticalLayout {
+                    alignment: center;
+                    if !CA.google-connected: KoyButton { text: Tr.t("CalConnectButton"); kind: ButtonKind.primary; enabled: !CA.google-busy; clicked => { CA.command("ConnectGoogle"); } }
+                    if CA.google-connected: KoyButton { text: Tr.t("CalDisconnectButton"); enabled: !CA.google-busy; clicked => { CA.command("DisconnectGoogle"); } }
+                }
+            }
+            if CA.show-google-fields: KoyTextBox { text: CA.google-client-id; placeholder: Tr.t("CalClientIdHint"); edited(t) => { CA.field-edited(0, t); } }
+            if CA.show-google-fields: KoyTextBox { text: CA.google-client-secret; placeholder: Tr.t("CalClientSecretHint"); password: true; edited(t) => { CA.field-edited(1, t); } }
+        }
+    }
+    SettingRow {
+        filtered-out: S.changed-only;
+        VerticalLayout {
+            spacing: 8px;
+            horizontal-stretch: 1;
+            HorizontalLayout {
+                SettingText { title: Tr.t("CalOutlookTitle"); description: CA.outlook-status; }
+                if CA.outlook-available: VerticalLayout {
+                    alignment: center;
+                    if !CA.outlook-connected: KoyButton { text: Tr.t("CalConnectButton"); kind: ButtonKind.primary; enabled: !CA.outlook-busy; clicked => { CA.command("ConnectOutlook"); } }
+                    if CA.outlook-connected: KoyButton { text: Tr.t("CalDisconnectButton"); enabled: !CA.outlook-busy; clicked => { CA.command("DisconnectOutlook"); } }
+                }
+            }
+            if CA.outlook-available: KoyTextBox { text: CA.outlook-client-id; placeholder: Tr.t("CalClientIdHint"); edited(t) => { CA.field-edited(2, t); } }
+        }
+    }
+    SettingRow {
+        filtered-out: S.changed-only;
+        SettingText { title: ""; description: CA.message; }
+        VerticalLayout {
+            alignment: center;
+            KoyButton { text: Tr.t("CalSyncNowButton"); clicked => { CA.command("SyncNow"); } }
+        }
+    }
+}
+
 // Karşılığı: SubPages/CentikPanelsSubPage.xaml (hava durumu konumu ve takvim hesapları NotchPanelsAccounts'ta)
 export component NotchPanelsPage inherits VerticalLayout {
     spacing: 6px;
@@ -284,7 +416,7 @@ export component NotchPanelsPage inherits VerticalLayout {
     BoolRow { key: "Ui.PanelClipboard"; title: Tr.t("PanelClipboardTitle"); description: Tr.t("PanelClipboardDesc"); }
     BoolRow { key: "Clipboard.HistoryEnabled"; title: Tr.t("ClipboardHistoryTitle"); description: Tr.t("ClipboardHistoryDesc"); }
     BoolRow { key: "Ui.PanelSystem"; title: Tr.t("PanelSystemTitle"); description: ""; }
-    @children
+    NotchAccountsSection { }
     SectionHeader { text: Tr.t("PomodoroHeader"); }
     ListRow { key: "Focus.PomodoroWorkMinutes"; title: Tr.t("PomodoroWorkTitle"); description: ""; list: "PomodoroWorkOptions"; suffix: ""; }
     ListRow { key: "Focus.PomodoroShortBreakMinutes"; title: Tr.t("PomodoroShortBreakTitle"); description: ""; list: "PomodoroShortBreakOptions"; suffix: ""; }

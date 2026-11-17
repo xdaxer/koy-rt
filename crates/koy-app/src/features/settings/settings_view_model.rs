@@ -1278,6 +1278,7 @@ fn affects_notch(key: &str) -> bool {
             key,
             "Clipboard.HistoryEnabled"
                 | "Weather.RefreshInterval"
+                | "Weather.Location"
                 | "General.TemperatureUnit"
                 | "General.WindSpeedUnit"
                 | "General.NetworkSpeedUnit"

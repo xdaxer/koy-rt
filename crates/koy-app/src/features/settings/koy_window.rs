@@ -14,8 +14,9 @@ use crate::infra::native_window;
 use crate::resources::strings::Strings;
 use crate::resources::theme_manager::ThemeManager;
 use crate::resources::user_style_watcher::UserStyleWatcher;
-use crate::{DP, PR, RU, ProfileItemData, RuleItemData, SectionOptionData, KoyWindow, KoyWindowData, MonitorCardData, OrderItem, S, SC, SL, SearchResultData, ShortcutRowData, ToggleItem, Tr};
+use crate::{CA, DP, PR, RU, WX, ProfileItemData, RuleItemData, SectionOptionData, KoyWindow, KoyWindowData, MonitorCardData, OrderItem, S, SC, SL, SearchResultData, ShortcutRowData, ToggleItem, Tr};
 
+use super::accounts_view_models::{CalendarAccountsViewModel, WeatherLocationViewModel};
 use super::displays_view_model::DisplaysViewModel;
 use super::profile_service::ProfileService;
 use super::profiles_view_model::{ProfilesViewModel, section_label};
@@ -35,6 +36,8 @@ pub struct KoyWindowHost {
     displays: Rc<DisplaysViewModel>,
     profiles: Rc<ProfilesViewModel>,
     rules: Rc<RulesViewModel>,
+    weather: Rc<WeatherLocationViewModel>,
+    calendar: Rc<CalendarAccountsViewModel>,
     watcher: RefCell<Option<UserStyleWatcher>>,
     revert_timer: slint::Timer,
     highlight_timer: slint::Timer,
@@ -52,6 +55,8 @@ impl KoyWindowHost {
         let displays = DisplaysViewModel::new(Rc::clone(&vm));
         let profiles = ProfilesViewModel::new(ProfileService::instance());
         let rules = RulesViewModel::new(ProfileService::instance(), ContextRuleService::instance());
+        let weather = WeatherLocationViewModel::new(Rc::clone(&vm));
+        let calendar = CalendarAccountsViewModel::new();
         let host = Rc::new(KoyWindowHost {
             window,
             vm,
@@ -59,6 +64,8 @@ impl KoyWindowHost {
             displays,
             profiles,
             rules,
+            weather,
+            calendar,
             watcher: RefCell::new(None),
             revert_timer: slint::Timer::default(),
             highlight_timer: slint::Timer::default(),
@@ -117,8 +124,22 @@ impl KoyWindowHost {
                 h.vm.load_from_settings();
             }
         });
+        let weak = Rc::downgrade(&host);
+        host.weather.changed.subscribe(move || {
+            if let Some(h) = weak.upgrade() {
+                h.sync_weather();
+            }
+        });
+        let weak = Rc::downgrade(&host);
+        host.calendar.changed.subscribe(move || {
+            if let Some(h) = weak.upgrade() {
+                h.sync_calendar();
+            }
+        });
         host.sync_profiles();
         host.sync_rules();
+        host.sync_weather();
+        host.sync_calendar();
         Ok(host)
     }
 
@@ -186,6 +207,41 @@ impl KoyWindowHost {
             }
             None => pr.set_has_pending(false),
         }
+    }
+
+    /// Hesap bağlandı / kesildi / eşitlendi (çentiğin takvimi önbellekten yeniden okur).
+    pub fn calendar_accounts(&self) -> &Rc<CalendarAccountsViewModel> {
+        &self.calendar
+    }
+
+    fn sync_weather(&self) {
+        let wx = self.window.global::<WX>();
+        let (use_location, query, busy, status, link, no_results, has_location, results) = self.weather.view();
+        wx.set_use_location(use_location);
+        wx.set_query(ss(query));
+        wx.set_busy(busy);
+        wx.set_status(ss(status));
+        wx.set_show_settings_link(link);
+        wx.set_no_results(no_results);
+        wx.set_has_location(has_location);
+        wx.set_results(ModelRc::new(VecModel::from(results.into_iter().map(SharedString::from).collect::<Vec<_>>())));
+    }
+
+    fn sync_calendar(&self) {
+        let ca = self.window.global::<CA>();
+        let v = self.calendar.view();
+        ca.set_google_client_id(ss(&v.google_client_id));
+        ca.set_google_client_secret(ss(&v.google_client_secret));
+        ca.set_show_google_fields(v.show_google_client_fields);
+        ca.set_outlook_client_id(ss(&v.outlook_client_id));
+        ca.set_google_connected(v.is_google_connected);
+        ca.set_outlook_connected(v.is_outlook_connected);
+        ca.set_outlook_available(v.is_outlook_available);
+        ca.set_google_busy(v.is_google_busy);
+        ca.set_outlook_busy(v.is_outlook_busy);
+        ca.set_google_status(ss(&v.google_status_text));
+        ca.set_outlook_status(ss(&v.outlook_status_text));
+        ca.set_message(ss(&v.status_message));
     }
 
     fn sync_rules(&self) {
@@ -444,6 +500,71 @@ impl KoyWindowHost {
             });
         });
 
+        let wx = w.global::<WX>();
+        let m = Rc::downgrade(&self.weather);
+        wx.on_use_location_toggled(move |v| {
+            if let Some(m) = m.upgrade() {
+                m.set_use_location(v);
+            }
+        });
+        let m = Rc::downgrade(&self.weather);
+        wx.on_query_edited(move |t| {
+            if let Some(m) = m.upgrade() {
+                m.set_query(&t);
+            }
+        });
+        let m = Rc::downgrade(&self.weather);
+        wx.on_search(move || {
+            if let Some(m) = m.upgrade() {
+                m.search();
+            }
+        });
+        let m = Rc::downgrade(&self.weather);
+        wx.on_select(move |i| {
+            if let Some(m) = m.upgrade() {
+                m.select_place(i as usize);
+            }
+        });
+        let m = Rc::downgrade(&self.weather);
+        wx.on_clear(move || {
+            if let Some(m) = m.upgrade() {
+                m.clear_location();
+            }
+        });
+        let m = Rc::downgrade(&self.weather);
+        wx.on_open_location_settings(move || {
+            if let Some(m) = m.upgrade() {
+                m.open_location_settings();
+            }
+        });
+        let ca = w.global::<CA>();
+        let m = Rc::downgrade(&self.calendar);
+        ca.on_field_edited(move |i, t| {
+            if let Some(m) = m.upgrade() {
+                match i {
+                    0 => m.set_google_client_id(&t),
+                    1 => m.set_google_client_secret(&t),
+                    _ => m.set_outlook_client_id(&t),
+                }
+            }
+        });
+        let m = Rc::downgrade(&self.calendar);
+        ca.on_command(move |name| {
+            use koy_core::calendar::CalendarProvider;
+            let m = m.clone();
+            crate::infra::dispatch::post_local(move || {
+                let Some(m) = m.upgrade() else { return };
+                match name.as_str() {
+                    "ConnectGoogle" => m.connect(CalendarProvider::Google),
+                    "DisconnectGoogle" => m.disconnect(CalendarProvider::Google),
+                    "ConnectOutlook" => m.connect(CalendarProvider::Outlook),
+                    "DisconnectOutlook" => m.disconnect(CalendarProvider::Outlook),
+                    "SyncNow" => m.sync_now(),
+                    _ => {}
+                }
+            });
+        });
+
         let dp = w.global::<DP>();
         let d = Rc::downgrade(&self.displays);
         dp.on_identify(move || {
@@ -598,6 +719,8 @@ impl KoyWindowHost {
     pub fn show(&self, page: Option<i32>) {
         self.vm.load_from_settings();
         self.shortcuts.load();
+        self.weather.load();
+        self.calendar.load();
         if let Some(p) = page {
             self.vm.select_page(p);
         }
