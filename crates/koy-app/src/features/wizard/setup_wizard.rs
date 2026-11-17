@@ -77,6 +77,8 @@ impl SetupWizard {
                 let hwnd = native_window::hwnd_of(w.window());
                 if hwnd != 0 {
                     native_window::center_on_cursor_monitor(hwnd);
+                    // Gerçek bulanıklık, koyu çerçeve ve köşeler DWM'den (C# WindowFrame.Attach).
+                    crate::resources::window_frame::WindowFrame::attach(std::rc::Rc::new(move || hwnd), std::rc::Rc::new(std::cell::Cell::new(true)));
                     native_window::activate(hwnd);
                 }
             }
