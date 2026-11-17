@@ -443,6 +443,16 @@ impl NotchWindowHost {
         }
     }
 
+    /// Geliştirici: OLE sürüklemesi olmadan bırakma işleyicisini çalıştırır (canlı doğrulama; C# karşılığı yok).
+    pub fn dev_drop_files(&self, files: Vec<String>) {
+        if !self.vm.state().state.eq(&koy_core::notch::NotchState::Expanded) {
+            self.vm.expand_to_shelf();
+        }
+        self.on_drop(DropData::Files(files));
+        let n = self.vm.shelf.items().len();
+        crate::infra::trace::line(|| format!("dev bırakma: raftaki öğe sayısı {n}"));
+    }
+
     fn on_drop(&self, data: DropData) {
         self.vm.shelf.handle_drop(&data);
         self.gulp();

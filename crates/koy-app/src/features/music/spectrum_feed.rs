@@ -128,3 +128,33 @@ impl SpectrumFeed {
 fn is_silent(levels: &[f32]) -> bool {
     levels.iter().all(|l| *l <= 0.01)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sampled_takes_peak_of_each_slice_when_fewer_bars_than_bands() {
+        let feed = SpectrumFeed::new(8);
+        *feed.levels.borrow_mut() = vec![0.1, 0.9, 0.2, 0.3, 0.0, 0.4, 0.7, 0.5];
+        assert_eq!(vec![0.9, 0.3, 0.4, 0.7], feed.sampled(4));
+        // Bant sayısı kadar ya da fazla çubukta ham düzeyler aynen.
+        assert_eq!(8, feed.sampled(8).len());
+        assert_eq!(8, feed.sampled(12).len());
+    }
+
+    #[test]
+    fn sampled_covers_whole_spectrum_for_uneven_split() {
+        let feed = SpectrumFeed::new(5);
+        *feed.levels.borrow_mut() = vec![0.0, 0.0, 0.0, 0.0, 1.0];
+        let bars = feed.sampled(2);
+        assert_eq!(2, bars.len());
+        assert_eq!(1.0, bars[1], "son bant da örneklenmeli");
+    }
+
+    #[test]
+    fn silence_detection() {
+        assert!(is_silent(&[0.0, 0.01, 0.005]));
+        assert!(!is_silent(&[0.0, 0.02]));
+    }
+}

@@ -211,6 +211,19 @@ impl Inner {
         if !me.windows.borrow().is_empty() {
             return;
         }
+        // Geliştirici: KOY_DEV_DROP=<dosya> açılıştan 4 sn sonra dosyayı ilk çentiğin bırakma işleyicisine verir.
+        if let Ok(path) = std::env::var("KOY_DEV_DROP")
+            && !path.is_empty()
+        {
+            let w = Rc::downgrade(me);
+            slint::Timer::single_shot(std::time::Duration::from_secs(4), move || {
+                if let Some(me) = w.upgrade()
+                    && let Some(first) = me.windows.borrow().first()
+                {
+                    first.host.dev_drop_files(vec![path]);
+                }
+            });
+        }
         me.stopped.set(false);
         let settings = me.settings.borrow().clone();
         {
