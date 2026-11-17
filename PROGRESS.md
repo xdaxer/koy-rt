@@ -59,8 +59,13 @@
      denetim, duraklat, yeniden yükleme, tek örnek etkinleştirmesi, çıkışta görev çubuğu. `main` gerçek uygulamayı açar.
    - ✅ Canlı arka plan çizimi (`live_background_renderer.rs`, `ui/live_bg.slint`): ambiyans gradyanı 15 kare/sn, görsel,
      perde. Sapma: video ve GIF animasyonu yok (Slint); videolu önayar ambiyans renkleriyle, GIF ilk kare.
-   - Kalan: gerçek masaüstünde görsel doğrulama ve ince ayar (tam ekran uygulama açıkken yapılmadı); ölü kod uyarıları
-     (bağlanmamış küçük yardımcılar) temizliği.
+   - ✅ Canlı deneme (2026-11-17): tam uygulama gerçek ayarlarla açıldı; çentik ve dock çiziliyor, görev çubuğu gizlenip
+     `--restore-taskbar` ile geri geliyor, boşta işlemci ~%0, özel bellek ~17 MB; tek örnek etkinleştirmesi Koy
+     penceresini öne getiriyor; sihirbaz akrilikle açılıyor. Bulunup düzeltilenler: dock'un kendi HSHELL_REDRAW'ı ile
+     kendini besleyen yeniden çizim döngüsü, boşta dönen kare zamanlayıcısı, araç pencerelerinde kalan WS_CAPTION,
+     ortalanmayan pencereler, eksik DWM çerçevesi, ayarlar açılışında RefCell çakışması.
+   - Kalan: fareyle etkileşim denemeleri (çentiği açma, dock üzerinde gezinme / menüler, sürükle-bırak) ve ince ayar;
+     tanı için `KOY_TRACE=1` (`%TEMP%\koy-trace.log`).
    - Desen: C# ViewModel → Rust struct (`Rc`), görünüm durumu Slint bileşen özelliklerine / global'lere yazılır; olaylar
      arka plandan `dispatch::post` ile, Rc'ye `UiRef` ile ulaşılır. Pencereler `ThemeManager::install` ile temaya bağlanır.
    - Açık: UiScalePercent menüde `ui-scale` ile, diğer
