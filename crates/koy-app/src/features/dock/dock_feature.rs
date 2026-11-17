@@ -427,6 +427,7 @@ impl Inner {
     // ---- AppBar ----
 
     fn reassert_app_bar(&self, host: &Rc<DockWindowHost>, only_if_needed: bool) {
+        crate::infra::trace::bump(&crate::infra::trace::DOCK_APPBAR);
         let Some(ab) = self.svc.borrow().app_bar.clone() else { return };
         if host.hwnd() == 0 || self.stopping.get() {
             return;

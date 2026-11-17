@@ -13,3 +13,4 @@ pub mod single_instance;
 pub mod snapshot;
 pub mod system_events;
 pub mod ui_ref;
+pub mod trace;

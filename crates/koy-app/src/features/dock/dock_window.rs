@@ -178,6 +178,7 @@ impl DockWindowHost {
 
     /// Durumu pencereye yazar ve açılır pencereleri eşitler.
     fn refresh(&self) {
+        crate::infra::trace::bump(&crate::infra::trace::DOCK_REFRESH);
         let vm = self.vm();
         self.window.set_d(dock_binding::dock_data(&vm));
         self.window.set_p(dock_binding::presentation_data(vm.presentation()));
@@ -190,6 +191,8 @@ impl DockWindowHost {
         let s = self.window.window().size();
         let size = (s.width as f32, s.height as f32);
         if size != self.last_size.get() {
+            crate::infra::trace::bump(&crate::infra::trace::DOCK_RESIZE);
+            crate::infra::trace::line(|| format!("dock boyut {:?} -> {:?}", self.last_size.get(), size));
             self.last_size.set(size);
             vm.evaluate_position(self.content_length());
             self.reposition(None);
@@ -215,6 +218,7 @@ impl DockWindowHost {
     }
 
     fn on_frame(&self) {
+        crate::infra::trace::bump(&crate::infra::trace::DOCK_FRAME);
         let now = Instant::now();
         let dt = match self.last_frame.replace(Some(now)) {
             None => return,
@@ -311,6 +315,7 @@ impl DockWindowHost {
     /// Pencere bölgesi: görünen yüzey (kayma dahil), çekil tutamağı ve kenar çizgisi. Saydam pencere olmadığından
     /// kapsulün dışı ve gizlenmiş dock bu yolla görünmez ve tıklanmaz olur.
     fn apply_region(&self) {
+        crate::infra::trace::bump(&crate::infra::trace::DOCK_REGION);
         let hwnd = self.hwnd.get();
         if hwnd == 0 {
             return;

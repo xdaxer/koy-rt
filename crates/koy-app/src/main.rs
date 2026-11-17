@@ -68,6 +68,7 @@ fn main() -> Result<(), slint::PlatformError> {
         infra::dispatch::post(|| app::with_app(|a| a.show_koy_window(None)));
     });
 
+    let _trace = infra::trace::start();
     let app = app::App::start();
     let result = slint::run_event_loop_until_quit();
     app.dispose();
