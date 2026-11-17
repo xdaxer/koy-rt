@@ -44,14 +44,24 @@ export component PageSubtitle inherits Text {
     font-family: Theme.font;
 }
 
-// Bölüm başlığı (kenar boşluğu 2,24,0,8 çağıranın düzeninde verilir). `filtered-out`: "yalnız değişenler" süzgeci.
-export component SectionHeader inherits Text {
+// Bölüm başlığı: C# SectionHeaderStyle kenar boşluğu 2,24,0,8. Satırlar 4 px düzen boşluğuyla dizilir (C# satır alt
+// boşluğu 4), o yüzden üst 20, alt 4 verilir. `filtered-out`: "yalnız değişenler" süzgeci.
+export component SectionHeader inherits VerticalLayout {
+    in property <string> text;
     in property <bool> filtered-out;
-    font-size: Theme.font-section;
-    font-weight: 600;
-    color: Theme.text-muted;
-    font-family: Theme.font;
+    in property <color> color: Theme.text-muted;
     visible: !filtered-out;
+    padding-left: 2px;
+    padding-top: filtered-out ? 0 : 23px;
+    padding-bottom: filtered-out ? 0 : 4px;
+    height: filtered-out ? 0 : self.preferred-height;
+    Text {
+        text: root.text;
+        font-size: Theme.font-section;
+        font-weight: 600;
+        color: root.color;
+        font-family: Theme.font;
+    }
 }
 
 export component SettingTitle inherits Text {
@@ -87,6 +97,7 @@ export component SettingRow inherits Rectangle {
         border-radius: 2px;
         background: Theme.accent;
     }
+    // C# SettingRowStyle dolgusu 14,8.
     HorizontalLayout {
         padding-left: 14px;
         padding-right: 14px;
@@ -103,6 +114,8 @@ export component SettingText inherits VerticalLayout {
     in property <string> description;
     alignment: center;
     horizontal-stretch: 1;
+    // C# SettingDescStyle üst boşluğu 2; WPF satır yükseklikleriyle iki satırlı satır 53 px olsun diye 4.
+    spacing: 4px;
     SettingTitle { text: title; }
     if description != "": SettingDesc { text: description; }
 }

@@ -4,7 +4,7 @@
 
 import { Theme } from "theme.slint";
 import { Motion, TitleButton, NavItem, KoyTextBox, KoyCheckBox, KoyButton, ButtonKind, PageTitle, PageSubtitle,
-    SettingTitle, SettingDesc, KoyLogo, Segmented, SectionHeader, InfoNotice } from "controls.slint";
+    SettingTitle, SettingDesc, KoyLogo, KoyStartIcon, Segmented, SectionHeader, InfoNotice } from "controls.slint";
 import { Icons, KoyIcon } from "icons.slint";
 import { Tr, S } from "settings_kit.slint";
 import { SL, GeneralSystemPage, NotchBehaviorPage, NotchVisualsPage, NotchPanelsPage, NotchSearchPage, DockBehaviorPage,
@@ -64,14 +64,23 @@ component PageHeader inherits VerticalLayout {
     in property <string> subtitle;
     in property <[string]> tabs;
     in property <int> slot: -1;
-    spacing: 4px;
-    padding-bottom: 8px;
+    // C#: alt başlık 0,4,0,8 ve sekme çubuğu 0,8,0,12; ardından gelen bölüm başlığının 20 px üst boşluğuyla 36 px.
+    spacing: 0px;
+    // Ölçülerle C#'a eşlendi (Slint alt başlık satırı WPF'den birkaç px yüksek).
+    padding-bottom: root.tabs.length > 0 && !S.changed-only ? 8px : 4px;
     PageTitle { text: root.title; }
-    PageSubtitle { text: root.subtitle; }
+    VerticalLayout {
+        padding-top: 4px;
+        PageSubtitle { text: root.subtitle; }
+    }
     if root.tabs.length > 0 && !S.changed-only: HorizontalLayout {
         alignment: start;
-        padding-top: 8px;
+        padding-top: 11px;
+        // Sekme çubuğu kendi doğal yüksekliğinde (C# 32 px); düzen boşluğuyla dikeyde uzamasın.
+        vertical-stretch: 0;
         Segmented {
+            vertical-stretch: 0;
+            height: self.preferred-height;
             items: root.tabs;
             selected: KoyWindowData.sub-tabs[root.slot];
             changed(i) => {
@@ -92,9 +101,12 @@ component SidebarButton inherits Rectangle {
     border-width: primary ? 0 : 1px;
     border-color: Theme.danger-border;
     HorizontalLayout {
-        padding-left: 12px;
+        alignment: center;
         spacing: 10px;
-        KoyIcon { data: root.icon; size: 16px; color: root.primary ? Theme.on-accent : Theme.danger-text; }
+        VerticalLayout {
+            alignment: center;
+            KoyIcon { data: root.icon; size: 16px; color: root.primary ? Theme.on-accent : Theme.danger-text; }
+        }
         Text {
             text: root.text;
             color: root.primary ? Theme.on-accent : Theme.danger-text;
@@ -149,7 +161,7 @@ export component KoyWindow inherits Window {
                 spacing: 8px;
                 VerticalLayout {
                     alignment: center;
-                    KoyLogo { width: 16px; height: 16px; }
+                    KoyStartIcon { width: 16px; height: 16px; }
                 }
                 Text {
                     text: "Koy";
@@ -272,21 +284,23 @@ export component KoyWindow inherits Window {
                 horizontal-stretch: 1;
                 content := Flickable {
                     content-width: self.width;
-                    content-height: pages.preferred-height + 48px;
+                    content-height: pages.preferred-height + 72px;
                     pages := VerticalLayout {
                         x: 28px;
                         y: 24px;
-                        width: content.width - 52px;
-                        spacing: 6px;
+                        width: content.width - 80px;
+                        // Doğal yükseklik: kaydırma alanının fazlası satırlara dağıtılıp satırları uzatmasın.
+                        height: self.preferred-height;
+                        spacing: 0px;
                         if KoyWindowData.page == 0: VerticalLayout {
-                            spacing: 6px;
+                            spacing: 4px;
                             PageHeader { title: Tr.t("General"); subtitle: Tr.t("GeneralSubtitle"); slot: 0; tabs: [Tr.t("SubTabGeneralSystem"), Tr.t("SubTabGeneralProfiles"), Tr.t("SubTabGeneralRules")]; }
                             if S.changed-only || KoyWindowData.sub-tabs[0] == 0: GeneralSystemPage { }
                             if S.changed-only || KoyWindowData.sub-tabs[0] == 1: GeneralProfilesPage { }
                             if S.changed-only || KoyWindowData.sub-tabs[0] == 2: GeneralRulesPage { }
                         }
                         if KoyWindowData.page == 1: VerticalLayout {
-                            spacing: 6px;
+                            spacing: 4px;
                             PageHeader { title: Tr.t("NavNotch"); subtitle: Tr.t("NotchSubtitle"); slot: 1; tabs: [Tr.t("SubTabNotchBehavior"), Tr.t("SubTabNotchVisuals"), Tr.t("SubTabNotchPanels"), Tr.t("SubTabNotchSearch")]; }
                             if S.changed-only || KoyWindowData.sub-tabs[1] == 0: NotchBehaviorPage { }
                             if S.changed-only || KoyWindowData.sub-tabs[1] == 1: NotchVisualsPage { }
@@ -294,54 +308,65 @@ export component KoyWindow inherits Window {
                             if S.changed-only || KoyWindowData.sub-tabs[1] == 3: NotchSearchPage { }
                         }
                         if KoyWindowData.page == 2: VerticalLayout {
-                            spacing: 6px;
+                            spacing: 4px;
                             PageHeader { title: Tr.t("NavDock"); subtitle: Tr.t("DockSubtitle"); slot: 2; tabs: [Tr.t("SubTabDockBehavior"), Tr.t("SubTabDockAppearance"), Tr.t("SubTabDockSections")]; }
                             if S.changed-only || KoyWindowData.sub-tabs[2] == 0: DockBehaviorPage { }
                             if S.changed-only || KoyWindowData.sub-tabs[2] == 1: DockAppearancePage { }
                             if S.changed-only || KoyWindowData.sub-tabs[2] == 2: DockSectionsPage { }
                         }
                         if KoyWindowData.page == 3: VerticalLayout {
-                            spacing: 6px;
+                            spacing: 4px;
                             PageHeader { title: Tr.t("NavDisplays"); subtitle: Tr.t("DisplaysSubtitle"); }
                             DisplaysPage { }
                         }
                         if KoyWindowData.page == 4: VerticalLayout {
-                            spacing: 6px;
+                            spacing: 4px;
                             PageHeader { title: Tr.t("NavAppearance"); subtitle: Tr.t("AppearanceSubtitle"); slot: 3; tabs: [Tr.t("SubTabAppearanceTheme"), Tr.t("SubTabAppearanceScaleMotion")]; }
                             if S.changed-only || KoyWindowData.sub-tabs[3] == 0: AppearanceThemePage { }
                             if S.changed-only || KoyWindowData.sub-tabs[3] == 1: AppearanceScalePage { }
                         }
                         if KoyWindowData.page == 5: VerticalLayout {
-                            spacing: 6px;
+                            spacing: 4px;
                             PageHeader { title: Tr.t("NavShortcuts"); subtitle: Tr.t("ShortcutsSubtitle"); }
                             ShortcutsPage { }
                         }
                         if KoyWindowData.page == 6: VerticalLayout {
-                            spacing: 6px;
+                            spacing: 4px;
                             PageHeader { title: Tr.t("NavDictation"); subtitle: Tr.t("DictationSubtitle"); }
                             DictationPage { }
                         }
                         if KoyWindowData.page == 7: VerticalLayout {
-                            spacing: 6px;
+                            spacing: 4px;
                             PageHeader { title: Tr.t("NavPerformance"); subtitle: Tr.t("PerformanceSubtitle"); }
                             PerformancePage { memory-pct: KoyWindowData.memory-pct; memory-level: KoyWindowData.memory-level; }
                         }
                         if KoyWindowData.page == 8: VerticalLayout {
-                            spacing: 6px;
+                            spacing: 4px;
                             PageHeader { title: Tr.t("NavAbout"); subtitle: Tr.t("AboutSubtitle"); }
                             AboutPage { }
                         }
                         if KoyWindowData.page == 9: VerticalLayout {
-                            spacing: 6px;
+                            spacing: 4px;
                             PageHeader { title: Tr.t("NavAdvanced"); subtitle: Tr.t("AdvancedSubtitle"); }
                             AdvancedPage { }
                         }
                         if KoyWindowData.page == 10: VerticalLayout {
-                            spacing: 6px;
+                            spacing: 4px;
                             PageHeader { title: Tr.t("NavExtensions"); subtitle: Tr.t("ExtensionsSubtitle"); }
                             ExtensionsPage { }
                         }
                     }
+                }
+                // İnce kaydırma çubuğu (C# 8 px): içerik pencereden uzunsa sağda konumu gösterir.
+                if content.content-height > content.height: Rectangle {
+                    x: parent.width - 10px;
+                    width: 4px;
+                    property <float> ratio: content.height / content.content-height;
+                    height: max(24px, content.height * ratio);
+                    y: -content.content-y / (content.content-height - content.height) * (content.height - self.height);
+                    border-radius: 2px;
+                    background: Theme.text-muted;
+                    opacity: 0.45;
                 }
 
                 // Sayfa başına "Varsayılana döndür": başlığın sağında, iki adımlı onay. Dock ve Ekranlar'da yok.

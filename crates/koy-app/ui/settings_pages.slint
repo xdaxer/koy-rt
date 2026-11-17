@@ -198,7 +198,7 @@ component PickerRow inherits SettingRow {
 
 // Karşılığı: SubPages/GenelSystemSubPage.xaml
 export component GeneralSystemPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("StartupHeader"); }
     BoolRow { key: "Ui.RunAtStartup"; title: Tr.t("RunAtStartupTitle"); description: ""; }
     BoolRow { key: "Dock.HideWindowsTaskbar"; title: Tr.t("HideWindowsTaskbarTitle"); description: Tr.t("HideWindowsTaskbarDesc"); }
@@ -218,7 +218,7 @@ export component GeneralSystemPage inherits VerticalLayout {
 
 // Karşılığı: SubPages/CentikBehaviorSubPage.xaml
 export component NotchBehaviorPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("NotchHeader"); }
     SegRow { key: "Notch.Visibility"; title: Tr.t("VisibilityTitle"); description: Tr.t("VisibilityDesc"); values: ["Fixed", "Smart", "Peek"]; labels: [Tr.t("VisFixed"), Tr.t("VisSmart"), Tr.t("VisPeek")]; }
     SegRow { key: "Notch.Style"; title: Tr.t("NotchStyleTitle"); description: ""; values: ["Pinned", "Floating"]; labels: [Tr.t("NotchStylePinned"), Tr.t("NotchStyleFloating")]; }
@@ -244,7 +244,7 @@ export component NotchBehaviorPage inherits VerticalLayout {
 
 // Karşılığı: SubPages/CentikVisualsSubPage.xaml
 export component NotchVisualsPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("LiveBgHeader"); }
     SegRow { key: "Notch.LiveBackgroundTarget"; title: Tr.t("LiveBgTargetTitle"); description: Tr.t("LiveBgTargetDesc"); values: ["None", "Notch", "MusicCard", "Both"]; labels: [Tr.t("LiveBgTargetNone"), Tr.t("LiveBgTargetNotch"), Tr.t("LiveBgTargetMusicCard"), Tr.t("LiveBgTargetBoth")]; }
     SegRow { key: "Notch.LiveBackgroundSource"; title: Tr.t("LiveBgSourceTitle"); description: ""; values: ["BuiltInAmbient", "LocalFile"]; labels: [Tr.t("LiveBgSourceAmbient"), Tr.t("LiveBgSourceFile")]; enabled: S.flag("IsLiveBackgroundEnabled"); }
@@ -314,7 +314,7 @@ export global CA {
 }
 
 component NotchAccountsSection inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("WeatherHeader"); filtered-out: S.changed-only; }
     SettingRow {
         filtered-out: S.changed-only;
@@ -408,7 +408,7 @@ component NotchAccountsSection inherits VerticalLayout {
 
 // Karşılığı: SubPages/CentikPanelsSubPage.xaml (hava durumu konumu ve takvim hesapları NotchPanelsAccounts'ta)
 export component NotchPanelsPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("PanelsHeader"); }
     BoolRow { key: "Ui.PanelFocus"; title: Tr.t("PanelFocusTitle"); description: ""; }
     BoolRow { key: "Ui.PanelShelf"; title: Tr.t("PanelShelfTitle"); description: ""; }
@@ -451,7 +451,7 @@ export component NotchPanelsPage inherits VerticalLayout {
 
 // Karşılığı: SubPages/CentikSearchSubPage.xaml
 export component NotchSearchPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("SearchSourcesHeader"); filtered-out: S.changed-only; }
     for item[i] in SL.search-sources: ToggleListRow {
         title: item.title;
@@ -470,7 +470,7 @@ export component NotchSearchPage inherits VerticalLayout {
 
 // Karşılığı: SubPages/DockBehaviorSubPage.xaml
 export component DockBehaviorPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SegRow { key: "Dock.Edge"; title: Tr.t("DockEdgeTitle"); description: ""; values: ["Bottom", "Top", "Left", "Right"]; labels: [Tr.t("DockEdgeBottom"), Tr.t("DockEdgeTop"), Tr.t("DockEdgeLeft"), Tr.t("DockEdgeRight")]; }
     SegRow { key: "Dock.Style"; title: Tr.t("DockStyleTitle"); description: ""; values: ["FloatingCapsule", "FullWidth"]; labels: [Tr.t("StyleCapsule"), Tr.t("StyleFullWidth")]; }
     SliderRow { key: "Dock.LengthPercent"; title: Tr.t("DockLengthTitle"); description: ""; minimum: 10; maximum: 100; step: 5; suffix: "%"; }
@@ -511,7 +511,7 @@ export component DockBehaviorPage inherits VerticalLayout {
 
 // Karşılığı: SubPages/DockAppearanceSubPage.xaml
 export component DockAppearancePage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("DockSizeHeader"); }
     SegRow { key: "Dock.IconSize"; title: Tr.t("DockIconSizeTitle"); description: ""; values: ["24", "28", "34"]; labels: [Tr.t("SizeSmall"), Tr.t("SizeMedium"), Tr.t("SizeLarge")]; }
     BoolRow { key: "Dock.HoverMagnify"; title: Tr.t("HoverMagnifyTitle"); description: ""; }
@@ -528,7 +528,7 @@ export component DockAppearancePage inherits VerticalLayout {
 
 // Karşılığı: SubPages/DockSectionsSubPage.xaml
 export component DockSectionsPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("SectionsHeader"); }
     BoolRow { key: "Dock.ShowStartButton"; title: Tr.t("StartButtonTitle"); description: ""; }
     if S.on("Dock.ShowStartButton"): PickerRow {
@@ -561,7 +561,7 @@ export component DockSectionsPage inherits VerticalLayout {
 
 // Karşılığı: SubPages/GorunumThemeSubPage.xaml
 export component AppearanceThemePage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("ThemeHeader"); }
     SegRow { key: "Appearance.Theme"; title: Tr.t("ThemeTitle"); description: ""; values: ["System", "Dark", "Light"]; labels: [Tr.t("ThemeSystem"), Tr.t("ThemeDark"), Tr.t("ThemeLight")]; }
     SettingRow {
@@ -605,7 +605,7 @@ export component AppearanceThemePage inherits VerticalLayout {
 
 // Karşılığı: SubPages/GorunumScaleMotionSubPage.xaml
 export component AppearanceScalePage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("FontSectionTitle"); }
     ListRow { key: "Appearance.UiScalePercent"; title: Tr.t("UiScaleLabel"); description: Tr.t("UiScaleDesc"); list: "UiScaleOptions"; suffix: "%"; }
     ListRow { key: "Appearance.FontFamily"; title: Tr.t("FontFamilyLabel"); description: ""; list: "FontOptions"; suffix: ""; }
@@ -646,7 +646,7 @@ export component AppearanceScalePage inherits VerticalLayout {
 
 // Karşılığı: DiktePage.xaml
 export component DictationPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("VoiceHeader"); }
     SegRow { key: "Voice.Harness"; title: Tr.t("VoiceHarnessTitle"); description: Tr.t("VoiceHarnessDesc"); values: ["Claude", "Codex", "Agy", "Custom"]; labels: ["Claude", "Codex", "Antigravity", Tr.t("VoiceHarnessCustom")]; }
     if S.get("Voice.Harness") == "Claude": SegRow { key: "Voice.ClaudePermission"; title: Tr.t("VoicePermissionTitle"); description: Tr.t("VoicePermissionDesc"); values: ["Default", "AcceptEdits", "Auto"]; labels: [Tr.t("VoicePermissionReadOnly"), Tr.t("VoicePermissionAcceptEdits"), Tr.t("VoicePermissionAuto")]; }
@@ -657,7 +657,7 @@ export component DictationPage inherits VerticalLayout {
 
 // Karşılığı: PerformansPage.xaml
 export component PerformancePage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     in property <float> memory-pct;
     in property <int> memory-level;
     SettingRow {
@@ -697,7 +697,7 @@ export component PerformancePage inherits VerticalLayout {
 
 // Karşılığı: HakkindaPage.xaml
 export component AboutPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SettingRow {
         filtered-out: S.changed-only;
         HorizontalLayout {
@@ -820,7 +820,7 @@ component ShortcutRowView inherits SettingRow {
 
 // Karşılığı: KisayollarPage.xaml
 export component ShortcutsPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("KeyboardHeader"); filtered-out: S.changed-only; }
     for r[i] in SC.rows: ShortcutRowView { sc-row: r; index: i; }
     if !S.changed-only: InfoNotice { text: Tr.t("ShortcutsNotice"); }
@@ -908,7 +908,7 @@ component MonitorCardView inherits Rectangle {
 
 // Karşılığı: EkranlarPage.xaml
 export component DisplaysPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     HorizontalLayout {
         alignment: start;
         KoyButton { text: Tr.t("DisplaysIdentify"); clicked => { DP.identify(); } }
@@ -1086,7 +1086,7 @@ component ProfileRow inherits SettingRow {
 
 // Karşılığı: SubPages/GenelProfilesSubPage.xaml
 export component GeneralProfilesPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("ProfilesHeader"); filtered-out: S.changed-only; }
     SettingRow {
         filtered-out: S.changed-only;
@@ -1171,7 +1171,7 @@ export global RU {
 
 // Karşılığı: SubPages/GenelRulesSubPage.xaml
 export component GeneralRulesPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("RulesHeader"); filtered-out: S.changed-only; }
     SettingRow {
         filtered-out: S.changed-only;
@@ -1304,7 +1304,7 @@ component AdvancedRowView inherits Rectangle {
 
 // Karşılığı: GelismisPage.xaml
 export component AdvancedPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     InfoNotice { text: Tr.t("AdvancedWarning"); }
     KoyTextBox {
         text: AD.filter;
@@ -1493,7 +1493,7 @@ component BuiltinCardView inherits Rectangle {
 
 // Karşılığı: EklentilerPage.xaml
 export component ExtensionsPage inherits VerticalLayout {
-    spacing: 6px;
+    spacing: 4px;
     SectionHeader { text: Tr.t("ExtFromFileHeader"); }
     SettingRow {
         SettingText { title: Tr.t("ExtFromFileTitle"); description: Tr.t("ExtFromFileDesc"); }
