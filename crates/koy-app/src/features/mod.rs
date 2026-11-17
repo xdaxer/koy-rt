@@ -5,6 +5,7 @@ pub mod calendar;
 pub mod clipboard_panel;
 pub mod control_center;
 pub mod dock;
+pub mod extensions;
 pub mod focus;
 pub mod home;
 pub mod menu;
