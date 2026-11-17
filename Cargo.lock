@@ -2201,7 +2201,7 @@ checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
 
 [[package]]
 name = "koy-app"
-version = "0.2.12"
+version = "0.2.13"
 dependencies = [
  "chrono",
  "koy-core",
@@ -2216,7 +2216,7 @@ dependencies = [
 
 [[package]]
 name = "koy-core"
-version = "0.2.12"
+version = "0.2.13"
 dependencies = [
  "chrono",
  "regex",
@@ -2227,7 +2227,7 @@ dependencies = [
 
 [[package]]
 name = "koy-platform"
-version = "0.2.12"
+version = "0.2.13"
 dependencies = [
  "chrono",
  "koy-core",
@@ -2241,7 +2241,7 @@ dependencies = [
 
 [[package]]
 name = "koy-watchdog"
-version = "0.2.12"
+version = "0.2.13"
 dependencies = [
  "koy-core",
  "koy-platform",

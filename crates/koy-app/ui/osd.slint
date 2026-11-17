@@ -160,10 +160,13 @@ export component NotchCardView inherits Rectangle {
     in property <OsdData> d;
     callback primary-action();
     callback dismiss();
+    callback hover-changed(bool);
     width: 380px;
     height: 72px;
-    // Kartın üstüne basmak çentiği açmasın.
-    TouchArea { }
+    // Kartın üstüne basmak çentiği açmasın; imleç üstündeyken otomatik kapanma duraklar.
+    TouchArea {
+        changed has-hover => { root.hover-changed(self.has-hover); }
+    }
     HorizontalLayout {
         padding-left: 18px;
         padding-right: 14px;

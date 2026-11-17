@@ -37,6 +37,7 @@ struct Locator {
     is_installed: bool,
     is_portable: bool,
     update_exe: Option<PathBuf>,
+    root: Option<PathBuf>,
 }
 
 fn locate() -> Locator {
@@ -50,9 +51,27 @@ fn locate() -> Locator {
             is_installed: true,
             is_portable: root.join(".portable").exists(),
             update_exe: Some(root.join("Update.exe")),
+            root: Some(root.to_path_buf()),
         },
-        None => Locator { is_installed: false, is_portable: false, update_exe: None },
+        None => Locator { is_installed: false, is_portable: false, update_exe: None, root: None },
     }
+}
+
+/// Kurulu (taşınabilir olmayan) sürüm mü. C# `Program.IsVelopackInstalled`.
+pub fn is_installed_build() -> bool {
+    let l = locate();
+    l.is_installed && !l.is_portable
+}
+
+/// Otomatik başlatmaya yazılacak yol: kurulu sürümde kök klasördeki kalıcı saplama (`current\koy.exe` yerine).
+/// C# `Program.ResolveStartupExePath`.
+pub fn resolve_startup_exe_path() -> Option<String> {
+    let l = locate();
+    let process = std::env::current_exe().ok().map(|p| p.to_string_lossy().into_owned());
+    let root = l.root.map(|r| r.to_string_lossy().into_owned());
+    koy_core::shell::StartupPathPolicy::resolve_target_path(l.is_installed, l.is_portable, root.as_deref(), process.as_deref(), |p| {
+        Path::new(p).is_file()
+    })
 }
 
 pub fn availability() -> UninstallAvailability {
@@ -73,6 +92,9 @@ pub fn begin(keep_settings: bool, shutdown: impl FnOnce()) -> bool {
     DELETE_SETTINGS.with(|c| c.set(!keep_settings));
 
     koy_platform::shell::taskbar_service::restore(0, false);
+    if !koy_platform::shell::StartupService::set_enabled(false) {
+        CrashLog::write("Kaldırma: başlatma kaydı silinemedi", &CrashError::object("StartupService::set_enabled(false) başarısız oldu."));
+    }
     let clean = UninstallCleaner::run(&roaming_dir(), &local_dir(), keep_settings);
     if !clean.failed.is_empty() {
         CrashLog::write("Kaldırma: silinemeyen dosyalar", &CrashError::object(clean.failed.join("\n")));

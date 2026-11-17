@@ -15,6 +15,12 @@ export struct NotchData {
     state: int,
     current-panel: int,
     surface: color,
+    // Kapalı çentik ambiyans zemini: soldan sağa dört durak (has-gradient değilse düz surface).
+    has-gradient: bool,
+    g1: color,
+    g2: color,
+    g3: color,
+    g4: color,
     show-collapsed-layout: bool,
     show-peek-layout: bool,
     osd-active: bool,
@@ -67,6 +73,11 @@ export struct NotchData {
     show-tab-bar: bool,
     side-tabs: [NotchTabData],
     is-pinned: bool,
+}
+
+// Kapalı çentikteki canlı ses çubukları (px); yakalama hızında ayrı güncellenir (bütün NotchData yeniden kurulmaz).
+export global NotchWave {
+    in property <[float]> bars;
 }
 
 export global NotchText {
@@ -355,7 +366,7 @@ component CollapsedView inherits Rectangle {
         if d.show-music-waveform: HorizontalLayout {
             spacing: 2px;
             alignment: center;
-            for b in d.waveform-bars: VerticalLayout {
+            for b in NotchWave.bars: VerticalLayout {
                 alignment: center;
                 Rectangle {
                     height: 14px;
@@ -542,7 +553,7 @@ export component NotchSurface inherits Rectangle {
         viewbox-width: self.width / 1px;
         viewbox-height: self.height / 1px;
         commands: shape-path;
-        fill: d.surface;
+        fill: d.has-gradient ? @linear-gradient(90deg, d.g1 0%, d.g2 33%, d.g3 66%, d.g4 100%) : d.surface;
     }
     // Canlı arka plan (açık çentiğin zemini): içeriğin altında, fareyi geçirir.
     if LiveBg.notch-kind != 0: LiveBgLayer {

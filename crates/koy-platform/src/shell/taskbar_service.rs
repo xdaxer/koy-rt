@@ -33,30 +33,37 @@ fn app_bar_data(hwnd: HWND) -> APPBARDATA {
 /// Explorer yeniden başlayınca da aynı çağrı gizlemeyi yeniden uygular.
 pub fn hide() {
     let saved = read_saved_state();
-    let primary = find_explorer_tray(0);
-    let mut prev_state = match saved {
-        Some(s) if s.hidden => s.previous_state,
-        _ => TaskbarStatePolicy::ALWAYS_ON_TOP,
+    let Some(primary) = find_explorer_tray(0) else {
+        // Gezgin henüz görev çubuğunu kurmadıysa (oturum açılışı): önceki durumu tahmin edip dosyaya yazma;
+        // Shell_TrayWnd oluşunca yeniden gizleme gerçek durumu okuyup gizler.
+        return;
     };
+    let mut data = app_bar_data(primary);
+    // SAFETY: data geçerli boyutlu APPBARDATA.
+    let current = unsafe { SHAppBarMessage(ABM_GETSTATE, &mut data) } as i32;
+    let prev_state = TaskbarStatePolicy::choose_previous_state(saved, current);
 
-    if let Some(primary) = primary {
-        let mut data = app_bar_data(primary);
-        // SAFETY: data geçerli boyutlu APPBARDATA.
-        let current = unsafe { SHAppBarMessage(ABM_GETSTATE, &mut data) } as i32;
-        prev_state = TaskbarStatePolicy::choose_previous_state(saved, current);
-
-        // Zaten otomatik gizlemedeyse yeniden SETSTATE gönderilmez: Gezgin her SETSTATE'te çalışma alanını yeniden
-        // hesaplar ve dock'un AppBar payını bir an düşürür (büyütülmüş pencereler sıçrar).
-        if current & ABS_AUTOHIDE == 0 {
-            data.lParam = LPARAM(ABS_AUTOHIDE as isize);
-            // SAFETY: yukarıdaki gibi.
-            unsafe { SHAppBarMessage(ABM_SETSTATE, &mut data) };
-        }
+    // Zaten otomatik gizlemedeyse yeniden SETSTATE gönderilmez: Gezgin her SETSTATE'te çalışma alanını yeniden
+    // hesaplar ve dock'un AppBar payını bir an düşürür (büyütülmüş pencereler sıçrar).
+    if current & ABS_AUTOHIDE == 0 {
+        data.lParam = LPARAM(ABS_AUTOHIDE as isize);
+        // SAFETY: yukarıdaki gibi.
+        unsafe { SHAppBarMessage(ABM_SETSTATE, &mut data) };
     }
 
     save_state(TaskbarSavedState { hidden: true, previous_state: prev_state });
     set_visible(false);
     on_hidden();
+}
+
+/// Windows Gezgini görev çubuğu penceresi hazır mı (oturum açılışında henüz oluşmamış olabilir).
+pub fn is_explorer_taskbar_ready() -> bool {
+    find_explorer_tray(0).is_some()
+}
+
+/// Önceki oturumdan kalan geri yüklenecek görev çubuğu durumu var mı.
+pub fn has_pending_restore() -> bool {
+    TaskbarStatePolicy::should_write_state(read_saved_state(), false)
 }
 
 /// Görev çubuğunu (birincil ve bütün ikincil monitörlerdekileri) geri getirir ve durumu önceki haline döndürür.

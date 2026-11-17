@@ -58,6 +58,11 @@ pub fn to_data(vm: &NotchViewModel) -> NotchData {
         state: state_index(st.state),
         current_panel: panel_index(st.current_panel),
         surface: Color::from_argb_encoded(st.surface),
+        has_gradient: st.surface_gradient.len() >= 2,
+        g1: gradient_at(&st.surface_gradient, 0.0),
+        g2: gradient_at(&st.surface_gradient, 1.0 / 3.0),
+        g3: gradient_at(&st.surface_gradient, 2.0 / 3.0),
+        g4: gradient_at(&st.surface_gradient, 1.0),
         show_collapsed_layout: vm.show_collapsed_layout(),
         show_peek_layout: vm.show_peek_layout(),
         osd_active: vm.osd.is_active(),
@@ -95,7 +100,7 @@ pub fn to_data(vm: &NotchViewModel) -> NotchData {
         has_thumbnail: music.thumbnail.is_some(),
         thumbnail: music.thumbnail.clone().unwrap_or_default(),
         show_music_waveform: vm.show_music_waveform(),
-        waveform_bars: ModelRc::new(VecModel::from(vm.waveform_bars.iter().map(|v| *v as f32).collect::<Vec<_>>())),
+        waveform_bars: ModelRc::new(VecModel::from(vm.collapsed_bar_heights())),
         waveform_color: Color::from_argb_encoded(vm.waveform_color()),
         status_time: SharedString::from(status.current_time.as_str()),
         show_weather: vm.home.show_weather(),
@@ -107,5 +112,21 @@ pub fn to_data(vm: &NotchViewModel) -> NotchData {
         show_tab_bar: vm.show_tab_bar(),
         side_tabs: ModelRc::new(VecModel::from(vm.side_tabs().iter().map(tab).collect::<Vec<_>>())),
         is_pinned: vm.is_pinned(),
+    }
+}
+
+/// n duraklı gradyanın `pos` (0..1) noktasındaki rengi (Slint tarafı dört durakla çizer).
+fn gradient_at(stops: &[u32], pos: f32) -> Color {
+    match stops.len() {
+        0 => Color::default(),
+        1 => Color::from_argb_encoded(stops[0]),
+        n => {
+            let seg = pos.clamp(0.0, 1.0) * (n - 1) as f32;
+            let i = (seg.floor() as usize).min(n - 2);
+            let t = seg - i as f32;
+            let (a, b) = (Color::from_argb_encoded(stops[i]), Color::from_argb_encoded(stops[i + 1]));
+            let m = |x: u8, y: u8| (x as f32 + (y as f32 - x as f32) * t).round() as u8;
+            Color::from_argb_u8(m(a.alpha(), b.alpha()), m(a.red(), b.red()), m(a.green(), b.green()), m(a.blue(), b.blue()))
+        }
     }
 }

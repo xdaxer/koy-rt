@@ -103,6 +103,8 @@ pub struct NotchVmState {
     pub privacy_tool_tip: String,
     /// Çentik şeklinin zemini (ARGB).
     pub surface: u32,
+    /// Kapalı çentik ambiyans zemini: soldan sağa gradyan durakları (boşsa düz `surface`).
+    pub surface_gradient: Vec<u32>,
 }
 
 pub struct NotchParts {
@@ -135,8 +137,6 @@ pub struct NotchViewModel {
     pub home: Rc<HomeViewModel>,
     pub osd: Rc<OsdIndicatorViewModel>,
     pub live_background: Rc<LiveBackgroundState>,
-    /// Kapalı çentikteki dalga simgesi çubuklarının yükseklikleri.
-    pub waveform_bars: Vec<f64>,
     /// Kontrol paneli açıksa Wi-Fi / Bluetooth izlenir ve kapalı çentikte simgeleri gösterilebilir.
     pub show_radio_status: bool,
     search: RefCell<Option<Rc<SearchViewModel>>>,
@@ -147,6 +147,8 @@ pub struct NotchViewModel {
     ring_percent: Cell<i32>,
     opaque_surface: Cell<u32>,
     glass_surface: Cell<u32>,
+    /// Ambiyans kipinde seçili önayarın okunabilir koyuluğa çekilmiş statik renkleri (video ya da zamanlayıcı yok).
+    ambient_collapsed: Vec<u32>,
     core_subs: RefCell<Vec<Box<dyn FnOnce()>>>,
     disposed: Cell<bool>,
     pub changed: Notifier,
@@ -167,9 +169,21 @@ const DEFAULT_SURFACE: u32 = 0xFF0A_0A0B;
 
 impl NotchViewModel {
     pub fn new(p: NotchParts) -> Rc<Self> {
-        let (bar_count, live_bg, home_cards) = {
+        let ambient_collapsed = {
             let s = p.settings.borrow();
-            (s.music.visualizer_bar_count, LiveBackgroundState::new(&s.notch), s.notch.home_cards.iter().copied().collect::<Vec<_>>())
+            let n = &s.notch;
+            if n.collapsed_background == koy_core::notch::NotchCollapsedBackground::Ambient {
+                koy_core::notch::CollapsedBackgroundPolicy::resolve_ambient_stops(Some(&n.live_background_preset))
+                    .iter()
+                    .map(|c| 0xFF00_0000 | ((c.r as u32) << 16) | ((c.g as u32) << 8) | c.b as u32)
+                    .collect::<Vec<u32>>()
+            } else {
+                Vec::new()
+            }
+        };
+        let (live_bg, home_cards) = {
+            let s = p.settings.borrow();
+            (LiveBackgroundState::new(&s.notch), s.notch.home_cards.iter().copied().collect::<Vec<_>>())
         };
         let controller = Arc::clone(&p.controller);
         let open_focus_ctrl = Arc::clone(&controller);
@@ -199,7 +213,6 @@ impl NotchViewModel {
             home,
             osd: OsdIndicatorViewModel::new(),
             live_background: Rc::new(live_bg),
-            waveform_bars: generate_waveform_bars(bar_count),
             show_radio_status: false,
             search: RefCell::new(None),
             window_before_search: Cell::new(0),
@@ -227,12 +240,14 @@ impl NotchViewModel {
                 is_microphone_active: false,
                 privacy_tool_tip: String::new(),
                 surface: DEFAULT_SURFACE,
+                surface_gradient: Vec::new(),
             }),
             clock_timer: RefCell::new(None),
             time_changed_sub: RefCell::new(None),
             ring_percent: Cell::new(-1),
             opaque_surface: Cell::new(DEFAULT_SURFACE),
             glass_surface: Cell::new(DEFAULT_SURFACE),
+            ambient_collapsed,
             core_subs: RefCell::new(Vec::new()),
             disposed: Cell::new(false),
             changed: Notifier::default(),
@@ -363,8 +378,12 @@ impl NotchViewModel {
         let id = self.music.changed.subscribe(move || {
             if let Some(vm) = w.upgrade() {
                 let playing = vm.is_music_playing();
-                if playing != last_playing.replace(playing) && vm.state.borrow().state == NotchState::Collapsed {
+                let state = vm.state.borrow().state;
+                if playing != last_playing.replace(playing) && state == NotchState::Collapsed {
                     vm.update_target_size();
+                    vm.update_active_panels();
+                } else if state != NotchState::Expanded {
+                    vm.update_surface();
                 }
                 vm.changed.notify();
             }
@@ -397,7 +416,7 @@ impl NotchViewModel {
                 // Fişe takılıp çıkarılınca canlı arka plan hareket ↔ ilk kare arasında geçer.
                 let on_battery = vm.status.state().is_on_battery;
                 if on_battery != last_on_battery.replace(on_battery) {
-                    vm.update_live_background();
+                    vm.update_active_panels();
                 }
                 vm.changed.notify();
             }
@@ -425,14 +444,20 @@ impl NotchViewModel {
                 vm.visibility.on_media_activity();
                 // Kart gösterildiği sürece çentik gizlenmez.
                 vm.visibility.set_hold(vm.osd.kind() == OsdType::Card);
+                // Kart görünürken imleç kartın ya da × düğmesinin üstüne gelince çentik kendiliğinden açılmasın. Ses /
+                // parlaklık gibi düğmesiz göstergelerde bastırılmaz.
+                vm.controller.set_hover_open_suppressed(vm.is_card_shown());
                 vm.update_target_size();
+                vm.update_active_panels();
             }
         });
         let w = Rc::downgrade(self);
         self.osd.dismissed.subscribe(move || {
             if let Some(vm) = w.upgrade() {
                 vm.visibility.set_hold(false);
+                vm.controller.set_hover_open_suppressed(vm.is_card_shown());
                 vm.update_target_size();
+                vm.update_active_panels();
             }
         });
         let w = Rc::downgrade(self);
@@ -828,13 +853,14 @@ impl NotchViewModel {
             self.music.lyrics.set_allowed(lyrics);
         }
         let on_home = panel == NotchPanel::Home;
-        self.music.set_active(is_expanded && on_home && self.home.is_music_page());
+        let shown = is_expanded && visible;
+        self.music.set_active(shown && on_home && self.home.is_music_page());
+        self.music.set_collapsed_spectrum_active(visible && state == NotchState::Collapsed && !self.osd.is_active());
         // Saat, hava ve pil her sekmede üstteki durum satırında görünür.
         self.status.set_active(is_expanded);
         self.control_center.set_active(is_expanded && panel == NotchPanel::ControlCenter);
         self.focus.set_viewing(is_expanded && panel == NotchPanel::Focus, visible);
         // Her servis yalnız sayfası görünürken çalışır (boşta %0 CPU).
-        let shown = is_expanded && visible;
         let home_face = shown && on_home && self.home.is_home_page();
         self.home.stats.set_active(home_face || (shown && panel == NotchPanel::System));
         self.home.quick_launch.set_active(home_face);
@@ -908,9 +934,51 @@ impl NotchViewModel {
         self.music.set_card_alpha(alpha);
     }
 
+    fn is_card_shown(&self) -> bool {
+        self.osd.is_active() && self.osd.kind() == OsdType::Card
+    }
+
     fn update_surface(&self) {
-        let glassy = if self.osd.is_active() { self.osd.kind() == OsdType::Card } else { self.state.borrow().state == NotchState::Expanded };
-        self.state.borrow_mut().surface = if glassy { self.glass_surface.get() } else { self.opaque_surface.get() };
+        let (surface, gradient) = if self.osd.is_active() {
+            (if self.osd.kind() == OsdType::Card { self.glass_surface.get() } else { self.opaque_surface.get() }, Vec::new())
+        } else if self.state.borrow().state == NotchState::Expanded {
+            (self.glass_surface.get(), Vec::new())
+        } else {
+            self.resolve_collapsed_surface()
+        };
+        let mut st = self.state.borrow_mut();
+        st.surface = surface;
+        st.surface_gradient = gradient;
+    }
+
+    /// Kapalı çentik zemini: Varsayılan, Albüm rengi (yalnız çalarken; duraklatılınca varsayılana döner) ya da Ambiyans.
+    fn resolve_collapsed_surface(&self) -> (u32, Vec<u32>) {
+        use koy_core::notch::NotchCollapsedBackground as B;
+        match self.settings.borrow().notch.collapsed_background {
+            B::AlbumColor => {
+                let m = self.music.state();
+                if m.has_track && m.is_playing && let Some(c) = m.paint.collapsed_album {
+                    return (c.as_argb_encoded(), Vec::new());
+                }
+            }
+            B::Ambient if !self.ambient_collapsed.is_empty() => {
+                if self.ambient_collapsed.len() == 1 {
+                    return (self.ambient_collapsed[0], Vec::new());
+                }
+                return (self.ambient_collapsed[0], self.ambient_collapsed.clone());
+            }
+            _ => {}
+        }
+        (self.opaque_surface.get(), Vec::new())
+    }
+
+    /// Kapalı çentikteki canlı ses çubuklarının yükseklikleri (px, 14 px kutu; en az 3 px). Yakalama yokken hepsi en
+    /// küçük çubuktur. C# `SpectrumBars` (Bars).
+    pub fn collapsed_bar_heights(&self) -> Vec<f32> {
+        let count = NotchVisualizer::clamp_bar_count(self.settings.borrow().music.visualizer_bar_count).max(0) as usize;
+        let mut levels = self.music.spectrum.sampled(count);
+        levels.resize(count, 0.0);
+        levels.into_iter().map(|l| (l * 14.0).round().max(3.0)).collect()
     }
 
     fn on_material_changed(&self) {
@@ -1040,19 +1108,3 @@ impl NotchViewModel {
     }
 }
 
-fn generate_waveform_bars(count: i32) -> Vec<f64> {
-    let clamped = NotchVisualizer::clamp_bar_count(count).max(0) as usize;
-    const PATTERN: [f64; 16] = [6.0, 12.0, 14.0, 10.0, 5.0, 11.0, 14.0, 8.0, 6.0, 13.0, 9.0, 5.0, 12.0, 14.0, 7.0, 5.0];
-    (0..clamped).map(|i| PATTERN[i % PATTERN.len()]).collect()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn waveform_pattern_repeats() {
-        let bars = generate_waveform_bars(NotchVisualizer::clamp_bar_count(5));
-        assert_eq!(bars[..5], [6.0, 12.0, 14.0, 10.0, 5.0]);
-    }
-}

@@ -93,6 +93,9 @@ impl OsdState {
 pub struct OsdIndicatorViewModel {
     state: RefCell<OsdState>,
     timer: RefCell<Option<slint::Timer>>,
+    /// Otomatik kapanma: başlangıç anı ve süre; duraklatılınca kalan süre.
+    auto_dismiss: Cell<Option<(std::time::Instant, Duration)>>,
+    paused_remaining: Cell<Option<Duration>>,
     audio: RefCell<Option<(Arc<dyn IAudioService>, Subscription)>>,
     brightness: RefCell<Option<(Arc<dyn IBrightnessService>, Subscription)>>,
     disposed: Cell<bool>,
@@ -114,6 +117,8 @@ impl OsdIndicatorViewModel {
         Rc::new(OsdIndicatorViewModel {
             state: RefCell::new(OsdState::default()),
             timer: RefCell::new(None),
+            auto_dismiss: Cell::new(None),
+            paused_remaining: Cell::new(None),
             audio: RefCell::new(None),
             brightness: RefCell::new(None),
             disposed: Cell::new(false),
@@ -144,10 +149,13 @@ impl OsdIndicatorViewModel {
     }
 
     fn reset_timer(self: &Rc<Self>, interval: Duration) {
+        self.paused_remaining.set(None);
+        self.auto_dismiss.set(Some((std::time::Instant::now(), interval)));
         let weak = Rc::downgrade(self);
         *self.timer.borrow_mut() = Some(dispatch::delay(interval, move || {
             if let Some(vm) = weak.upgrade() {
                 *vm.timer.borrow_mut() = None;
+                vm.paused_remaining.set(None);
                 vm.dismiss();
             }
         }));
@@ -157,7 +165,11 @@ impl OsdIndicatorViewModel {
         self.state.borrow_mut().is_active = true;
         match interval {
             Some(i) => self.reset_timer(i),
-            None => *self.timer.borrow_mut() = None,
+            None => {
+                *self.timer.borrow_mut() = None;
+                self.auto_dismiss.set(None);
+                self.paused_remaining.set(None);
+            }
         }
         self.changed.notify();
         self.activated.notify();
@@ -363,11 +375,36 @@ impl OsdIndicatorViewModel {
         self.dismiss_requested.invoke(&card);
     }
 
-    pub fn dismiss(&self) {
-        if !self.state.borrow().is_active {
+    /// İmleç kart üzerindeyken otomatik kapanma sayacını kalan süreyi koruyarak duraklatır.
+    pub fn pause_auto_dismiss(&self) {
+        if self.disposed.get() || !self.state.borrow().is_active || self.paused_remaining.get().is_some() || self.timer.borrow().is_none() {
             return;
         }
         *self.timer.borrow_mut() = None;
+        let remaining = self
+            .auto_dismiss
+            .get()
+            .map(|(start, d)| d.saturating_sub(start.elapsed()))
+            .filter(|r| !r.is_zero())
+            .unwrap_or(Duration::from_millis(1));
+        self.paused_remaining.set(Some(remaining));
+    }
+
+    /// İmleç karttan ayrılınca otomatik kapanma sayacı kaldığı süreden devam eder.
+    pub fn resume_auto_dismiss(self: &Rc<Self>) {
+        if self.disposed.get() || !self.state.borrow().is_active {
+            return;
+        }
+        let Some(remaining) = self.paused_remaining.take() else { return };
+        self.reset_timer(remaining);
+    }
+
+    pub fn dismiss(&self) {
+        *self.timer.borrow_mut() = None;
+        self.paused_remaining.set(None);
+        if !self.state.borrow().is_active {
+            return;
+        }
         *self.state.borrow_mut() = OsdState::default();
         self.changed.notify();
         self.dismissed.notify();

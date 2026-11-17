@@ -492,12 +492,14 @@ impl Inner {
     }
 
     fn reapply_taskbar_hiding(&self) {
-        if self.windows.borrow().is_empty() {
+        if self.windows.borrow().is_empty() || self.stopping.get() {
             return;
         }
+        self.apply_tray_policy();
         let s = self.settings();
         if s.dock.hide_windows_taskbar {
-            taskbar_service::hide();
+            self.apply_taskbar_policy();
+            // Yeni Gezgin kendi tepsisini oluşturdu: Koy'unki yeniden öne alınır.
             if let Some((t, _)) = self.svc.borrow().tray.as_ref() {
                 t.ensure_first();
             }
@@ -533,6 +535,9 @@ impl Inner {
             return;
         }
         if !self.windows.borrow().is_empty() {
+            if !taskbar_service::is_explorer_taskbar_ready() {
+                return;
+            }
             taskbar_service::hide();
             self.taskbar_hidden.set(true);
             if let Some((t, _)) = self.svc.borrow().tray.as_ref() {

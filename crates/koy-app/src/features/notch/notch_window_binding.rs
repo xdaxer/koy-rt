@@ -112,6 +112,7 @@ impl NotchWindowBinding {
         let hw = Rc::downgrade(host);
         self.watch(vm, win, move |vm, w| {
             w.set_d(notch_binding::to_data(vm));
+            set_wave(w, vm);
             if let (Some(b), Some(h)) = (me.upgrade(), hw.upgrade()) {
                 b.sync_search(&h, vm.search().filter(|_| vm.is_search_open()));
             }
@@ -122,6 +123,7 @@ impl NotchWindowBinding {
             if let Some(vm) = nv.upgrade() {
                 w.set_music(home_binding::music_data(&vm.music));
                 w.set_d(notch_binding::to_data(&vm));
+                set_wave(w, &vm);
             }
         };
         let r = music_refresh.clone();
@@ -133,7 +135,12 @@ impl NotchWindowBinding {
             let nv = Rc::downgrade(vm);
             vm.music.spectrum.updated.subscribe(move || {
                 if let (Some(w), Some(vm)) = (ww.upgrade(), nv.upgrade()) {
-                    w.set_music(home_binding::music_data(&vm.music));
+                    // Kapalı çentikte yalnız çubuklar; açık kartta müzik kartı.
+                    if vm.state().state == koy_core::notch::NotchState::Expanded {
+                        w.set_music(home_binding::music_data(&vm.music));
+                    } else {
+                        set_wave(&w, &vm);
+                    }
                 }
             });
         }
@@ -153,6 +160,7 @@ impl NotchWindowBinding {
             if let Some(vm) = nv.upgrade() {
                 w.set_home(home_binding::home_data(&vm.home));
                 w.set_d(notch_binding::to_data(&vm));
+                set_wave(w, &vm);
             }
         });
         let nv = Rc::downgrade(vm);
@@ -182,6 +190,7 @@ impl NotchWindowBinding {
             if let Some(vm) = nv.upgrade() {
                 w.set_home(home_binding::home_data(&vm.home));
                 w.set_d(notch_binding::to_data(&vm));
+                set_wave(w, &vm);
             }
         });
         win.set_has_tasks(vm.focus.tasks.is_some());
@@ -231,6 +240,7 @@ impl NotchWindowBinding {
             w.set_osd(osd_binding::to_data(&o.state()));
             if let Some(vm) = nv.upgrade() {
                 w.set_d(notch_binding::to_data(&vm));
+                set_wave(w, &vm);
             }
         });
     }
@@ -325,6 +335,14 @@ impl NotchWindowBinding {
         }
         on!(on_card_action, |vm| vm.osd.request_primary_action());
         on!(on_card_dismiss, |vm| vm.osd.request_dismiss());
+        {
+            let nv = Rc::downgrade(vm);
+            win.on_card_hover(move |h| {
+                if let Some(vm) = nv.upgrade() {
+                    if h { vm.osd.pause_auto_dismiss() } else { vm.osd.resume_auto_dismiss() }
+                }
+            });
+        }
         // Ana.
         on!(on_home_toggle_lyrics, |vm| vm.music.lyrics.toggle_enabled());
         on!(on_home_seek_line, |vm, i| vm.music.lyrics.seek_to_line(i.max(0) as usize));
@@ -491,4 +509,10 @@ impl NotchWindowBinding {
             s.selection_changed.unsubscribe(c);
         }
     }
+}
+
+/// Kapalı çentikteki canlı ses çubukları.
+fn set_wave(w: &NotchWindow, vm: &NotchViewModel) {
+    use slint::{ComponentHandle, ModelRc, VecModel};
+    w.global::<crate::NotchWave>().set_bars(ModelRc::new(VecModel::from(vm.collapsed_bar_heights())));
 }

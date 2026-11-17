@@ -248,7 +248,7 @@ export component NotchVisualsPage inherits VerticalLayout {
     SectionHeader { text: Tr.t("LiveBgHeader"); }
     SegRow { key: "Notch.LiveBackgroundTarget"; title: Tr.t("LiveBgTargetTitle"); description: Tr.t("LiveBgTargetDesc"); values: ["None", "Notch", "MusicCard", "Both"]; labels: [Tr.t("LiveBgTargetNone"), Tr.t("LiveBgTargetNotch"), Tr.t("LiveBgTargetMusicCard"), Tr.t("LiveBgTargetBoth")]; }
     SegRow { key: "Notch.LiveBackgroundSource"; title: Tr.t("LiveBgSourceTitle"); description: ""; values: ["BuiltInAmbient", "LocalFile"]; labels: [Tr.t("LiveBgSourceAmbient"), Tr.t("LiveBgSourceFile")]; enabled: S.flag("IsLiveBackgroundEnabled"); }
-    if S.flag("IsLiveBackgroundAmbientSource"): ListRow { key: "Notch.LiveBackgroundPreset"; title: Tr.t("LiveBgPresetTitle"); description: ""; list: "LiveBackgroundPresetOptions"; suffix: ""; enabled: S.flag("IsLiveBackgroundEnabled"); }
+    if S.flag("ShowAmbientPresetPicker"): ListRow { key: "Notch.LiveBackgroundPreset"; title: Tr.t("LiveBgPresetTitle"); description: ""; list: "LiveBackgroundPresetOptions"; suffix: ""; enabled: S.flag("IsAmbientPresetEnabled"); }
     if S.flag("IsLiveBackgroundFileSource"): ButtonRow { title: Tr.t("LiveBgFileTitle"); description: S.text("LiveBackgroundFileName"); buttons: [{ text: Tr.t("LiveBgFileChoose"), action: "PickLiveBackgroundFileCommand", primary: false, danger: false, enabled: true }]; enabled: S.flag("IsLiveBackgroundEnabled"); }
     ListRow { key: "Notch.LiveBackgroundScrimPercent"; title: Tr.t("LiveBgScrimTitle"); description: ""; list: "LiveBackgroundScrimOptions"; suffix: "%"; enabled: S.flag("IsLiveBackgroundEnabled"); }
     HorizontalLayout {
@@ -256,6 +256,7 @@ export component NotchVisualsPage inherits VerticalLayout {
         padding-left: 2px;
         LinkButton { text: Tr.t("ExtGetMore"); clicked => { S.action("OpenStoreCommand:Background"); } }
     }
+    SegRow { key: "Notch.CollapsedBackground"; title: Tr.t("NotchCollapsedBackgroundTitle"); description: Tr.t("NotchCollapsedBackgroundDesc"); values: ["Default", "AlbumColor", "Ambient"]; labels: [Tr.t("NotchCollapsedBackgroundDefault"), Tr.t("NotchCollapsedBackgroundAlbumColor"), Tr.t("NotchCollapsedBackgroundAmbient")]; }
     BoolRow { key: "Music.ShowWaveform"; title: Tr.t("MusicWaveformTitle"); description: ""; }
     SegRow { key: "Music.CardStyle"; title: Tr.t("MusicCardStyleTitle"); description: ""; values: ["Neutral", "Tinted", "Artwork"]; labels: [Tr.t("MusicCardStyleNeutral"), Tr.t("MusicCardStyleTinted"), Tr.t("MusicCardStyleArtwork")]; }
     BoolRow { key: "Music.LyricsEnabled"; title: Tr.t("LyricsSettingTitle"); description: ""; }

@@ -4,7 +4,8 @@
 use std::path::{Path, PathBuf};
 
 use koy_core::dock::{IRecentFilesService, RecentEntry, RecentFile, RecentFilesPolicy};
-use koy_core::shell::WindowRect;
+use koy_core::diagnostics::{CrashError, CrashLog};
+use koy_core::shell::{StartupPathPolicy, WindowRect};
 use windows::Win32::Foundation::{HWND, POINT, RECT};
 use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, GetDoubleClickTime};
 use windows::Win32::UI::WindowsAndMessaging::{FindWindowExW, GetCursorPos, GetWindowRect, IsWindowVisible};
@@ -91,29 +92,99 @@ impl PopupMenuProbe {
     }
 }
 
-const RUN_KEY_PATH: &str = r"Software\Microsoft\Windows\CurrentVersion\Run";
-const APP_NAME: &str = "Koy";
+type PathResolver = Box<dyn Fn() -> Option<String> + Send + Sync>;
+type FlagResolver = Box<dyn Fn() -> bool + Send + Sync>;
 
-/// Oturum açılışında başlatma (HKCU Run).
+static TARGET_RESOLVER: std::sync::RwLock<Option<PathResolver>> = std::sync::RwLock::new(None);
+static INSTALLED_RESOLVER: std::sync::RwLock<Option<FlagResolver>> = std::sync::RwLock::new(None);
+
+fn process_path() -> Option<String> {
+    std::env::current_exe().ok().map(|p| p.to_string_lossy().into_owned()).filter(|p| !p.is_empty())
+}
+
+fn file_exists(p: &str) -> bool {
+    std::path::Path::new(p).is_file()
+}
+
+/// Oturum açılışında başlatma (HKCU Run ve Görev Yöneticisi'nin StartupApproved\Run kaydı).
+/// Karşılığı: `Platform/Shell/StartupService.cs`; yol, biçim ve göç kararları Core `StartupPathPolicy`'dedir.
 pub struct StartupService;
 
 impl StartupService {
-    pub fn is_enabled() -> bool {
-        registry::value_exists(Hive::CurrentUser, RUN_KEY_PATH, APP_NAME)
+    /// Uygulama katmanı kurulum bilgisiyle hedef yol çözücüsünü bağlar (Platform kurulum aracına bağımlı olmaz).
+    pub fn configure(target: impl Fn() -> Option<String> + Send + Sync + 'static, is_installed: Option<Box<dyn Fn() -> bool + Send + Sync>>) {
+        *TARGET_RESOLVER.write().unwrap_or_else(|e| e.into_inner()) = Some(Box::new(target));
+        *INSTALLED_RESOLVER.write().unwrap_or_else(|e| e.into_inner()) = is_installed;
     }
 
-    pub fn set_enabled(enable: bool) {
-        if enable {
-            if let Ok(exe) = std::env::current_exe() {
-                let exe = exe.to_string_lossy();
-                if !exe.is_empty() {
-                    registry::set_string(Hive::CurrentUser, RUN_KEY_PATH, APP_NAME, &format!("\"{exe}\""));
-                }
-            }
-        } else {
-            registry::delete_value(Hive::CurrentUser, RUN_KEY_PATH, APP_NAME);
+    fn target() -> Option<String> {
+        match TARGET_RESOLVER.read().unwrap_or_else(|e| e.into_inner()).as_ref() {
+            Some(f) => f(),
+            None => process_path(),
         }
     }
+
+    pub fn is_installed_build() -> bool {
+        INSTALLED_RESOLVER.read().unwrap_or_else(|e| e.into_inner()).as_ref().is_some_and(|f| f())
+    }
+
+    /// Kayıt var, Görev Yöneticisi'nde kapatılmamış, dosya duruyor ve beklenen hedefe bakıyor mu.
+    pub fn is_enabled() -> bool {
+        let Some(raw) = registry::get_string(Hive::CurrentUser, StartupPathPolicy::RUN_KEY_PATH, Some(StartupPathPolicy::APP_VALUE_NAME), false)
+            .filter(|r| !r.trim().is_empty())
+        else {
+            return false;
+        };
+        let approved = read_startup_approved_bytes();
+        let expected = Self::target();
+        StartupPathPolicy::is_entry_valid(Some(&raw), approved.as_deref(), expected.as_deref(), file_exists)
+    }
+
+    /// Başarılıysa true. Açarken Run anahtarı yoksa oluşturulur (temiz Windows kurulumu); Görev Yöneticisi'nin eski
+    /// "kapalı" kaydı silinir ki girdi gerçekten çalışsın.
+    pub fn set_enabled(enable: bool) -> bool {
+        if enable {
+            let Some(exe) = Self::target().filter(|p| !p.trim().is_empty()) else { return false };
+            let Some(cmd) = StartupPathPolicy::format_command_line(&exe, None) else { return false };
+            if !registry::set_string(Hive::CurrentUser, StartupPathPolicy::RUN_KEY_PATH, StartupPathPolicy::APP_VALUE_NAME, &cmd) {
+                CrashLog::write("StartupService.SetEnabled", &CrashError::object("Run anahtarına yazılamadı"));
+                return false;
+            }
+            clear_startup_approved();
+            return true;
+        }
+        registry::delete_value(Hive::CurrentUser, StartupPathPolicy::RUN_KEY_PATH, StartupPathPolicy::APP_VALUE_NAME);
+        clear_startup_approved();
+        true
+    }
+
+    /// Kurulu sürüm açılırken Run kaydı eski / geliştirme / taşınabilir ya da `current\Koy.exe` yoluna bakıyorsa
+    /// kalıcı kök saplamaya geçirir. Kurulu olmayan çalıştırmada dokunmaz.
+    pub fn reconcile_installed() {
+        if !Self::is_installed_build() {
+            return;
+        }
+        let Some(expected) = Self::target().filter(|p| !p.trim().is_empty() && file_exists(p)) else { return };
+        let Some(raw) = registry::get_string(Hive::CurrentUser, StartupPathPolicy::RUN_KEY_PATH, Some(StartupPathPolicy::APP_VALUE_NAME), false)
+            .filter(|r| !r.trim().is_empty())
+        else {
+            return;
+        };
+        let approved = read_startup_approved_bytes();
+        if StartupPathPolicy::should_migrate_installed_entry(Some(&raw), approved.as_deref(), Some(&expected), file_exists)
+            && let Some(cmd) = StartupPathPolicy::format_command_line(&expected, None)
+        {
+            registry::set_string(Hive::CurrentUser, StartupPathPolicy::RUN_KEY_PATH, StartupPathPolicy::APP_VALUE_NAME, &cmd);
+        }
+    }
+}
+
+fn read_startup_approved_bytes() -> Option<Vec<u8>> {
+    registry::get_binary(Hive::CurrentUser, StartupPathPolicy::STARTUP_APPROVED_RUN_KEY_PATH, StartupPathPolicy::APP_VALUE_NAME)
+}
+
+fn clear_startup_approved() {
+    registry::delete_value(Hive::CurrentUser, StartupPathPolicy::STARTUP_APPROVED_RUN_KEY_PATH, StartupPathPolicy::APP_VALUE_NAME);
 }
 
 /// Windows'un Son Kullanılanlar klasörünü (%AppData%\Microsoft\Windows\Recent) okur. Her çağrıda klasör bir kez

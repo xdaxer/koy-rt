@@ -65,6 +65,11 @@ fn main() -> Result<(), slint::PlatformError> {
         return Ok(());
     }
 
+    koy_platform::shell::StartupService::configure(
+        features::settings::app_uninstaller::resolve_startup_exe_path,
+        Some(Box::new(features::settings::app_uninstaller::is_installed_build)),
+    );
+
     // Başka bir Koy çalışıyorsa onun Koy penceresi açılır, bu süreç hiçbir şeye dokunmadan çıkar.
     let Some(instance) = infra::single_instance::SingleInstance::try_acquire() else {
         return Ok(());
@@ -74,6 +79,13 @@ fn main() -> Result<(), slint::PlatformError> {
     });
 
     let _trace = infra::trace::start();
+    // Windows Run anahtarı çalışma dizinini System32 bırakır; göreli yollar ve dosya pencereleri bozulmasın.
+    if let Some(dir) = std::env::current_exe().ok().and_then(|p| p.parent().map(std::path::Path::to_path_buf))
+        && dir.is_dir()
+    {
+        let _ = std::env::set_current_dir(dir);
+    }
+
     let app = app::App::start();
     let result = slint::run_event_loop_until_quit();
     app.dispose();

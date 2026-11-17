@@ -395,6 +395,7 @@ impl Inner {
                 visualizer_style: settings.music.visualizer_style,
                 visualizer_color_source: settings.music.visualizer_color_source,
                 visualizer_bar_count: settings.music.visualizer_bar_count,
+                extract_cover_palette: settings.notch.collapsed_background == koy_core::notch::NotchCollapsedBackground::AlbumColor,
             },
         );
         let sv = Rc::clone(&me.settings);

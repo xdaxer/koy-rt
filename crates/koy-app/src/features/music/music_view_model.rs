@@ -48,6 +48,8 @@ pub struct CardPaint {
     pub tint_overlay: Option<slint::Color>,
     /// 32 px kapak; kart büyütür.
     pub backdrop: Option<slint::Image>,
+    /// Kapalı çentik "Albüm rengi" kipi için tam opak albüm rengi (müzik kartı Düz kalsa bile üretilir).
+    pub collapsed_album: Option<slint::Color>,
 }
 
 #[derive(Clone, Default)]
@@ -93,6 +95,8 @@ pub struct MusicOptions {
     pub visualizer_style: NotchVisualizerStyle,
     pub visualizer_color_source: NotchVisualizerColorSource,
     pub visualizer_bar_count: i32,
+    /// Kapalı çentik albüm rengi istiyorsa kart Düz olsa da kapak rengi çıkarılır.
+    pub extract_cover_palette: bool,
 }
 
 impl Default for MusicOptions {
@@ -105,6 +109,7 @@ impl Default for MusicOptions {
             visualizer_style: NotchVisualizerStyle::Bars,
             visualizer_color_source: NotchVisualizerColorSource::Accent,
             visualizer_bar_count: 5,
+            extract_cover_palette: false,
         }
     }
 }
@@ -124,6 +129,8 @@ pub struct MusicViewModel {
     spectrum_service: RefCell<Option<(Arc<SpectrumCaptureService>, Subscription, SpectrumPusher)>>,
     spectrum_allowed: Cell<bool>,
     card_style: Cell<MusicCardStyle>,
+    extract_cover_palette: bool,
+    is_collapsed_viewing: Cell<bool>,
     cover_key: RefCell<Option<CoverFingerprint>>,
     palette_generation: Cell<u64>,
     card_alpha: Cell<u8>,
@@ -152,6 +159,8 @@ impl MusicViewModel {
             spectrum_service: RefCell::new(None),
             spectrum_allowed: Cell::new(false),
             card_style: Cell::new(options.card_style),
+            extract_cover_palette: options.extract_cover_palette,
+            is_collapsed_viewing: Cell::new(false),
             cover_key: RefCell::new(None),
             palette_generation: Cell::new(0),
             card_alpha: Cell::new(255),
@@ -166,11 +175,8 @@ impl MusicViewModel {
         let weak = Rc::downgrade(&vm);
         let lyr_sub = vm.lyrics.changed.subscribe(move || {
             if let Some(vm) = weak.upgrade() {
-                let was = vm.state.borrow().show_spectrum;
-                vm.set_spectrum_allowed(vm.spectrum_allowed.get());
-                if was != vm.state.borrow().show_spectrum {
-                    vm.changed.notify();
-                }
+                vm.update_spectrum();
+                vm.changed.notify();
             }
         });
         let lyrics = Rc::clone(&vm.lyrics);
@@ -242,16 +248,29 @@ impl MusicViewModel {
     /// Ses çubukları izinli mi (Çentik ayarındaki "kapak ve dalga" açık ve pil tasarrufu hareketi kısmıyor).
     pub fn set_spectrum_allowed(self: &Rc<Self>, allowed: bool) {
         self.spectrum_allowed.set(allowed);
-        self.state.borrow_mut().show_spectrum = allowed && self.spectrum_acquire.is_some() && !self.lyrics.is_shown();
+        self.state.borrow_mut().show_spectrum = allowed && self.spectrum_acquire.is_some();
         self.update_spectrum();
     }
 
-    // Yakalama yalnız kart görünür (çentik açık, Ana sekmesi) ve müzik çalarken sürer; aksi halde %0 CPU.
+    /// Kapalı çentikte çalan müzik çubukları görünüyor mu (yalnız çentik görünür ve kapalıyken).
+    pub fn set_collapsed_spectrum_active(self: &Rc<Self>, active: bool) {
+        if self.is_collapsed_viewing.replace(active) == active {
+            return;
+        }
+        self.update_spectrum();
+    }
+
+    // Yakalama yalnız açık müzik kartı ya da görünür kapalı çentik varken ve müzik çalarken sürer; aksi halde %0 CPU.
+    // Sözler açık kartta çubukların yerini alır. ~33 ms yakalamada zamanlayıcı sapmasıyla 10 kare/sn'ye düşmesin diye
+    // kapalı çentikte 60 ms eşik: her 2 karede bir ≈15 kare/sn.
     fn update_spectrum(self: &Rc<Self>) {
+        let want_expanded = self.is_active.get() && !self.lyrics.is_shown();
+        let want_collapsed = self.is_collapsed_viewing.get();
         let want = {
             let st = self.state.borrow();
-            !self.disposed.get() && self.is_active.get() && st.has_track && st.is_playing && st.show_spectrum
+            !self.disposed.get() && st.has_track && st.is_playing && st.show_spectrum && (want_expanded || want_collapsed)
         };
+        self.spectrum.set_min_interval_ms(if want_expanded { 0 } else { 60 });
         let has = self.spectrum_service.borrow().is_some();
         if want && !has {
             if let Some(acquire) = &self.spectrum_acquire {
@@ -424,7 +443,7 @@ impl MusicViewModel {
             return;
         }
         self.card_alpha.set(alpha);
-        if let Some(p) = self.palette.borrow().as_ref() {
+        if let Some(p) = self.palette.borrow().as_ref().filter(|_| self.card_style.get() != MusicCardStyle::Neutral) {
             let (card, blend) = card_fill(p, alpha);
             let mut st = self.state.borrow_mut();
             st.paint.card = Some(card);
@@ -435,7 +454,9 @@ impl MusicViewModel {
 
     fn update_cover_palette(self: &Rc<Self>, bytes: Option<Vec<u8>>) {
         let bytes = bytes.filter(|b| !b.is_empty());
-        let Some(bytes) = bytes.filter(|_| self.card_style.get() != MusicCardStyle::Neutral) else {
+        // Albüm rengi: stil Düz değilse ya da kapalı çentik albüm rengi istiyorsa hesaplanır.
+        let need_palette = self.card_style.get() != MusicCardStyle::Neutral || self.extract_cover_palette;
+        let Some(bytes) = bytes.filter(|_| need_palette) else {
             self.palette_generation.set(self.palette_generation.get() + 1);
             *self.cover_key.borrow_mut() = None;
             self.apply_palette(None, None);
@@ -468,13 +489,17 @@ impl MusicViewModel {
     fn apply_palette(&self, palette: Option<CoverPalette>, small: Option<Bgra>) {
         let mut paint = CardPaint::default();
         if let Some(p) = &palette {
+            // Kapalı çentik için her zaman tam opak renk; müzik kartı Düz ise kart renkleri temiz kalır.
+            paint.collapsed_album = Some(color(p.card, 255));
+            paint.spectrum = (self.visualizer_color_source == NotchVisualizerColorSource::Artwork).then(|| color(p.spectrum, 0xBF));
+        }
+        if let Some(p) = palette.as_ref().filter(|_| self.card_style.get() != MusicCardStyle::Neutral) {
             // Çok renkli kapak çoğunlukla uygulama simgesidir: büyütülmüş simge zemini yerine renk karışımı.
             let small = if p.blend.is_some() { None } else { small };
             let (card, blend) = card_fill(p, self.card_alpha.get());
             paint.card = Some(card);
             paint.blend = blend;
             paint.sub_text = Some(color(p.sub_text, 255));
-            paint.spectrum = (self.visualizer_color_source == NotchVisualizerColorSource::Artwork).then(|| color(p.spectrum, 0xBF));
             if let Some(small) = small {
                 paint.tint_overlay = Some(color(p.card, 0x4D));
                 paint.backdrop = Some(small.to_image());

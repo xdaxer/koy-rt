@@ -60,6 +60,7 @@ export component NotchWindow inherits Window {
     callback voice-enter();
     callback card-action();
     callback card-dismiss();
+    callback card-hover(bool);
     // Ana.
     callback home-toggle-lyrics();
     callback home-seek-line(int);
@@ -191,6 +192,7 @@ export component NotchWindow inherits Window {
                     d: root.osd;
                     primary-action => { root.card-action(); }
                     dismiss => { root.card-dismiss(); }
+                    hover-changed(h) => { root.card-hover(h); }
                 }
                 // Açık çentik: üst satır ve sayfa.
                 if root.d.state == 2 && !root.d.osd-active && !root.d.search-open: Rectangle {

@@ -36,6 +36,8 @@ use crate::shared_services::SharedServices;
 use crate::update_status::AppInfo;
 
 const PAUSE_DURATION: Duration = Duration::from_secs(60 * 60);
+const EXPLORER_WAIT_INTERVAL: Duration = Duration::from_millis(500);
+const MAX_EXPLORER_WAIT_ATTEMPTS: u32 = 30;
 
 pub struct App {
     services: Rc<SharedServices>,
@@ -49,6 +51,8 @@ pub struct App {
     /// "1 saat duraklat" etkin mi: çentik ve dock kapalı, Windows görev çubuğu geri gelmiş durumda.
     is_paused: Cell<bool>,
     pause_timer: slint::Timer,
+    explorer_wait_timer: slint::Timer,
+    explorer_wait_attempts: Cell<u32>,
     disposed: Cell<bool>,
 }
 
@@ -83,6 +87,7 @@ impl App {
         // Görev çubuğu güvenliği: önceki oturum çöktüyse görev çubuğunu geri getir.
         safe_restore_taskbar();
         install_panic_hook();
+        koy_platform::shell::StartupService::reconcile_installed();
         let app = Rc::new(App {
             services: Rc::new(SharedServices::default()),
             notch: RefCell::new(None),
@@ -94,6 +99,8 @@ impl App {
             wizard: RefCell::new(None),
             is_paused: Cell::new(false),
             pause_timer: slint::Timer::default(),
+            explorer_wait_timer: slint::Timer::default(),
+            explorer_wait_attempts: Cell::new(0),
             disposed: Cell::new(false),
         });
         APP.with(|a| *a.borrow_mut() = Some(Rc::clone(&app)));
@@ -160,13 +167,7 @@ impl App {
             hide_menu: Box::new(SagAltMenuWindow::hide_if_open),
             show_koy_window: Box::new(|| with_app(|a| a.show_koy_window(None))),
         });
-        tray.on_explorer_restarted(|| {
-            with_app(|a| {
-                if let Some(d) = a.dock.borrow().as_ref() {
-                    d.reapply_taskbar_hiding();
-                }
-            })
-        });
+        tray.on_explorer_restarted(|| with_app(|a| a.on_explorer_restarted()));
         tray.start(!settings.dock.enabled);
         *self.tray.borrow_mut() = Some(tray);
 
@@ -185,6 +186,11 @@ impl App {
         }
         if settings.dock.enabled {
             self.start_dock(&settings);
+        }
+
+        // Oturum açılışında Gezgin görev çubuğu henüz kurulmamışsa hazır olana kadar sınırlı süre beklenir.
+        if !koy_platform::shell::taskbar_service::is_explorer_taskbar_ready() {
+            self.start_explorer_wait_timer();
         }
 
         // Bağlam kuralları: etkin kural yoksa hiçbir şeye abone olmaz.
@@ -220,6 +226,39 @@ impl App {
                 h.view_model().open_whats_new_overlay();
             }
         }
+    }
+
+    // ------------------------------------------------------------------ Gezgin
+
+    fn start_explorer_wait_timer(&self) {
+        self.explorer_wait_attempts.set(0);
+        self.explorer_wait_timer.start(slint::TimerMode::Repeated, EXPLORER_WAIT_INTERVAL, || {
+            with_app(|a| {
+                if koy_platform::shell::taskbar_service::is_explorer_taskbar_ready() {
+                    a.explorer_wait_timer.stop();
+                    a.on_explorer_restarted();
+                    return;
+                }
+                let n = a.explorer_wait_attempts.get() + 1;
+                a.explorer_wait_attempts.set(n);
+                if n >= MAX_EXPLORER_WAIT_ATTEMPTS {
+                    a.explorer_wait_timer.stop();
+                }
+            })
+        });
+    }
+
+    /// Gezgin (yeniden) başladı: dock gizlemesi ve AppBar yeniden uygulanır; dock kapalıyken önceki oturumdan kalma
+    /// görev çubuğu durumu varsa yalnız o geri yüklenir.
+    fn on_explorer_restarted(&self) {
+        self.explorer_wait_timer.stop();
+        let dock = self.dock.borrow().clone();
+        match dock {
+            Some(d) => d.reapply_taskbar_hiding(),
+            None if koy_platform::shell::taskbar_service::has_pending_restore() => safe_restore_taskbar(),
+            None => {}
+        }
+        self.refresh_notification_area_icon();
     }
 
     // ------------------------------------------------------------------ özellikler
@@ -502,6 +541,8 @@ impl App {
         if self.disposed.replace(true) {
             return;
         }
+        self.explorer_wait_timer.stop();
+        self.pause_timer.stop();
         self.shortcuts.dispose();
         if let Some(c) = self.hot_corners.borrow_mut().take() {
             c.dispose();

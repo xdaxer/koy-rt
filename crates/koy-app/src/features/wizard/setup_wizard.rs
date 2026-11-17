@@ -57,7 +57,7 @@ impl SetupWizard {
             current_step: Cell::new(1),
             selected_layout_index: Cell::new(0),
             selected_language: RefCell::new(language),
-            run_at_startup: Cell::new(true),
+            run_at_startup: Cell::new(StartupService::is_installed_build()),
             use_location: Cell::new(false),
             is_locating: Cell::new(false),
             location_result: RefCell::new(None),
@@ -217,7 +217,11 @@ impl SetupWizard {
             }
         }
         let _ = self.store.save(&updated);
-        StartupService::set_enabled(self.run_at_startup.get());
+        // Geliştirme / taşınabilir çalıştırmada kullanıcı açıkça seçmediyse makinenin kurulu başlangıç kaydı ezilmez.
+        let run = self.run_at_startup.get();
+        if run || StartupService::is_installed_build() || StartupService::is_enabled() {
+            StartupService::set_enabled(run);
+        }
         self.close(true);
     }
 

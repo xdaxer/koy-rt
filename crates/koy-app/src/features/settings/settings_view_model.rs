@@ -505,6 +505,14 @@ impl SettingsViewModel {
             "IsLiveBackgroundAmbientSource" => {
                 s.notch.live_background_source == koy_core::notch::LiveBackgroundSourceKind::BuiltInAmbient
             }
+            "IsAmbientPresetEnabled" => {
+                s.notch.live_background_target != koy_core::notch::LiveBackgroundTarget::None
+                    || s.notch.collapsed_background == koy_core::notch::NotchCollapsedBackground::Ambient
+            }
+            "ShowAmbientPresetPicker" => {
+                s.notch.live_background_source == koy_core::notch::LiveBackgroundSourceKind::BuiltInAmbient
+                    || s.notch.collapsed_background == koy_core::notch::NotchCollapsedBackground::Ambient
+            }
             "ClockCustomDateFormatInvalid" => st.clock_custom_date_format_invalid,
             "NotificationsPermissionMissing" => {
                 s.notch.show_notifications

@@ -43,7 +43,7 @@ pub fn music_data(m: &MusicViewModel) -> MusicCardData {
         has_backdrop: s.paint.has_backdrop,
         backdrop: s.paint.backdrop.clone().unwrap_or_default(),
         tint_overlay: s.paint.tint_overlay.unwrap_or_default(),
-        show_spectrum: s.show_spectrum,
+        show_spectrum: s.show_spectrum && !lyr.is_shown(),
         visualizer_style: match m.visualizer_style {
             NotchVisualizerStyle::Wave => 1,
             NotchVisualizerStyle::Dots => 2,
