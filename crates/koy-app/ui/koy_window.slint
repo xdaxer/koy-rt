@@ -81,13 +81,6 @@ component PageHeader inherits VerticalLayout {
     }
 }
 
-component Placeholder inherits VerticalLayout {
-    in property <string> title;
-    in property <string> subtitle;
-    PageHeader { title: root.title; subtitle: root.subtitle; }
-    InfoNotice { text: Tr.t("WindowCloseNotice"); }
-}
-
 component SidebarButton inherits Rectangle {
     in property <string> text;
     in property <string> icon;
@@ -130,7 +123,7 @@ export component KoyWindow inherits Window {
     callback drag-title();
     // Satır vurgusu kısa süre sonra kalkar; içerik alanı başa kaydırılır.
     public function scroll-top() {
-        content.viewport-y = 0;
+        content.content-y = 0;
     }
 
     VerticalLayout {
@@ -278,8 +271,8 @@ export component KoyWindow inherits Window {
             Rectangle {
                 horizontal-stretch: 1;
                 content := Flickable {
-                    viewport-width: self.width;
-                    viewport-height: pages.preferred-height + 48px;
+                    content-width: self.width;
+                    content-height: pages.preferred-height + 48px;
                     pages := VerticalLayout {
                         x: 28px;
                         y: 24px;
@@ -355,6 +348,7 @@ export component KoyWindow inherits Window {
                 if S.flag("CanResetPage"): HorizontalLayout {
                     x: parent.width - self.preferred-width - 40px;
                     y: 24px;
+                    width: self.preferred-width;
                     height: 28px;
                     spacing: 8px;
                     if S.flag("PageResetDone"): SettingDesc { text: Tr.t("SettingsResetPageDone"); vertical-alignment: center; }
@@ -368,6 +362,8 @@ export component KoyWindow inherits Window {
                 VerticalLayout {
                     y: parent.height - self.preferred-height - 16px;
                     x: (parent.width - self.preferred-width) / 2;
+                    width: self.preferred-width;
+                    height: self.preferred-height;
                     spacing: 8px;
                     if S.flag("IsApplyRevertPending"): Rectangle {
                         background: Theme.bg-row;
@@ -461,7 +457,7 @@ export component KoyWindow inherits Window {
             border-radius: Theme.radius-row;
             clip: true;
             Flickable {
-                viewport-height: wcard.preferred-height;
+                content-height: wcard.preferred-height;
                 wcard := VerticalLayout {
                     padding: 22px;
                     spacing: 8px;

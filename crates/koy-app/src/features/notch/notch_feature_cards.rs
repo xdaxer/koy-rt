@@ -690,7 +690,7 @@ fn start_voice_typing(me: &Rc<Inner>) {
         if !still_editing {
             return;
         }
-        if let Err(_) | Ok(()) = VoiceTyping::open(Duration::from_secs(2), &token) {}
+        let _ = VoiceTyping::open(Duration::from_secs(2), &token);
         for delay in [400u64, 900] {
             std::thread::sleep(Duration::from_millis(delay));
             if token.is_cancellation_requested() {

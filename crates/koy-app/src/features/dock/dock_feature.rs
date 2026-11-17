@@ -626,7 +626,7 @@ impl Inner {
     }
 
     fn apply_reduce_motion(&self) {
-        let Some((p, _)) = self.svc.borrow().power.as_ref().map(|(p, s)| (Arc::clone(p), ())) else { return };
+        let Some(p) = self.svc.borrow().power.as_ref().map(|(p, _)| Arc::clone(p)) else { return };
         let reduce = BatterySaverPolicy::should_reduce_motion(self.settings().appearance.battery_saver_reduce_motion, p.has_battery(), p.status());
         self.reduce_motion.set(reduce);
         for h in self.hosts() {

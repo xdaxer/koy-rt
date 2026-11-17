@@ -28,7 +28,7 @@ pub fn show_reply(notch_center_x: f64, top: f64, prompt: &str, info: &str, body:
     w.set_prompt(prompt.into());
     w.set_info(info.into());
     w.set_body(body.into());
-    w.on_close(close_current);
+    w.on_close_requested(close_current);
     w.on_open_file(move || open_file());
     w.window().set_position(slint::LogicalPosition::new((notch_center_x - CARD_WIDTH / 2.0) as f32, top as f32));
     if w.show().is_err() {

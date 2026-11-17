@@ -10,7 +10,6 @@ use std::time::Duration;
 use chrono::Local;
 use koy_core::appearance::{MaterialLevel, MaterialSetting};
 use koy_core::clock::{ClockFormatPolicy, SecondClock};
-use koy_core::event::Subscription;
 use koy_core::notch::{
     ClockTick, HomeCard, IdleDisplay, IdleDisplayFormat, NotchController, NotchHomePage, NotchHomePages, NotchLayout, NotchPanel, NotchState,
     NotchStyle, NotchSurface, NotchTabBarStyle, NotchVisualizer, NotchVisualizerColorSource,
