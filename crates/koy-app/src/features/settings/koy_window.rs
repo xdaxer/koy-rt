@@ -14,9 +14,13 @@ use crate::infra::native_window;
 use crate::resources::strings::Strings;
 use crate::resources::theme_manager::ThemeManager;
 use crate::resources::user_style_watcher::UserStyleWatcher;
-use crate::{DP, KoyWindow, KoyWindowData, MonitorCardData, OrderItem, S, SC, SL, SearchResultData, ShortcutRowData, ToggleItem, Tr};
+use crate::{DP, PR, RU, ProfileItemData, RuleItemData, SectionOptionData, KoyWindow, KoyWindowData, MonitorCardData, OrderItem, S, SC, SL, SearchResultData, ShortcutRowData, ToggleItem, Tr};
 
 use super::displays_view_model::DisplaysViewModel;
+use super::profile_service::ProfileService;
+use super::profiles_view_model::{ProfilesViewModel, section_label};
+use super::rules_view_model::RulesViewModel;
+use crate::features::rules::context_rule_service::ContextRuleService;
 use super::settings_view_model::SettingsViewModel;
 use super::shortcuts_view_model::ShortcutsViewModel;
 
@@ -29,6 +33,8 @@ pub struct KoyWindowHost {
     vm: Rc<SettingsViewModel>,
     shortcuts: Rc<ShortcutsViewModel>,
     displays: Rc<DisplaysViewModel>,
+    profiles: Rc<ProfilesViewModel>,
+    rules: Rc<RulesViewModel>,
     watcher: RefCell<Option<UserStyleWatcher>>,
     revert_timer: slint::Timer,
     highlight_timer: slint::Timer,
@@ -44,11 +50,15 @@ impl KoyWindowHost {
         ThemeManager::install(&window);
         let shortcuts = ShortcutsViewModel::new(Rc::clone(&vm));
         let displays = DisplaysViewModel::new(Rc::clone(&vm));
+        let profiles = ProfilesViewModel::new(ProfileService::instance());
+        let rules = RulesViewModel::new(ProfileService::instance(), ContextRuleService::instance());
         let host = Rc::new(KoyWindowHost {
             window,
             vm,
             shortcuts,
             displays,
+            profiles,
+            rules,
             watcher: RefCell::new(None),
             revert_timer: slint::Timer::default(),
             highlight_timer: slint::Timer::default(),
@@ -75,6 +85,40 @@ impl KoyWindowHost {
             }
         });
         host.sync_shortcuts();
+        let weak = Rc::downgrade(&host);
+        host.profiles.changed.subscribe(move || {
+            if let Some(h) = weak.upgrade() {
+                h.sync_profiles();
+            }
+        });
+        let weak = Rc::downgrade(&host);
+        host.rules.changed.subscribe(move || {
+            if let Some(h) = weak.upgrade() {
+                h.sync_rules();
+            }
+        });
+        // Profil listesi değişince kuralların profil seçenekleri yenilenir.
+        let r = Rc::downgrade(&host.rules);
+        host.profiles.list_changed.subscribe(move |_| {
+            if let Some(r) = r.upgrade() {
+                r.refresh();
+            }
+        });
+        // Profil (bu pencereden ya da bir kuraldan) uygulandı / eklenti ayarı yazdı: değerler diskten okunur.
+        let weak = Rc::downgrade(&host);
+        ProfileService::instance().applied.subscribe(move |_| {
+            if let Some(h) = weak.upgrade() {
+                h.vm.load_from_settings();
+            }
+        });
+        let weak = Rc::downgrade(&host);
+        ProfileService::instance().settings_committed.subscribe(move || {
+            if let Some(h) = weak.upgrade() {
+                h.vm.load_from_settings();
+            }
+        });
+        host.sync_profiles();
+        host.sync_rules();
         Ok(host)
     }
 
@@ -105,6 +149,63 @@ impl KoyWindowHost {
             })
             .collect();
         self.window.global::<SC>().set_rows(ModelRc::new(VecModel::from(rows)));
+    }
+
+    fn sync_profiles(&self) {
+        let pr = self.window.global::<PR>();
+        let items: Vec<ProfileItemData> = self
+            .profiles
+            .items()
+            .into_iter()
+            .map(|i| ProfileItemData {
+                name: ss(&i.name),
+                sections: ss(&i.sections_text),
+                renaming: i.is_renaming,
+                edit_name: ss(&i.edit_name),
+                delete_confirming: i.is_delete_confirming,
+            })
+            .collect();
+        pr.set_items(ModelRc::new(VecModel::from(items)));
+        let sections: Vec<SectionOptionData> = self
+            .profiles
+            .sections()
+            .into_iter()
+            .map(|o| SectionOptionData { label: ss(section_label(o.section)), selected: o.is_selected })
+            .collect();
+        pr.set_sections(ModelRc::new(VecModel::from(sections)));
+        pr.set_new_name(ss(self.profiles.new_name()));
+        let (status, error) = self.profiles.status();
+        pr.set_status(ss(status));
+        pr.set_status_error(error);
+        match self.profiles.pending() {
+            Some((name, sections, changes)) => {
+                pr.set_has_pending(true);
+                pr.set_pending_name(ss(name));
+                pr.set_pending_sections(ss(sections));
+                pr.set_pending_changes(ss(changes));
+            }
+            None => pr.set_has_pending(false),
+        }
+    }
+
+    fn sync_rules(&self) {
+        let ru = self.window.global::<RU>();
+        let items: Vec<RuleItemData> = self
+            .rules
+            .items()
+            .into_iter()
+            .map(|r| RuleItemData { title: ss(&r.title), profile: ss(&r.profile_text), enabled: r.is_enabled })
+            .collect();
+        ru.set_items(ModelRc::new(VecModel::from(items)));
+        let apps: Vec<SharedString> = self.rules.running_apps().into_iter().map(SharedString::from).collect();
+        ru.set_running_apps(ModelRc::new(VecModel::from(apps)));
+        let opts: Vec<SharedString> = self.rules.profile_options().into_iter().map(|o| SharedString::from(o.name)).collect();
+        ru.set_profile_options(ModelRc::new(VecModel::from(opts)));
+        ru.set_selected_profile(self.rules.selected_profile());
+        ru.set_process_text(ss(self.rules.process_text()));
+        let (status, error) = self.rules.status();
+        ru.set_status(ss(status));
+        ru.set_status_error(error);
     }
 
     fn sync_displays(&self) {
@@ -232,6 +333,116 @@ impl KoyWindowHost {
         });
         let m = Rc::downgrade(&self.shortcuts);
         sc.on_key(move |i, text, ctrl, alt, shift, win| m.upgrade().is_some_and(|m| m.handle_key(i as usize, &text, ctrl, alt, shift, win)));
+
+        let pr = w.global::<PR>();
+        let m = Rc::downgrade(&self.profiles);
+        pr.on_new_name_edited(move |t| {
+            if let Some(m) = m.upgrade() {
+                m.set_new_name(&t);
+            }
+        });
+        let m = Rc::downgrade(&self.profiles);
+        pr.on_section_toggled(move |i, v| {
+            if let Some(m) = m.upgrade() {
+                m.set_section_selected(i as usize, v);
+            }
+        });
+        let m = Rc::downgrade(&self.profiles);
+        pr.on_edit_name_edited(move |i, t| {
+            if let Some(m) = m.upgrade() {
+                m.set_edit_name(i as usize, &t);
+            }
+        });
+        // Dosya pencereleri ve profil uygulama kendi ileti döngüsünü çalıştırır: sonraki turda.
+        let m = Rc::downgrade(&self.profiles);
+        pr.on_command(move |name| {
+            let m = m.clone();
+            crate::infra::dispatch::post_local(move || {
+                let Some(m) = m.upgrade() else { return };
+                match name.as_str() {
+                    "SaveCurrent" => m.save_current(),
+                    "ExportCurrent" => m.export_current(),
+                    "Import" => m.import(),
+                    "ConfirmImportSave" => m.confirm_import_save(),
+                    "ConfirmImportApply" => m.confirm_import_apply(),
+                    "CancelImport" => m.cancel_import(),
+                    _ => {}
+                }
+            });
+        });
+        let m = Rc::downgrade(&self.profiles);
+        pr.on_item_command(move |i, name| {
+            let m = m.clone();
+            crate::infra::dispatch::post_local(move || {
+                let Some(m) = m.upgrade() else { return };
+                let i = i as usize;
+                match name.as_str() {
+                    "Apply" => m.apply(i),
+                    "Export" => m.export(i),
+                    "Duplicate" => m.duplicate(i),
+                    "BeginRename" => m.begin_rename(i),
+                    "CommitRename" => m.commit_rename(i),
+                    "CancelRename" => m.cancel_rename(i),
+                    "RequestDelete" => m.request_delete(i, true),
+                    "CancelDelete" => m.request_delete(i, false),
+                    "ConfirmDelete" => m.delete(i),
+                    _ => {}
+                }
+            });
+        });
+
+        let ru = w.global::<RU>();
+        let m = Rc::downgrade(&self.rules);
+        ru.on_process_edited(move |t| {
+            if let Some(m) = m.upgrade() {
+                m.set_process_text(&t);
+            }
+        });
+        let m = Rc::downgrade(&self.rules);
+        ru.on_pick_app(move |i| {
+            if let Some(m) = m.upgrade() {
+                m.pick_app(i as usize);
+            }
+        });
+        let m = Rc::downgrade(&self.rules);
+        ru.on_select_profile(move |i| {
+            if let Some(m) = m.upgrade() {
+                m.select_profile(i as usize);
+            }
+        });
+        let m = Rc::downgrade(&self.rules);
+        ru.on_refresh_running(move || {
+            if let Some(m) = m.upgrade() {
+                m.refresh_running_apps();
+            }
+        });
+        let m = Rc::downgrade(&self.rules);
+        ru.on_add(move || {
+            let m = m.clone();
+            crate::infra::dispatch::post_local(move || {
+                if let Some(m) = m.upgrade() {
+                    m.add();
+                }
+            });
+        });
+        let m = Rc::downgrade(&self.rules);
+        ru.on_toggled(move |i, v| {
+            let m = m.clone();
+            crate::infra::dispatch::post_local(move || {
+                if let Some(m) = m.upgrade() {
+                    m.set_enabled(i as usize, v);
+                }
+            });
+        });
+        let m = Rc::downgrade(&self.rules);
+        ru.on_delete(move |i| {
+            let m = m.clone();
+            crate::infra::dispatch::post_local(move || {
+                if let Some(m) = m.upgrade() {
+                    m.delete(i as usize);
+                }
+            });
+        });
 
         let dp = w.global::<DP>();
         let d = Rc::downgrade(&self.displays);

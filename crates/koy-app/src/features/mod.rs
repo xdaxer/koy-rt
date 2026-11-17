@@ -10,6 +10,7 @@ pub mod home;
 pub mod menu;
 pub mod music;
 pub mod notch;
+pub mod rules;
 pub mod search;
 pub mod settings;
 pub mod shelf;

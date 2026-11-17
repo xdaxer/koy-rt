@@ -5,7 +5,8 @@ use windows::Win32::Foundation::HWND;
 use windows::Win32::System::Com::{CLSCTX_INPROC_SERVER, COINIT_APARTMENTTHREADED, CoCreateInstance, CoInitializeEx, CoTaskMemFree};
 use windows::Win32::UI::Shell::Common::COMDLG_FILTERSPEC;
 use windows::Win32::UI::Shell::{
-    FOS_FILEMUSTEXIST, FOS_FORCEFILESYSTEM, FOS_NODEREFERENCELINKS, FOS_PICKFOLDERS, FileOpenDialog, IFileOpenDialog, SIGDN_FILESYSPATH,
+    FOS_FILEMUSTEXIST, FOS_FORCEFILESYSTEM, FOS_NODEREFERENCELINKS, FOS_OVERWRITEPROMPT, FOS_PICKFOLDERS, FileOpenDialog, FileSaveDialog,
+    IFileOpenDialog, IFileSaveDialog, SIGDN_FILESYSPATH,
 };
 use windows::core::{HSTRING, PCWSTR};
 
@@ -23,6 +24,34 @@ pub fn pick_file(owner: Option<isize>, title: &str, filter: &str, dereference_li
 /// Klasör seçer; iptalde None.
 pub fn pick_folder(owner: Option<isize>, title: &str) -> Option<String> {
     show(owner, title, None, true, true)
+}
+
+/// Kaydedilecek dosyayı sorar (WPF `SaveFileDialog`: üzerine yazma onayı açık); iptalde None. `default_ext` noktasız.
+pub fn save_file(owner: Option<isize>, title: &str, filter: &str, file_name: &str, default_ext: &str) -> Option<String> {
+    let specs: Vec<(HSTRING, HSTRING)> = parse_filter(filter).into_iter().map(|(n, p)| (HSTRING::from(n), HSTRING::from(p))).collect();
+    let raw: Vec<COMDLG_FILTERSPEC> = specs.iter().map(|(n, p)| COMDLG_FILTERSPEC { pszName: PCWSTR(n.as_ptr()), pszSpec: PCWSTR(p.as_ptr()) }).collect();
+    // SAFETY: COM nesnesi bu kapsamda yaşar; dizeler çağrı boyunca canlıdır; dönen yol CoTaskMemFree ile bırakılır.
+    unsafe {
+        let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
+        let dialog: IFileSaveDialog = CoCreateInstance(&FileSaveDialog, None, CLSCTX_INPROC_SERVER).ok()?;
+        let options = dialog.GetOptions().ok()? | FOS_FORCEFILESYSTEM | FOS_OVERWRITEPROMPT;
+        dialog.SetOptions(options).ok()?;
+        let _ = dialog.SetTitle(&HSTRING::from(title));
+        if !raw.is_empty() {
+            let _ = dialog.SetFileTypes(&raw);
+        }
+        let _ = dialog.SetFileName(&HSTRING::from(file_name));
+        if !default_ext.is_empty() {
+            let _ = dialog.SetDefaultExtension(&HSTRING::from(default_ext));
+        }
+        let owner = owner.map(|h| HWND(h as *mut _));
+        dialog.Show(owner).ok()?;
+        let item = dialog.GetResult().ok()?;
+        let p = item.GetDisplayName(SIGDN_FILESYSPATH).ok()?;
+        let path = p.to_string().ok();
+        CoTaskMemFree(Some(p.0 as *const _));
+        path
+    }
 }
 
 fn show(owner: Option<isize>, title: &str, filter: Option<&str>, folders: bool, dereference_links: bool) -> Option<String> {

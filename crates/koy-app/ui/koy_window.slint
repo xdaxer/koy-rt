@@ -9,9 +9,9 @@ import { Icons, KoyIcon } from "icons.slint";
 import { Tr, S } from "settings_kit.slint";
 import { SL, GeneralSystemPage, NotchBehaviorPage, NotchVisualsPage, NotchPanelsPage, NotchSearchPage, DockBehaviorPage,
     DockAppearancePage, DockSectionsPage, AppearanceThemePage, AppearanceScalePage, DictationPage, PerformancePage,
-    AboutPage, ShortcutsPage, SC, ShortcutRowData, DisplaysPage, DP, MonitorCardData, IdentifyOverlayWindow } from "settings_pages.slint";
+    AboutPage, ShortcutsPage, SC, ShortcutRowData, DisplaysPage, DP, MonitorCardData, IdentifyOverlayWindow, GeneralProfilesPage, GeneralRulesPage, PR, RU, ProfileItemData, SectionOptionData, RuleItemData } from "settings_pages.slint";
 
-export { Tr, S, SL, SC, ShortcutRowData, DP, MonitorCardData, IdentifyOverlayWindow }
+export { Tr, S, SL, SC, ShortcutRowData, DP, MonitorCardData, IdentifyOverlayWindow, PR, RU, ProfileItemData, SectionOptionData, RuleItemData }
 
 export struct SearchResultData {
     title: string,
@@ -262,6 +262,8 @@ export component KoyWindow inherits Window {
                             spacing: 6px;
                             PageHeader { title: Tr.t("General"); subtitle: Tr.t("GeneralSubtitle"); slot: 0; tabs: [Tr.t("SubTabGeneralSystem"), Tr.t("SubTabGeneralProfiles"), Tr.t("SubTabGeneralRules")]; }
                             if S.changed-only || KoyWindowData.sub-tabs[0] == 0: GeneralSystemPage { }
+                            if S.changed-only || KoyWindowData.sub-tabs[0] == 1: GeneralProfilesPage { }
+                            if S.changed-only || KoyWindowData.sub-tabs[0] == 2: GeneralRulesPage { }
                         }
                         if KoyWindowData.page == 1: VerticalLayout {
                             spacing: 6px;

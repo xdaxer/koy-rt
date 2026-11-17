@@ -4,7 +4,7 @@
 
 import { Theme } from "theme.slint";
 import { SectionHeader, PageTitle, PageSubtitle, SettingRow, SettingText, SettingTitle, SettingDesc, InfoNotice,
-    ToggleSwitch, KoyButton, ButtonKind, ColorSwatch, LinkButton, KoyTextBox, Segmented, KoyLogo, KeyBadge } from "controls.slint";
+    ToggleSwitch, KoyButton, ButtonKind, ColorSwatch, LinkButton, KoyTextBox, Segmented, KoyLogo, KeyBadge, KoyCheckBox, KoyComboBox } from "controls.slint";
 import { Icons, KoyIcon } from "icons.slint";
 import { Tr, S, BoolRow, SegRow, SegStackRow, ComboRow, ListRow, SliderRow, TextRow, ButtonRow, RowButton } from "settings_kit.slint";
 
@@ -875,6 +875,223 @@ export component IdentifyOverlayWindow inherits Window {
             font-size: 110px;
             font-weight: 700;
             color: Theme.text-primary;
+        }
+    }
+}
+
+// ---------------------------------------------------------------- Profiller ve kurallar
+
+export struct ProfileItemData {
+    name: string,
+    sections: string,
+    renaming: bool,
+    edit-name: string,
+    delete-confirming: bool,
+}
+
+export struct SectionOptionData {
+    label: string,
+    selected: bool,
+}
+
+export global PR {
+    in property <[ProfileItemData]> items;
+    in property <[SectionOptionData]> sections;
+    in-out property <string> new-name;
+    in property <string> status;
+    in property <bool> status-error;
+    in property <bool> has-pending;
+    in property <string> pending-name;
+    in property <string> pending-sections;
+    in property <string> pending-changes;
+    callback new-name-edited(string);
+    callback section-toggled(int, bool);
+    // Eylem adları: SaveCurrent, ExportCurrent, Import, ConfirmImportSave, ConfirmImportApply, CancelImport
+    callback command(string);
+    // Satır eylemleri: Apply, Export, Duplicate, BeginRename, CommitRename, CancelRename, RequestDelete, CancelDelete, ConfirmDelete
+    callback item-command(int, string);
+    callback edit-name-edited(int, string);
+}
+
+component ProfileRow inherits SettingRow {
+    in property <ProfileItemData> item;
+    in property <int> index;
+    filtered-out: S.changed-only;
+    if !item.renaming && !item.delete-confirming: SettingText { title: root.item.name; description: root.item.sections; }
+    if !item.renaming && !item.delete-confirming: HorizontalLayout {
+        alignment: end;
+        spacing: 6px;
+        VerticalLayout { alignment: center; KoyButton { text: Tr.t("ProfilesApply"); kind: ButtonKind.primary; clicked => { PR.item-command(root.index, "Apply"); } } }
+        VerticalLayout { alignment: center; KoyButton { text: Tr.t("ProfilesRename"); clicked => { PR.item-command(root.index, "BeginRename"); } } }
+        VerticalLayout { alignment: center; KoyButton { text: Tr.t("ProfilesDuplicate"); clicked => { PR.item-command(root.index, "Duplicate"); } } }
+        VerticalLayout { alignment: center; KoyButton { text: Tr.t("ProfilesExport"); clicked => { PR.item-command(root.index, "Export"); } } }
+        VerticalLayout { alignment: center; KoyButton { text: Tr.t("ProfilesDelete"); kind: ButtonKind.danger; clicked => { PR.item-command(root.index, "RequestDelete"); } } }
+    }
+    if item.renaming: HorizontalLayout {
+        spacing: 6px;
+        horizontal-stretch: 1;
+        VerticalLayout {
+            alignment: center;
+            horizontal-stretch: 1;
+            KoyTextBox {
+                text: root.item.edit-name;
+                edited(t) => { PR.edit-name-edited(root.index, t); }
+                accepted(t) => { PR.item-command(root.index, "CommitRename"); }
+            }
+        }
+        VerticalLayout { alignment: center; KoyButton { text: Tr.t("Cancel"); clicked => { PR.item-command(root.index, "CancelRename"); } } }
+        VerticalLayout { alignment: center; KoyButton { text: Tr.t("ProfilesRenameConfirm"); kind: ButtonKind.primary; clicked => { PR.item-command(root.index, "CommitRename"); } } }
+    }
+    if item.delete-confirming: SettingText { title: root.item.name; }
+    if item.delete-confirming: HorizontalLayout {
+        alignment: end;
+        spacing: 6px;
+        VerticalLayout { alignment: center; KoyButton { text: Tr.t("Cancel"); clicked => { PR.item-command(root.index, "CancelDelete"); } } }
+        VerticalLayout { alignment: center; KoyButton { text: Tr.t("ProfilesDeleteConfirm"); kind: ButtonKind.danger; clicked => { PR.item-command(root.index, "ConfirmDelete"); } } }
+    }
+}
+
+// Karşılığı: SubPages/GenelProfilesSubPage.xaml
+export component GeneralProfilesPage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("ProfilesHeader"); filtered-out: S.changed-only; }
+    SettingRow {
+        filtered-out: S.changed-only;
+        VerticalLayout {
+            spacing: 8px;
+            horizontal-stretch: 1;
+            SettingTitle { text: Tr.t("ProfilesSaveTitle"); }
+            KoyTextBox {
+                text: PR.new-name;
+                edited(t) => { PR.new-name-edited(t); }
+                accepted(t) => { PR.command("SaveCurrent"); }
+            }
+            HorizontalLayout {
+                spacing: 12px;
+                alignment: start;
+                for o[i] in PR.sections: KoyCheckBox {
+                    text: o.label;
+                    checked: o.selected;
+                    toggled(v) => { PR.section-toggled(i, v); }
+                }
+            }
+            HorizontalLayout {
+                spacing: 8px;
+                alignment: start;
+                KoyButton { text: Tr.t("ProfilesSaveButton"); kind: ButtonKind.primary; clicked => { PR.command("SaveCurrent"); } }
+                KoyButton { text: Tr.t("ProfilesExportCurrentButton"); clicked => { PR.command("ExportCurrent"); } }
+                KoyButton { text: Tr.t("ProfilesImportButton"); clicked => { PR.command("Import"); } }
+            }
+            if PR.status != "": SettingDesc { text: PR.status; color: PR.status-error ? Theme.danger-text : Theme.text-secondary; }
+        }
+    }
+    if PR.has-pending: SettingRow {
+        highlighted: true;
+        VerticalLayout {
+            spacing: 6px;
+            horizontal-stretch: 1;
+            SettingTitle { text: Tr.t("ProfilesImportPreviewTitle"); font-weight: 600; }
+            SettingTitle { text: PR.pending-name; }
+            SettingDesc { text: PR.pending-sections; }
+            SettingDesc { text: PR.pending-changes; }
+            SettingDesc { text: Tr.t("ProfilesImportMachineNote"); }
+            HorizontalLayout {
+                spacing: 8px;
+                alignment: start;
+                KoyButton { text: Tr.t("ProfilesImportSave"); clicked => { PR.command("ConfirmImportSave"); } }
+                KoyButton { text: Tr.t("ProfilesImportApply"); kind: ButtonKind.primary; clicked => { PR.command("ConfirmImportApply"); } }
+                KoyButton { text: Tr.t("Cancel"); clicked => { PR.command("CancelImport"); } }
+            }
+        }
+    }
+    if PR.items.length == 0 && !S.changed-only: SettingDesc { text: Tr.t("ProfilesEmpty"); }
+    for it[i] in PR.items: ProfileRow { item: it; index: i; }
+    if !S.changed-only: HorizontalLayout {
+        alignment: start;
+        padding-left: 2px;
+        LinkButton { text: Tr.t("ExtGetMore"); clicked => { S.action("OpenStoreCommand:Profile"); } }
+    }
+}
+
+export struct RuleItemData {
+    title: string,
+    profile: string,
+    enabled: bool,
+}
+
+export global RU {
+    in property <[RuleItemData]> items;
+    in property <[string]> running-apps;
+    in property <[string]> profile-options;
+    in property <int> selected-profile;
+    in property <string> process-text;
+    in property <string> status;
+    in property <bool> status-error;
+    callback process-edited(string);
+    callback pick-app(int);
+    callback select-profile(int);
+    callback refresh-running();
+    callback add();
+    callback toggled(int, bool);
+    callback delete(int);
+}
+
+// Karşılığı: SubPages/GenelRulesSubPage.xaml
+export component GeneralRulesPage inherits VerticalLayout {
+    spacing: 6px;
+    SectionHeader { text: Tr.t("RulesHeader"); filtered-out: S.changed-only; }
+    SettingRow {
+        filtered-out: S.changed-only;
+        VerticalLayout {
+            spacing: 8px;
+            horizontal-stretch: 1;
+            SettingTitle { text: Tr.t("RulesAddTitle"); }
+            HorizontalLayout {
+                spacing: 8px;
+                KoyTextBox {
+                    horizontal-stretch: 1;
+                    text: RU.process-text;
+                    placeholder: "chrome";
+                    edited(t) => { RU.process-edited(t); }
+                    accepted(t) => { RU.add(); }
+                }
+                KoyComboBox {
+                    width: 180px;
+                    items: RU.running-apps;
+                    selected: -1;
+                    changed(i) => { RU.pick-app(i); }
+                }
+                KoyButton { text: Tr.t("RulesRefreshRunning"); clicked => { RU.refresh-running(); } }
+            }
+            SettingDesc { text: Tr.t("RulesProfileLabel"); }
+            HorizontalLayout {
+                spacing: 8px;
+                KoyComboBox {
+                    horizontal-stretch: 1;
+                    items: RU.profile-options;
+                    selected: RU.selected-profile;
+                    changed(i) => { RU.select-profile(i); }
+                }
+                KoyButton { text: Tr.t("RulesAddButton"); kind: ButtonKind.primary; enabled: RU.profile-options.length > 0; clicked => { RU.add(); } }
+            }
+            if RU.status != "": SettingDesc { text: RU.status; color: RU.status-error ? Theme.danger-text : Theme.text-secondary; }
+        }
+    }
+    if RU.items.length == 0 && !S.changed-only: SettingDesc { text: Tr.t("RulesEmpty"); }
+    for r[i] in RU.items: SettingRow {
+        filtered-out: S.changed-only;
+        SettingText { title: r.title; description: r.profile; }
+        HorizontalLayout {
+            alignment: end;
+            spacing: 10px;
+            VerticalLayout {
+                alignment: center;
+                ToggleSwitch { checked: r.enabled; toggled(v) => { RU.toggled(i, v); } }
+            }
+            VerticalLayout {
+                alignment: center;
+                KoyButton { text: Tr.t("ProfilesDelete"); kind: ButtonKind.danger; clicked => { RU.delete(i); } }
+            }
         }
     }
 }
