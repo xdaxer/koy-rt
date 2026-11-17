@@ -68,6 +68,7 @@ pub struct NotchWindowHost {
     pub voice_confirm_requested: RefCell<Option<Box<dyn Fn()>>>,
     pub voice_cancel_requested: RefCell<Option<Box<dyn Fn()>>>,
     pub voice_reply_requested: RefCell<Option<Box<dyn Fn()>>>,
+    live_bg: RefCell<Option<Rc<super::live_background::live_background_renderer::LiveBackgroundRenderer>>>,
 }
 
 fn retarget(spring: &mut Spring, target: f64) {
@@ -103,6 +104,7 @@ impl NotchWindowHost {
             hooks: RefCell::new(Vec::new()),
             native_ready: RefCell::new(None),
             subs: RefCell::new(Vec::new()),
+            live_bg: RefCell::new(None),
             display_change_handler: RefCell::new(None),
             voice_confirm_requested: RefCell::new(None),
             voice_cancel_requested: RefCell::new(None),
@@ -123,6 +125,12 @@ impl NotchWindowHost {
             a.translate_y.snap_to(-150.0);
         }
         host.render_frame();
+        // Canlı arka plan çizimi (oynatma kararı görünüm modelinde).
+        let renderer = super::live_background::live_background_renderer::LiveBackgroundRenderer::attach(
+            &host.window,
+            Rc::clone(&host.vm.live_background),
+        );
+        *host.live_bg.borrow_mut() = Some(renderer);
         host
     }
 

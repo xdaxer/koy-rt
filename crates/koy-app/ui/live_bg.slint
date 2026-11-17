@@ -1,0 +1,34 @@
+// Karşılığı: Features/Notch/LiveBackground/LiveBackgroundHost.cs (görsel katman).
+// Canlı arka plan: ambiyans gradyanı (dört durak, Rust 15 kare/sn günceller) ya da görsel; üstünde koyu perde.
+// Fareyi geçirir; içeriğin altında kalır.
+
+export global LiveBg {
+    // 0 yok, 1 gradyan, 2 görsel
+    in property <int> notch-kind;
+    in property <int> card-kind;
+    in property <color> c1;
+    in property <color> c2;
+    in property <color> c3;
+    in property <color> c4;
+    in property <image> img;
+    in property <float> scrim: 0.45;
+}
+
+export component LiveBgLayer inherits Rectangle {
+    in property <int> kind;
+    clip: true;
+    if kind == 1: Rectangle {
+        background: @linear-gradient(135deg, LiveBg.c1 0%, LiveBg.c2 33%, LiveBg.c3 66%, LiveBg.c4 100%);
+    }
+    if kind == 2: Image {
+        width: parent.width;
+        height: parent.height;
+        source: LiveBg.img;
+        image-fit: cover;
+    }
+    // Perde yalnız bir arka plan gösterilirken çizilir.
+    if kind != 0: Rectangle {
+        background: black;
+        opacity: LiveBg.scrim;
+    }
+}

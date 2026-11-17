@@ -3,6 +3,7 @@
 // çentik (üst satır + sayfa). Şeklin dışı pencere bölgesiyle (SetWindowRgn) kırpılır; boyutlar Rust'taki yaydan gelir.
 
 import { Theme } from "theme.slint";
+import { LiveBg, LiveBgLayer } from "live_bg.slint";
 import { Icons, KoyIcon } from "icons.slint";
 import { WeatherGlyph } from "status.slint";
 import { NotchPlainButton } from "notch_controls.slint";
@@ -527,6 +528,16 @@ export component NotchSurface inherits Rectangle {
         viewbox-height: self.height / 1px;
         commands: shape-path;
         fill: d.surface;
+    }
+    // Canlı arka plan (açık çentiğin zemini): içeriğin altında, fareyi geçirir.
+    if LiveBg.notch-kind != 0: LiveBgLayer {
+        kind: LiveBg.notch-kind;
+        x: (640px - shape-width) / 2;
+        y: translate-y;
+        width: shape-width;
+        height: shape-height;
+        border-bottom-left-radius: 24px;
+        border-bottom-right-radius: 24px;
     }
     // İçerik dokunma alanının içindedir: düğmelerin üstündeyken de çentik "fare üstünde" sayılır (WPF MouseEnter/Leave).
     hit := TouchArea {

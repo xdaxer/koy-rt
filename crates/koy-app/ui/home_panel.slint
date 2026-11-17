@@ -3,6 +3,7 @@
 // (solda "Bugün": gün, hava, sıradaki etkinlikler; sağda Odak satırı ve ayardaki sırayla kulaklık, sistem, hızlı başlat).
 
 import { Theme } from "theme.slint";
+import { LiveBg, LiveBgLayer } from "live_bg.slint";
 import { Icons, KoyIcon } from "icons.slint";
 import { ArcRing } from "arc_ring.slint";
 import { WeatherGlyph } from "status.slint";
@@ -182,6 +183,8 @@ component MusicFace inherits Rectangle {
     clip: true;
     // Müzik kartının boş yerine tıklama işlenmiş sayılır (çentik kapanmasın).
     TouchArea { }
+    // Canlı arka plan (müzik kartının zemini).
+    if LiveBg.card-kind != 0: LiveBgLayer { kind: LiveBg.card-kind; border-radius: 20px; }
     // Çok renkli kapak: köşelerden yayılan renkler.
     for c[i] in m.blend: Rectangle {
         background: @radial-gradient(circle, c 0%, transparent 70%);
