@@ -1,5 +1,9 @@
 # Taşıma ilerlemesi
 
+**Üst kaynak eşitleme noktası:** koyhq/koy `2fa9ba9` (v0.2.13, 2026-11-16). Yeni üst kaynak değişiklikleri
+`git -C ../koy fetch && git -C ../koy log 2fa9ba9..origin/main` ile bulunur ve aynı katman sırasıyla (Core → Platform → App)
+taşınır. Taşınmayanlar: arka plan videolarının döngü düzeltmesi (Slint video oynatmaz), Velopack kancaları.
+
 | Katman | Modül | Durum | Not |
 |---|---|---|---|
 | core | time, text, event, cancel, win_path (ortak) | ✅ | win_path: .NET Windows Path (GetFileName, GetExtension, GetDirectoryName, GetFullPath, Combine, IsPathRooted). cancel: CancellationToken/Source, OperationCanceled. | C# TimeSpan/TimeProvider/FakeClock/StepTimeProvider, bankacı yuvarlaması, OrdinalIgnoreCase |
